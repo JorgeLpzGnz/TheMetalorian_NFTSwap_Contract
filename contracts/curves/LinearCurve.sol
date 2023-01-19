@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./ICurve.sol";
+import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
@@ -18,7 +18,7 @@ contract LinearCurve is ICurve, CurveErrors {
 
     }
 
-    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems ) external pure override 
+    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
             Error error, 
             uint128 newSpotPrice, 
@@ -42,6 +42,12 @@ contract LinearCurve is ICurve, CurveErrors {
 
         // update ( Fees )
 
+        uint poolFee = inputValue * _poolFee;
+
+        protocolFee = inputValue * _protocolFee;
+
+        inputValue += ( protocolFee + poolFee );
+
         newSpotPrice = uint128(_newSpotPrice);
 
         newDelta = _delta;
@@ -50,7 +56,7 @@ contract LinearCurve is ICurve, CurveErrors {
 
     }
 
-    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems ) external pure override
+    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
         returns ( 
             Error error, 
             uint128 newSpotPrice, 
@@ -77,6 +83,12 @@ contract LinearCurve is ICurve, CurveErrors {
         outputValue = _numItems * _spotPrice - ( _numItems * ( _numItems - 1 ) * _delta ) / 2;
 
         // update ( Fees )
+
+        uint poolFee = outputValue * _poolFee;
+
+        protocolFee = outputValue * _protocolFee;
+
+        outputValue -= ( protocolFee + poolFee );
 
         newDelta = _delta;
 

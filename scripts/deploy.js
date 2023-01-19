@@ -25,8 +25,8 @@ async function main() {
 
   const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
   const metaFactory = await MetaFactory.deploy( 
-    exponencialCurve.address,
     linearCurve.address,
+    exponencialCurve.address,
     cPCurve.address
   );
 

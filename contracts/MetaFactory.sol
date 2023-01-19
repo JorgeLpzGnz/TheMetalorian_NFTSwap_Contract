@@ -9,9 +9,8 @@ import "./pairs/MSPairBasic.sol";
 import "./pairs/MSPairNFTEnumerable.sol";
 import "./pairs/MSPairNFTBasic.sol";
 import "./pairs/PoolTypes.sol";
-// import "hardhat/console.sol";
 
-contract MetaFactory is Ownable, PoolTypes {
+contract MetaFactory is Ownable {
 
     bytes4 constant ERC721_ENUMERABLE_INTERFACE_ID =
         type(IERC721Enumerable).interfaceId;
@@ -19,19 +18,25 @@ contract MetaFactory is Ownable, PoolTypes {
     bytes4 constant ERC721_INTERFACE_ID =
         type(IERC721).interfaceId;
 
-    address immutable ExponencialCurve;
+    uint128 public MAX_FEE_PERCENTAGE = 0.9e18;
 
-    address immutable LinearCurve;
+    uint128 public PROTOCOL_FEE = 0.01e18;
 
-    address immutable CPCurve;
+    address public PROTOCOL_FEE_RECIPIENT;
 
-    constructor( address _ExponencialCurve, address  _LinearCurve, address _CPCurve ) {
+    mapping( address => bool ) isMSCurve;
 
-        ExponencialCurve = _ExponencialCurve;
+    event NewPair( address pair, address owner);
 
-        LinearCurve = _LinearCurve;
+    constructor( address  _LinearCurve, address _ExponencialCurve, address _CPCurve ) {
 
-        CPCurve = _CPCurve;
+        isMSCurve[_LinearCurve] = true;
+
+        isMSCurve[_ExponencialCurve] = true;
+
+        isMSCurve[_CPCurve] = true;
+
+        PROTOCOL_FEE_RECIPIENT = address( this );
 
     }
 
@@ -55,18 +60,23 @@ contract MetaFactory is Ownable, PoolTypes {
 
     function createPair( 
         address _nft, 
+        uint[] calldata _nftIds,
         uint128 _delta,
         uint128 _spotPrice,
         address _rewardsRecipent,
         uint128 _fee,
         ICurve _curve, 
-        PoolType _poolType
-        ) public payable 
+        PoolTypes.PoolType _poolType
+        ) public payable  returns(
+            MSPairBasic pair
+        )
     {
 
-        MSPairBasic pair = _creteContract( _nft );
+        require( isMSCurve[ address(_curve) ], "invalid curve");
 
-        pair.initialize( 
+        pair = _creteContract( _nft );
+
+        pair.initialize(
             _delta, 
             _spotPrice, 
             _rewardsRecipent, 
@@ -77,6 +87,70 @@ contract MetaFactory is Ownable, PoolTypes {
             _poolType
         );
 
+        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.Token ) {
+
+            ( bool isSended, ) = payable( address( pair ) ).call{ value: msg.value }("");
+
+            require( isSended );
+        }
+        
+
+        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.NFT ) {
+
+            for (uint256 i = 0; i < _nftIds.length; i++) {
+
+                IERC721( _nft ).safeTransferFrom( msg.sender, address( pair ), _nftIds[i]);
+
+            }
+            
+        }
+
+        emit NewPair( address( pair ), msg.sender );
+
     }
+
+    function setProtocolFee( uint128 _newProtocolFee ) public onlyOwner {
+
+        require( _newProtocolFee < MAX_FEE_PERCENTAGE );
+
+        PROTOCOL_FEE = _newProtocolFee;
+
+    }
+
+    function setProtocolFeeRecipient( address _newRecipient ) public onlyOwner {
+
+        PROTOCOL_FEE_RECIPIENT = _newRecipient;
+
+    }
+
+    function withdrawETH() external onlyOwner {
+
+        uint balance = address( this ).balance;
+
+        require( balance > 0, "insufficent balance" );
+
+        ( bool isSended, ) = owner().call{ value: balance }("");
+
+        require( isSended, "transaction not sended" );
+
+    }
+
+    function withdrawNFTs( address _nft, uint[] memory _nftIds ) external onlyOwner {
+
+        for (uint256 i = 0; i < _nftIds.length; i++) {
+            
+            IERC721(_nft).safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
+
+        }
+
+    }
+
+    function getFactoryInfo() public view returns( uint128, uint128, address ) {
+
+        return ( MAX_FEE_PERCENTAGE, PROTOCOL_FEE, PROTOCOL_FEE_RECIPIENT );
+
+    }
+
+    receive() external payable  {}
 
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./CurveErrors.sol";
+import "../curves/CurveErrors.sol";
 
 interface ICurve {
 
@@ -9,7 +9,7 @@ interface ICurve {
 
     function validateDelta( uint _delta ) external pure returns( bool );
 
-    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems ) external  pure 
+    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external  pure 
         returns ( 
             CurveErrors.Error error, 
             uint128 newSpotPrice, 
@@ -18,7 +18,7 @@ interface ICurve {
             uint256 protocolFee 
         );
 
-    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems ) external  pure 
+    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external  pure 
         returns ( 
             CurveErrors.Error error, 
             uint128 newSpotPrice, 
