@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -9,8 +10,12 @@ import "./pairs/MSPairBasic.sol";
 import "./pairs/MSPairNFTEnumerable.sol";
 import "./pairs/MSPairNFTBasic.sol";
 import "./pairs/PoolTypes.sol";
+import "hardhat/console.sol";
+
 
 contract MetaFactory is Ownable {
+
+    using Clones for address;
 
     bytes4 constant ERC721_ENUMERABLE_INTERFACE_ID =
         type(IERC721Enumerable).interfaceId;
@@ -23,6 +28,10 @@ contract MetaFactory is Ownable {
     uint128 public PROTOCOL_FEE = 0.01e18;
 
     address public PROTOCOL_FEE_RECIPIENT;
+
+    MSPairNFTEnumerable pairEnumerableImplementation;
+
+    MSPairNFTBasic pairBasicImplementation;
 
     mapping( address => bool ) isMSCurve;
 
@@ -38,6 +47,10 @@ contract MetaFactory is Ownable {
 
         PROTOCOL_FEE_RECIPIENT = address( this );
 
+        pairEnumerableImplementation = new MSPairNFTEnumerable();
+
+        pairBasicImplementation = new MSPairNFTBasic();
+
     }
 
     function _creteContract( address _nft ) private returns( MSPairBasic _newPair ) {
@@ -52,9 +65,11 @@ contract MetaFactory is Ownable {
 
         require( isEnumerable || isBasic );
 
-        if( isEnumerable ) _newPair = MSPairBasic( new MSPairNFTEnumerable());
+        address implementation = isEnumerable
+            ? address( pairEnumerableImplementation )
+            : address( pairBasicImplementation );
 
-        if( isBasic ) _newPair = MSPairBasic( new MSPairNFTBasic());
+        _newPair = MSPairBasic( payable( implementation.clone() ) );
 
     }
 
@@ -76,14 +91,14 @@ contract MetaFactory is Ownable {
 
         pair = _creteContract( _nft );
 
-        pair.initialize(
+        pair.init(
             _delta, 
             _spotPrice, 
-            _rewardsRecipent, 
+            _rewardsRecipent,
             msg.sender, 
+            _nft, 
             _fee, 
             _curve, 
-            _nft, 
             _poolType
         );
 
@@ -92,6 +107,7 @@ contract MetaFactory is Ownable {
             ( bool isSended, ) = payable( address( pair ) ).call{ value: msg.value }("");
 
             require( isSended );
+            
         }
         
 
@@ -109,9 +125,17 @@ contract MetaFactory is Ownable {
 
     }
 
+    function getFactoryInfo() public view returns( uint128, uint128, address ) {
+
+        return ( MAX_FEE_PERCENTAGE, PROTOCOL_FEE, PROTOCOL_FEE_RECIPIENT );
+
+    }
+
     function setProtocolFee( uint128 _newProtocolFee ) public onlyOwner {
 
-        require( _newProtocolFee < MAX_FEE_PERCENTAGE );
+        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "new Fee exceeds limit" );
+
+        require( PROTOCOL_FEE != _newProtocolFee, "new Fee can't be iqual than current" );
 
         PROTOCOL_FEE = _newProtocolFee;
 
@@ -119,9 +143,13 @@ contract MetaFactory is Ownable {
 
     function setProtocolFeeRecipient( address _newRecipient ) public onlyOwner {
 
+        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "new recipient can't be iqual than current" );
+
         PROTOCOL_FEE_RECIPIENT = _newRecipient;
 
     }
+
+    receive() external payable  {}
 
     function withdrawETH() external onlyOwner {
 
@@ -144,13 +172,5 @@ contract MetaFactory is Ownable {
         }
 
     }
-
-    function getFactoryInfo() public view returns( uint128, uint128, address ) {
-
-        return ( MAX_FEE_PERCENTAGE, PROTOCOL_FEE, PROTOCOL_FEE_RECIPIENT );
-
-    }
-
-    receive() external payable  {}
 
 }

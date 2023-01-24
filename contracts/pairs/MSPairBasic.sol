@@ -9,7 +9,7 @@ import "../interfaces/ICurve.sol";
 import "../interfaces/IMetaFactory.sol";
 import "../curves/CurveErrors.sol";
 // Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
@@ -19,7 +19,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     uint128 public tradeFee;
 
-    uint128 public MAX_TRADE_FEE = 0.9e18;
+    uint128 public constant MAX_TRADE_FEE = 0.9e18;
 
     address public rewardsRecipent;
 
@@ -27,9 +27,9 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     address public factory;
 
-    PoolTypes.PoolType currentPoolType;
+    PoolTypes.PoolType public currentPoolType;
 
-    ICurve curve;
+    ICurve public curve;
 
     function _getSellNFTInfo( uint _numNFTs, uint _maxEspectedOut ) internal virtual returns ( 
             uint256 outputValue, 
@@ -125,19 +125,21 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
-    function initialize(
+    function init(
         uint128 _delta, 
         uint128 _spotPrice, 
         address _rewardsRecipent, 
         address _owner, 
+        address _NFT, 
         uint128 _fee, 
         ICurve _curve, 
-        address _NFT, 
         PoolTypes.PoolType _poolType 
         ) public payable 
     {
 
-        transferOwnership( _owner );
+        require( owner() == address(0), "it is already initialized");
+
+        _transferOwnership( _owner );
 
         if( _poolType == PoolTypes.PoolType.Token || _poolType == PoolTypes.PoolType.NFT ) {
 

@@ -1,4 +1,5 @@
 require("dotenv").config()
+require("hardhat-gas-reporter");
 require("@nomicfoundation/hardhat-toolbox");
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -9,13 +10,17 @@ module.exports = {
 			version: "0.8.17",
 			settings: {
 			  optimizer: {
-				enabled: true,
+				enabled: false,
 				runs: 200,
 			  },
 			},
 		  },
 		]
-	}, networks: {
+	}, 
+	gasReporter: {
+		enabled: false
+	},
+	networks: {
 		mainnet: {
 			url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_MAINNET_KEY}`,
 			accounts: [`0x${process.env.PRIVATE_KEY}`],
