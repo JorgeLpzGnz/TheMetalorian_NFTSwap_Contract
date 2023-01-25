@@ -31,7 +31,11 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     ICurve public curve;
 
-    function _getSellNFTInfo( uint _numNFTs, uint _maxEspectedOut ) internal virtual returns ( 
+    event SellLog( address user, uint inputNFTs, uint amoutOut );
+
+    event BuyLog( address user, uint amoutIn, uint outputNFTs );
+
+    function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) internal virtual returns ( 
             uint256 outputValue, 
             uint256 protocolFee 
         ) 
@@ -43,8 +47,6 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         uint128 newDelta;
 
-        ( , uint128 protocolFeeMult, ) = IMetaFactory( factory ).getFactoryInfo();
-
         (
             error, 
             newSpotPrice, 
@@ -55,13 +57,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             delta, 
             spotPrice, 
             _numNFTs,
-            protocolFeeMult,
+            IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
             );
 
-        require( error == CurveErrors.Error.OK );
+        require( error == CurveErrors.Error.OK, "curve Error" );
 
-        require( outputValue <= _maxEspectedOut );
+        require( outputValue >= _minExpected, "output amount is les than min espected" );
 
         if( delta != newDelta ) delta = newDelta;
 
@@ -69,7 +71,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function _getBuyNFTInfo( uint _numNFTs, uint _maxEspectedOut ) internal virtual returns ( 
+    function _getBuyNFTInfo( uint _numNFTs, uint _maxEspectedIn ) internal virtual returns ( 
             uint256 inputValue, 
             uint256 protocolFee 
         ) 
@@ -81,8 +83,6 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         uint128 newDelta;
 
-        ( , uint128 protocolFeeMult, ) = IMetaFactory( factory ).getFactoryInfo();
-
         (
             error, 
             newSpotPrice, 
@@ -93,13 +93,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             delta, 
             spotPrice, 
             _numNFTs, 
-            protocolFeeMult,
+            IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
             );
 
-        require( error == CurveErrors.Error.OK );
+        require( error == CurveErrors.Error.OK, "curve Error" );
 
-        require( inputValue <= _maxEspectedOut );
+        require( inputValue <= _maxEspectedIn, "output amount is less than min espected" );
 
         if( delta != newDelta ) delta = newDelta;
 
@@ -109,19 +109,31 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
 
-        (, ,address protocolFeeRecipient ) = IMetaFactory( factory ).getFactoryInfo();
+        address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
 
-        ( bool isFeeSended, ) = payable( protocolFeeRecipient ).call{ value: _protocolFee }( "" );
+        ( bool isFeeSended, ) = payable( feeRecipient ).call{value: _protocolFee}("");
 
-        ( bool isAmountSended, ) = payable( _to ).call{ value: _amount }( "" );
+        ( bool isAmountSended, ) = payable( _to ).call{ value: _amount - _protocolFee }( "" );
 
-        require( isAmountSended && isFeeSended );
+        require( isAmountSended && isFeeSended, "tx error" );
+
+    }
+
+    function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
+
+        require( msg.value >= _inputAmount, "insufficent amount of ETH" );
+
+        address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
+
+        ( bool isSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
+
+        require( isSended, "tx error");
 
     }
 
     function _sendNFTsTo( address _from, address _to, uint[] calldata _tokenIDs ) internal virtual;
 
-    function _sendAnyNFTsTo( address _to, uint _numNFTs ) internal virtual;
+    function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal virtual;
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
@@ -141,25 +153,9 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         _transferOwnership( _owner );
 
-        if( _poolType == PoolTypes.PoolType.Token || _poolType == PoolTypes.PoolType.NFT ) {
+        if( rewardsRecipent != _rewardsRecipent ) rewardsRecipent = _rewardsRecipent;
 
-            require( _fee == 0, "fees only available in trade pools");
-
-            rewardsRecipent = _rewardsRecipent;
-
-        } else {
-
-            require( _rewardsRecipent == address(0), "trades pools can't use fees recipent");
-
-            require( _fee <= MAX_TRADE_FEE, "fees exceeds max");
-
-            tradeFee = _fee;
-
-        }
-
-        require( _curve.validateSpotPrice( _spotPrice ), "invalid spotPrice" );
-
-        require( _curve.validateDelta( _delta ), "invalid delta" );
+        if( tradeFee != _fee) tradeFee = _fee;
 
         curve = _curve;
 
@@ -175,39 +171,65 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function swapNFTsForToken( uint[] calldata _tokenIDs, uint _maxEspectedOut, address payable _recipient, address _sender ) public nonReentrant {
+    function swapNFTsForToken( uint[] calldata _tokenIDs, uint _minExpected, address _user ) public nonReentrant {
 
-        require( currentPoolType == PoolTypes.PoolType.Token || currentPoolType == PoolTypes.PoolType.Trade );
+        require( currentPoolType == PoolTypes.PoolType.Token || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
-        ( uint256 inputValue, uint256 protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _maxEspectedOut );
+        ( uint256 outputAmount, uint256 protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
 
-        _sendNFTsTo(  _sender, address( this ), _tokenIDs );
+        _sendNFTsTo( _user, address( this ), _tokenIDs );
 
-        _sendTokensAndPayFee( protocolFee, inputValue, _recipient );
+        _sendTokensAndPayFee( protocolFee, outputAmount, _user );
+
+        emit SellLog( _user, _tokenIDs.length, outputAmount );
 
     }
 
-    function swapTokenForNFT( uint[] calldata _tokenIDs, uint _maxEspectedOut, address payable _recipient, address _sender ) public payable {
+    function swapTokenForNFT( uint[] calldata _tokenIDs, uint _maxEspectedIn, address _user ) public payable {
 
-        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade );
+        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
-        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedOut );
+        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedIn );
 
-        _sendTokensAndPayFee( protocolFee, inputAmount, _recipient );
+        console.log( address( this ).balance );
 
-        _sendNFTsTo( _sender, address( this ), _tokenIDs );
+        _receiveTokensAndPayFee( inputAmount, protocolFee );
+
+        console.log( address( this ).balance );
+
+        _sendNFTsTo( address( this ), _user, _tokenIDs );
+
+        if ( msg.value > inputAmount ) {
+
+            ( bool isSended , ) = payable( _user).call{ value: msg.value - inputAmount }("");
+            
+            require( isSended, "tx error" );
+            
+        }
+
+        emit BuyLog( _user, inputAmount, _tokenIDs.length);
         
     }
 
-    function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedOut, address payable _recipient, address _sender ) public payable {
+    function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedIn, address _user ) public payable {
 
         require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade );
 
-        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedOut );
+        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedIn );
 
-        _sendTokensAndPayFee( protocolFee, inputAmount, _recipient );
+        _receiveTokensAndPayFee( inputAmount, protocolFee );
 
-        _sendAnyNFTsTo( _sender, _numNFTs );
+        _sendAnyOutNFTs( _user, _numNFTs );
+
+        if ( msg.value > inputAmount ) {
+
+            ( bool isSended , ) = payable( _user).call{ value: msg.value - inputAmount }("");
+            
+            require( isSended, "tx error" );
+            
+        }
+
+        emit BuyLog( _user, inputAmount, _numNFTs);
         
     }
 

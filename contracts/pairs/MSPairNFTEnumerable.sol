@@ -37,7 +37,7 @@ contract MSPairNFTEnumerable is MSPairBasic, IERC721Receiver {
 
     }
 
-    function _sendAnyNFTsTo( address _to, uint _numNFTs ) internal override {
+    function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 

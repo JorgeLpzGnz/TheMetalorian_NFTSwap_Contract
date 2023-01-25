@@ -21,5 +21,11 @@ interface IMetaFactory {
         );
 
     function getFactoryInfo() external view returns( uint128, uint128, address );
+
+    function MAX_FEE_PERCENTAGE() external view returns( uint128);
+
+    function PROTOCOL_FEE() external view returns( uint128);
+
+    function PROTOCOL_FEE_RECIPIENT() external view returns( address );
     
 }

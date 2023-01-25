@@ -1,4 +1,5 @@
 
+const { ethers } = require("hardhat")
 const PAIR_NFT_BASIC = require("../artifacts/contracts/pairs/MSPairNFTBasic.sol/MSPairNFTBasic.json")
 const PAIR_NFT_ENUMERABLE = require("../artifacts/contracts/pairs/MSPairNFTEnumerable.sol/MSPairNFTEnumerable.json")
 
@@ -10,11 +11,11 @@ const poolType = {
 
 async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, curve, poolType, _fee, _tokenAmount ) {
 
-    let nftIds
+    const tokenIds = await mintNFT(nft, amountOfNFTs, metaFactory)
 
-    if ( poolType == 1 || poolType == 2 ) nftIds = await mintNFT(nft, amountOfNFTs, metaFactory)
+    let nftIds = tokenIds
 
-    else nftIds = []
+    if ( poolType == 0 ) nftIds = []
 
     const delta = ethers.utils.parseEther(`${ _delta }`)
 
@@ -26,9 +27,9 @@ async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, c
 
     let rewardRecipient = owner.address
 
-    const tokenAmount = ethers.utils.parseEther( `${_tokenAmount}` )
-
     if( poolType == 2 ) rewardRecipient = ethers.constants.AddressZero
+
+    const tokenAmount = ethers.utils.parseEther( `${_tokenAmount}` )
 
     const tx = await metaFactory.createPair( 
         nft.address,    // colection
@@ -45,11 +46,14 @@ async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, c
 
     const { pair } = await getEventLog( tx, "NewPair" )
 
-    return new ethers.Contract(
-        pair,
-        PAIR_NFT_BASIC.abi,
-        owner
-    )
+    await nft.setApprovalForAll( pair, true)
+
+    return { 
+        pair: new ethers.Contract(
+            pair,
+            PAIR_NFT_BASIC.abi,
+            owner
+        ), tokenIds }
 
 }
 
@@ -105,10 +109,50 @@ async function sendBulkNfts( nft, tokenIds, to ) {
         
 }
 
+function getNumber( bignumber ) {
+
+    return Number( ethers.utils.formatEther( bignumber ))
+
+}
+
+function getTokenInput( curve, spotPrice, delta, numItems ) {
+
+    let buyPrice
+
+    switch ( curve ) {
+
+        case "linear":
+
+            buyPrice = spotPrice + delta
+
+            return numItems * buyPrice + ( numItems * ( numItems - 1) * delta ) / 2;
+
+        case "exponencial":
+
+            const deltaPow = delta ** numItems
+
+            buyPrice = spotPrice * delta
+
+            return buyPrice * ( deltaPow - 1 ) / ( delta - 1 )
+
+        case "cp":
+
+            const tokenBalance = spotPrice
+
+            const nftBalance = delta
+
+            return ( numItems * tokenBalance ) / ( nftBalance - numItems)
+
+    }
+
+}
+
 module.exports = {
     poolType, 
     createPair, 
     getEventLog, 
     mintNFT, 
-    sendBulkNfts
+    sendBulkNfts,
+    getNumber,
+    getTokenInput
 }

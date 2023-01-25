@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
+import "hardhat/console.sol";
 
 contract ExponencialCurve is ICurve, CurveErrors {
 
@@ -22,7 +23,7 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
     }
 
-    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
+    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
         returns ( 
             Error error, 
             uint128 newSpotPrice, 
@@ -43,15 +44,15 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         newSpotPrice = uint128( _newSpotPrice );
 
-        uint buyPrice = uint( _spotPrice ) * _delta;
+        uint buyPrice = ( uint( _spotPrice ) * _delta ) / 1e18;
 
         inputValue = buyPrice * ( deltaPow - 1e18 ) / ( _delta - 1e18);
 
         // update ( Fees )
 
-        uint poolFee = inputValue * _poolFee;
+        uint poolFee = ( inputValue * _poolFee ) / 1e18;
 
-        protocolFee = inputValue * _protocolFee;
+        protocolFee = (inputValue * _protocolFee) / 1e18;
 
         inputValue += ( protocolFee + poolFee );
 
@@ -78,6 +79,8 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         uint invDeltaPow = invDelta ** _numItems;
 
+        // update ( this is a percentage )
+
         newSpotPrice = uint128( _spotPrice * invDeltaPow );
 
         if( newSpotPrice < MIN_PRICE ) newSpotPrice = MIN_PRICE;
@@ -93,7 +96,7 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         protocolFee = outputValue * _protocolFee;
 
-        outputValue -=  ( protocolFee + poolFee );
+        outputValue -= ( protocolFee + poolFee );
 
         newDelta = _delta;
 

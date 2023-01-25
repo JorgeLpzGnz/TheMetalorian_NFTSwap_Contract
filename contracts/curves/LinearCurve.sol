@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
+import "hardhat/console.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
 
@@ -84,9 +85,9 @@ contract LinearCurve is ICurve, CurveErrors {
 
         // update ( Fees )
 
-        uint poolFee = outputValue * _poolFee;
+        uint poolFee = ( outputValue * _poolFee ) / 1e18;
 
-        protocolFee = outputValue * _protocolFee;
+        protocolFee = ( outputValue * _protocolFee ) / 1e18;
 
         outputValue -= ( protocolFee + poolFee );
 

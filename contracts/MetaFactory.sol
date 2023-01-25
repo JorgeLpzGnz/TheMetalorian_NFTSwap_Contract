@@ -73,6 +73,24 @@ contract MetaFactory is Ownable {
 
     }
 
+    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _rewardsRecipent, uint128 _spotPrice, uint128 _delta, ICurve _curve ) public view returns( bool ) {
+
+        if( _poolType == PoolTypes.PoolType.Token || _poolType == PoolTypes.PoolType.NFT ) {
+
+            if ( _fee != 0 ) return false;
+
+        } else {
+
+            if ( _rewardsRecipent != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
+
+        }
+
+        if ( !_curve.validateSpotPrice( _spotPrice ) || !_curve.validateDelta( _delta ) ) return false;
+
+        return true;
+        
+    }
+
     function createPair( 
         address _nft, 
         uint[] calldata _nftIds,
@@ -88,6 +106,8 @@ contract MetaFactory is Ownable {
     {
 
         require( isMSCurve[ address(_curve) ], "invalid curve");
+
+        require( checkInitParams( _poolType, _fee, _rewardsRecipent, _spotPrice, _delta, _curve ), "invalid init params" );
 
         pair = _creteContract( _nft );
 

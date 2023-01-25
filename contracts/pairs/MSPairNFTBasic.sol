@@ -2,11 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../libraries/Arrays.sol";
 import "./MSPairBasic.sol";
 
 contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
-    uint[] public TOKEN_IDS;
+    using Arrays for uint[];
+
+    uint[] private _TOKEN_IDS;
 
     function _sendNFTsTo( address _from, address _to, uint[] calldata _tokenIDs ) internal override {
 
@@ -16,25 +19,23 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
             _NFT.safeTransferFrom(_from, _to, _tokenIDs[i]);
 
-            if( _to == address( this ) ) TOKEN_IDS.push( _tokenIDs[i] );
+            ( uint index, bool isIncluded ) = _tokenIDs.indexOf( _tokenIDs[i] );
 
-            else delete TOKEN_IDS[ _tokenIDs[i] ];
+            if( _to != address( this ) && isIncluded ) delete _TOKEN_IDS[ index ];
 
         }
 
     }
 
-    function _sendAnyNFTsTo( address _to, uint _numNFTs ) internal override {
+    function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 
-        uint[] memory nftIds = getNFTIds();
-
         for (uint256 i = 0; i < _numNFTs - 1; i++) {
 
-            _NFT.safeTransferFrom( address( this ), _to, nftIds[i]);
+            _NFT.safeTransferFrom( address( this ), _to, _TOKEN_IDS[i]);
 
-            delete nftIds[ nftIds[i] ];
+            delete _TOKEN_IDS[i];
 
         }
 
@@ -42,7 +43,7 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
     function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
 
-        if( NFT == msg.sender ) TOKEN_IDS.push(id);
+        if( NFT == msg.sender ) _TOKEN_IDS.push(id);
 
         return IERC721Receiver.onERC721Received.selector;
 
@@ -50,7 +51,7 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
     function getNFTIds() public override view returns ( uint[] memory nftIds) {
 
-        nftIds = TOKEN_IDS;
+        nftIds = _TOKEN_IDS;
 
     }
 
@@ -64,7 +65,7 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
                 poolNFT.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
-                delete TOKEN_IDS[ _nftIds[i] ];
+                delete _TOKEN_IDS[ _nftIds[i] ];
 
             }
 
