@@ -1,11 +1,13 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
+import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
-import "hardhat/console.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
+
+    using FixedPointMathLib for uint256;
 
     function validateSpotPrice( uint ) external pure override returns( bool ) {
 
@@ -31,7 +33,7 @@ contract LinearCurve is ICurve, CurveErrors {
         if ( _numItems == 0 ) 
             return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
 
-        uint _newSpotPrice = _spotPrice + _delta * _numItems;
+        uint _newSpotPrice = uint( _spotPrice + _delta ).fmul( _numItems, FixedPointMathLib.WAD );
 
         if( _newSpotPrice > type( uint128 ).max )
             return (Error.SPOT_PRICE_OVERFLOW, 0, 0, 0, 0);
@@ -43,9 +45,9 @@ contract LinearCurve is ICurve, CurveErrors {
 
         // update ( Fees )
 
-        uint poolFee = inputValue * _poolFee;
+        uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 
-        protocolFee = inputValue * _protocolFee;
+        protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD);
 
         inputValue += ( protocolFee + poolFee );
 
@@ -85,9 +87,9 @@ contract LinearCurve is ICurve, CurveErrors {
 
         // update ( Fees )
 
-        uint poolFee = ( outputValue * _poolFee ) / 1e18;
+        uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 
-        protocolFee = ( outputValue * _protocolFee ) / 1e18;
+        protocolFee = outputValue.fmul( _protocolFee, FixedPointMathLib.WAD);
 
         outputValue -= ( protocolFee + poolFee );
 

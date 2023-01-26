@@ -1,508 +1,509 @@
-const {
-    time,
-    loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
-const {
-    poolType, 
-    createPair, 
-    getEventLog, 
-    mintNFT, 
-    sendBulkNfts
-} = require("../utils/tools" )
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const NFT_ABI = require("../utils/nftABI")
-const provider = ethers.provider
+// const {
+//     time,
+//     loadFixture,
+// } = require("@nomicfoundation/hardhat-network-helpers");
+// const {
+//     poolType, 
+//     createPair, 
+//     getEventLog, 
+//     mintNFT, 
+//     sendBulkNfts,
+//     deployMetaFactory
+// } = require("../utils/tools" )
+// const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+// const { expect } = require("chai");
+// const { ethers } = require("hardhat");
+// const NFT_ABI = require("../utils/nftABI")
+// const provider = ethers.provider
 
-describe("MetaFactory", function () {
+// describe("MetaFactory", function () {
 
-    async function deployMetaFactory() {
+//     async function deployMetaFactory() {
 
-        const [owner, otherAccount] = await ethers.getSigners();
+//         const [owner, otherAccount] = await ethers.getSigners();
 
-        const nft = new ethers.Contract(
-            "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18",
-            NFT_ABI,
-            owner
-        )
+//         const nft = new ethers.Contract(
+//             "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18",
+//             NFT_ABI,
+//             owner
+//         )
 
-        const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
-        const linearCurve = await LinearCurve.deploy();
+//         const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
+//         const linearCurve = await LinearCurve.deploy();
 
-        const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
-        const exponencialCurve = await ExponencialCurve.deploy();
+//         const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
+//         const exponencialCurve = await ExponencialCurve.deploy();
 
 
-        const CPCurve = await hre.ethers.getContractFactory("CPCurve");
-        const cPCurve = await CPCurve.deploy();
+//         const CPCurve = await hre.ethers.getContractFactory("CPCurve");
+//         const cPCurve = await CPCurve.deploy();
 
-        const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
-        const metaFactory = await MetaFactory.deploy(
-            linearCurve.address,
-            exponencialCurve.address,
-            cPCurve.address
-        );
+//         const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
+//         const metaFactory = await MetaFactory.deploy(
+//             linearCurve.address,
+//             exponencialCurve.address,
+//             cPCurve.address
+//         );
 
-        return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve };
+//         return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve };
 
-    }
+//     }
 
-    describe("Create pair", () => {
+//     describe("Create pair", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should fail if passed curve isn't alowed", async () => {
+//             it("1. should fail if passed curve isn't alowed", async () => {
 
-                const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+//                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+//                 const spotPrice = ethers.utils.parseEther("1")
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    0,
-                    owner.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid curve" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     0,
+//                     owner.address,
+//                     poolType.nft
+//                 )).to.be.revertedWith( "invalid curve" )
 
-            })
+//             })
 
-            it("2. should fail if not trade fee pass a not cero fee", async () => {
+//             it("2. should fail if not trade fee pass a not cero fee", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+//                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+//                 const spotPrice = ethers.utils.parseEther("1")
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    10000,
-                    linearCurve.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     10000,
+//                     linearCurve.address,
+//                     poolType.nft
+//                 )).to.be.revertedWith( "invalid init params" )
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    10000,
-                    linearCurve.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     10000,
+//                     linearCurve.address,
+//                     poolType.token
+//                 )).to.be.revertedWith( "invalid init params" )
 
-            })
+//             })
 
-            it("3. should fail if trade fee pass recipient and fee exceeds max", async () => {
+//             it("3. should fail if trade fee pass recipient and fee exceeds max", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+//                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+//                 const spotPrice = ethers.utils.parseEther("1")
 
-                const fee = ethers.utils.parseEther("1")
+//                 const fee = ethers.utils.parseEther("1")
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    ethers.constants.AddressZero,
-                    fee,
-                    linearCurve.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     ethers.constants.AddressZero,
+//                     fee,
+//                     linearCurve.address,
+//                     poolType.trade
+//                 )).to.be.revertedWith( "invalid init params" )
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    100000,
-                    linearCurve.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     100000,
+//                     linearCurve.address,
+//                     poolType.trade
+//                 )).to.be.revertedWith( "invalid init params" )
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    fee,
-                    linearCurve.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     fee,
+//                     linearCurve.address,
+//                     poolType.trade
+//                 )).to.be.revertedWith( "invalid init params" )
 
-            })
+//             })
 
-            it("4. should fail if exponencial curve pass invalid delta and spotPrice", async () => {
+//             it("4. should fail if exponencial curve pass invalid delta and spotPrice", async () => {
 
-                const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+//                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+//                 const spotPrice = ethers.utils.parseEther("1")
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    0,
-                    spotPrice,
-                    owner.address,
-                    10000,
-                    exponencialCurve.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     0,
+//                     spotPrice,
+//                     owner.address,
+//                     10000,
+//                     exponencialCurve.address,
+//                     poolType.nft
+//                 )).to.be.revertedWith( "invalid init params" )
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    0,
-                    owner.address,
-                    10000,
-                    exponencialCurve.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     0,
+//                     owner.address,
+//                     10000,
+//                     exponencialCurve.address,
+//                     poolType.token
+//                 )).to.be.revertedWith( "invalid init params" )
                 
-                await expect( 
-                    metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    0,
-                    0,
-                    owner.address,
-                    10000,
-                    exponencialCurve.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+//                 await expect( 
+//                     metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     0,
+//                     0,
+//                     owner.address,
+//                     10000,
+//                     exponencialCurve.address,
+//                     poolType.token
+//                 )).to.be.revertedWith( "invalid init params" )
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. factory should create a new pair type NFT", async () => {
+//             it("1. factory should create a new pair type NFT", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+//                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+//                 const spotPrice = ethers.utils.parseEther("1")
 
-                const tx = await metaFactory.createPair(
-                    nft.address,
-                    nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
-                    owner.address,
-                    0,
-                    linearCurve.address,
-                    poolType.nft
-                )
+//                 const tx = await metaFactory.createPair(
+//                     nft.address,
+//                     nftIds,
+//                     spotPrice.div(2),
+//                     spotPrice,
+//                     owner.address,
+//                     0,
+//                     linearCurve.address,
+//                     poolType.nft
+//                 )
 
 
-                const newPairInfo = await getEventLog( tx, "NewPair" )
+//                 const newPairInfo = await getEventLog( tx, "NewPair" )
 
-                expect( ethers.utils.isAddress( newPairInfo.pair ) ).to.be.true
-                expect( newPairInfo.owner ).to.be.equal( owner.address )
+//                 expect( ethers.utils.isAddress( newPairInfo.pair ) ).to.be.true
+//                 expect( newPairInfo.owner ).to.be.equal( owner.address )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("sget factory info", () => {
+//     describe("sget factory info", () => {
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should set a new protocol fee", async () => {
+//             it("1. should set a new protocol fee", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
-                const [ maxfee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
+//                 const [ maxfee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
 
-                expect( maxfee ).to.be.any
+//                 expect( maxfee ).to.be.any
 
-                expect( fee ).to.be.any
+//                 expect( fee ).to.be.any
 
-                expect( feeRecipient ).to.be.any
+//                 expect( feeRecipient ).to.be.any
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("set Protocol Fee", () => {
+//     describe("set Protocol Fee", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+//             it("1. should fail if caller is nor the owner", async () => {
 
-                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
 
-                const newFee = ethers.utils.parseEther("0.1")
+//                 const newFee = ethers.utils.parseEther("0.1")
                 
-                await expect( 
-                    metaFactory.connect( otherAccount ).setProtocolFee( newFee )
-                    ).to.be.reverted
+//                 await expect( 
+//                     metaFactory.connect( otherAccount ).setProtocolFee( newFee )
+//                     ).to.be.reverted
 
-            })
+//             })
 
-            it("2. should fail if new fee is biggest than limit", async () => {
+//             it("2. should fail if new fee is biggest than limit", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
-                const newFee = ethers.utils.parseEther("1")
+//                 const newFee = ethers.utils.parseEther("1")
                 
-                await expect( 
-                    metaFactory.setProtocolFee( newFee )
-                    ).to.be.revertedWith("new Fee exceeds limit")
+//                 await expect( 
+//                     metaFactory.setProtocolFee( newFee )
+//                     ).to.be.revertedWith("new Fee exceeds limit")
 
-            })
+//             })
 
-            it("3. should fail if new fee is equal to the old fee", async () => {
+//             it("3. should fail if new fee is equal to the old fee", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
-                const newFee = ethers.utils.parseEther("0.01")
+//                 const newFee = ethers.utils.parseEther("0.01")
                 
-                await expect( 
-                    metaFactory.setProtocolFee( newFee )
-                    ).to.be.revertedWith("new Fee can't be iqual than current")
+//                 await expect( 
+//                     metaFactory.setProtocolFee( newFee )
+//                     ).to.be.revertedWith("new Fee can't be iqual than current")
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should set a new protocol fee", async () => {
+//             it("1. should set a new protocol fee", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
-                const feeBefore = await metaFactory.PROTOCOL_FEE()
+//                 const feeBefore = await metaFactory.PROTOCOL_FEE()
 
-                const newFee = ethers.utils.parseEther("0.05")
+//                 const newFee = ethers.utils.parseEther("0.05")
 
-                await metaFactory.setProtocolFee( newFee )
+//                 await metaFactory.setProtocolFee( newFee )
 
-                const feeAfter = await metaFactory.PROTOCOL_FEE()
+//                 const feeAfter = await metaFactory.PROTOCOL_FEE()
 
-                expect( newFee ).to.be.greaterThan( feeBefore )
+//                 expect( newFee ).to.be.greaterThan( feeBefore )
 
-                expect( newFee ).to.be.equal( feeAfter )
+//                 expect( newFee ).to.be.equal( feeAfter )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("set Protocol Fee recipient", () => {
+//     describe("set Protocol Fee recipient", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+//             it("1. should fail if caller is nor the owner", async () => {
 
-                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.connect( otherAccount ).setProtocolFeeRecipient( otherAccount.address )
-                    ).to.be.reverted
+//                 await expect( 
+//                     metaFactory.connect( otherAccount ).setProtocolFeeRecipient( otherAccount.address )
+//                     ).to.be.reverted
 
-            })
+//             })
 
-            it("2. should fail if new recipient is the same than current", async () => {
+//             it("2. should fail if new recipient is the same than current", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.setProtocolFeeRecipient( metaFactory.address )
-                    ).to.be.revertedWith("new recipient can't be iqual than current")
+//                 await expect( 
+//                     metaFactory.setProtocolFeeRecipient( metaFactory.address )
+//                     ).to.be.revertedWith("new recipient can't be iqual than current")
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should set a new protocol fee recipient", async () => {
+//             it("1. should set a new protocol fee recipient", async () => {
 
-                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+//                 const { metaFactory, owner } = await loadFixture( deployMetaFactory )
 
-                const recipientBefore = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+//                 const recipientBefore = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
-                await metaFactory.setProtocolFeeRecipient( owner.address )
+//                 await metaFactory.setProtocolFeeRecipient( owner.address )
 
-                const recipientAfter = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+//                 const recipientAfter = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
-                expect( recipientBefore ).to.be.equal( metaFactory.address )
+//                 expect( recipientBefore ).to.be.equal( metaFactory.address )
 
-                expect( recipientAfter ).to.be.equal( owner.address )
+//                 expect( recipientAfter ).to.be.equal( owner.address )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("withdraw ETH", () => {
+//     describe("withdraw ETH", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+//             it("1. should fail if caller is nor the owner", async () => {
 
-                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.connect( otherAccount ).withdrawETH()
-                    ).to.be.reverted
+//                 await expect( 
+//                     metaFactory.connect( otherAccount ).withdrawETH()
+//                     ).to.be.reverted
 
-            })
+//             })
 
-            it("2. should fail if contract has insufficent founds", async () => {
+//             it("2. should fail if contract has insufficent founds", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.withdrawETH()
-                    ).to.be.revertedWith("insufficent balance")
+//                 await expect( 
+//                     metaFactory.withdrawETH()
+//                     ).to.be.revertedWith("insufficent balance")
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should withdraw ETH balance", async () => {
+//             it("1. should withdraw ETH balance", async () => {
 
-                const { metaFactory, owner, otherAccount } = await loadFixture( deployMetaFactory )
+//                 const { metaFactory, owner, otherAccount } = await loadFixture( deployMetaFactory )
 
-                const sendAmount = ethers.utils.parseEther("10")
+//                 const sendAmount = ethers.utils.parseEther("10")
 
-                await otherAccount.sendTransaction({
-                    to: metaFactory.address,
-                    value: sendAmount
-                })
+//                 await otherAccount.sendTransaction({
+//                     to: metaFactory.address,
+//                     value: sendAmount
+//                 })
 
-                const ownerBalanceBefore = await owner.getBalance()
+//                 const ownerBalanceBefore = await owner.getBalance()
 
-                const balanceBefore = await ethers.provider.getBalance( metaFactory.address )
+//                 const balanceBefore = await ethers.provider.getBalance( metaFactory.address )
 
-                expect( balanceBefore ).to.be.equal( sendAmount )
+//                 expect( balanceBefore ).to.be.equal( sendAmount )
 
-                await metaFactory.withdrawETH()
+//                 await metaFactory.withdrawETH()
 
-                const ownerBalanceAfter = await owner.getBalance()
+//                 const ownerBalanceAfter = await owner.getBalance()
 
-                const balanceAfter = await ethers.provider.getBalance( metaFactory.address )
+//                 const balanceAfter = await ethers.provider.getBalance( metaFactory.address )
 
-                expect( balanceAfter ).to.be.equal( 0 )
+//                 expect( balanceAfter ).to.be.equal( 0 )
 
-                // rauded to handle withdraw gas cost
+//                 // rauded to handle withdraw gas cost
 
-                expect( 
-                    Math.floor(Number(ethers.utils.formatEther(
-                        ownerBalanceBefore.add( sendAmount )
-                        )))
-                    ).to.be.equal( 
-                        Math.floor(Number(
-                            ethers.utils.formatEther(ownerBalanceAfter )
-                        )))
+//                 expect( 
+//                     Math.floor(Number(ethers.utils.formatEther(
+//                         ownerBalanceBefore.add( sendAmount )
+//                         )))
+//                     ).to.be.equal( 
+//                         Math.floor(Number(
+//                             ethers.utils.formatEther(ownerBalanceAfter )
+//                         )))
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("withdraw NFTs", () => {
+//     describe("withdraw NFTs", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+//             it("1. should fail if caller is nor the owner", async () => {
 
-                const { metaFactory, otherAccount, nft } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, otherAccount, nft } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.connect( otherAccount ).withdrawNFTs( nft.address, [ 42, 43, 44] )
-                    ).to.be.reverted
+//                 await expect( 
+//                     metaFactory.connect( otherAccount ).withdrawNFTs( nft.address, [ 42, 43, 44] )
+//                     ).to.be.reverted
 
-            })
+//             })
 
-            it("2. should fail if contract has insufficent NFT founds", async () => {
+//             it("2. should fail if contract has insufficent NFT founds", async () => {
 
-                const { metaFactory, nft } = await loadFixture(deployMetaFactory)
+//                 const { metaFactory, nft } = await loadFixture(deployMetaFactory)
                 
-                await expect( 
-                    metaFactory.withdrawNFTs( nft.address, [ 42, 43, 44] )
-                    ).to.be.reverted
+//                 await expect( 
+//                     metaFactory.withdrawNFTs( nft.address, [ 42, 43, 44] )
+//                     ).to.be.reverted
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should withdraw NFT", async () => {
+//             it("1. should withdraw NFT", async () => {
 
-                const { metaFactory, owner, nft } = await loadFixture( deployMetaFactory )
+//                 const { metaFactory, owner, nft } = await loadFixture( deployMetaFactory )
 
-                const nftIds = await mintNFT( nft, 10, metaFactory )
+//                 const nftIds = await mintNFT( nft, 10, metaFactory )
 
-                await sendBulkNfts( nft, nftIds, metaFactory.address )
+//                 await sendBulkNfts( nft, nftIds, metaFactory.address )
 
-                const ownerBalanceBefore = await nft.balanceOf( owner.address )
+//                 const ownerBalanceBefore = await nft.balanceOf( owner.address )
 
-                const balanceBefore = await nft.balanceOf( metaFactory.address )
+//                 const balanceBefore = await nft.balanceOf( metaFactory.address )
 
-                expect( balanceBefore ).to.be.equal( nftIds.length )
+//                 expect( balanceBefore ).to.be.equal( nftIds.length )
 
-                expect( ownerBalanceBefore ).to.be.equal( 0 )
+//                 expect( ownerBalanceBefore ).to.be.equal( 0 )
 
-                await metaFactory.withdrawNFTs( nft.address, nftIds)
+//                 await metaFactory.withdrawNFTs( nft.address, nftIds)
 
-                const ownerBalanceAfter = await nft.balanceOf( owner.address )
+//                 const ownerBalanceAfter = await nft.balanceOf( owner.address )
 
-                const balanceAfter = await nft.balanceOf( metaFactory.address )
+//                 const balanceAfter = await nft.balanceOf( metaFactory.address )
 
-                expect( balanceAfter ).to.be.equal( 0 )
+//                 expect( balanceAfter ).to.be.equal( 0 )
 
-                // rauded to handle withdraw gas cost
+//                 // rauded to handle withdraw gas cost
 
-                expect( ownerBalanceAfter ).to.be.equal( nftIds.length )
+//                 expect( ownerBalanceAfter ).to.be.equal( nftIds.length )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-});
+// });

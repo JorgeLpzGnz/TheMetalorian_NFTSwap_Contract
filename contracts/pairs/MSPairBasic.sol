@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -191,11 +191,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedIn );
 
-        console.log( address( this ).balance );
-
         _receiveTokensAndPayFee( inputAmount, protocolFee );
-
-        console.log( address( this ).balance );
 
         _sendNFTsTo( address( this ), _user, _tokenIDs );
 
@@ -207,13 +203,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             
         }
 
-        emit BuyLog( _user, inputAmount, _tokenIDs.length);
+        emit BuyLog( _user, inputAmount - protocolFee, _tokenIDs.length);
         
     }
 
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedIn, address _user ) public payable {
 
-        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade );
+        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
         ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedIn );
 
@@ -229,7 +225,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             
         }
 
-        emit BuyLog( _user, inputAmount, _numNFTs);
+        emit BuyLog( _user, inputAmount - protocolFee, _numNFTs);
         
     }
 

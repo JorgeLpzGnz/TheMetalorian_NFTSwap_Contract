@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -10,7 +10,6 @@ import "./pairs/MSPairBasic.sol";
 import "./pairs/MSPairNFTEnumerable.sol";
 import "./pairs/MSPairNFTBasic.sol";
 import "./pairs/PoolTypes.sol";
-import "hardhat/console.sol";
 
 
 contract MetaFactory is Ownable {

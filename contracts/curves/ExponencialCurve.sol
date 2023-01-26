@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
-import "hardhat/console.sol";
 
 contract ExponencialCurve is ICurve, CurveErrors {
+
+    using FixedPointMathLib for uint256;
 
     uint32 public constant MIN_PRICE = 1 gwei; 
 
@@ -35,24 +37,27 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         if( _numItems == 0 ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
 
-        uint deltaPow = uint( _delta ) ** _numItems;
+        uint deltaPow = uint( _delta ).fpow( _numItems, FixedPointMathLib.WAD );
 
-        uint _newSpotPrice = uint( _spotPrice ) * deltaPow;
+        uint _newSpotPrice = uint( _spotPrice ).fmul( deltaPow, FixedPointMathLib.WAD);
 
         if( _newSpotPrice > type( uint128 ).max )
             return (Error.SPOT_PRICE_OVERFLOW, 0, 0, 0, 0);
 
         newSpotPrice = uint128( _newSpotPrice );
 
-        uint buyPrice = ( uint( _spotPrice ) * _delta ) / 1e18;
+        uint buyPrice = uint( _spotPrice ).fmul( _delta, FixedPointMathLib.WAD );
 
-        inputValue = buyPrice * ( deltaPow - 1e18 ) / ( _delta - 1e18);
+        inputValue = buyPrice.fmul( 
+            ( deltaPow - FixedPointMathLib.WAD ).fdiv( 
+                _delta - FixedPointMathLib.WAD, FixedPointMathLib.WAD
+            ), FixedPointMathLib.WAD);
 
         // update ( Fees )
 
-        uint poolFee = ( inputValue * _poolFee ) / 1e18;
+        uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
-        protocolFee = (inputValue * _protocolFee) / 1e18;
+        protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         inputValue += ( protocolFee + poolFee );
 
@@ -75,26 +80,31 @@ contract ExponencialCurve is ICurve, CurveErrors {
     {
         if( _numItems == 0 ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
 
-        uint invDelta = 1e18 /  _delta;
+        uint invDelta = FixedPointMathLib.WAD.fdiv( _delta, FixedPointMathLib.WAD );
 
-        uint invDeltaPow = invDelta ** _numItems;
+        uint invDeltaPow = invDelta.fpow( _numItems, FixedPointMathLib.WAD );
 
         // update ( this is a percentage )
 
-        newSpotPrice = uint128( _spotPrice * invDeltaPow );
+        newSpotPrice = uint128(
+            uint256( _spotPrice ).fmul( invDeltaPow, FixedPointMathLib.WAD )
+        );
 
         if( newSpotPrice < MIN_PRICE ) newSpotPrice = MIN_PRICE;
 
-        outputValue = 
-            uint( _spotPrice ) * 
-            ( 1e18 / invDeltaPow ) / 
-            ( 1e18 / _delta );
+        outputValue = uint256( _spotPrice ).fmul(
+            ( FixedPointMathLib.WAD - invDeltaPow ).fdiv(
+                FixedPointMathLib.WAD - invDelta,
+                FixedPointMathLib.WAD
+            ),
+            FixedPointMathLib.WAD
+        );
 
         // update ( Fees )
 
-        uint poolFee = outputValue * _poolFee;
+        uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
-        protocolFee = outputValue * _protocolFee;
+        protocolFee = outputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         outputValue -= ( protocolFee + poolFee );
 

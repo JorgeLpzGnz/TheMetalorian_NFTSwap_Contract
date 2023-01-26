@@ -1,12 +1,43 @@
-
 const { ethers } = require("hardhat")
 const PAIR_NFT_BASIC = require("../artifacts/contracts/pairs/MSPairNFTBasic.sol/MSPairNFTBasic.json")
 const PAIR_NFT_ENUMERABLE = require("../artifacts/contracts/pairs/MSPairNFTEnumerable.sol/MSPairNFTEnumerable.json")
+const NFT_ABI = require("../utils/nftABI")
 
 const poolType = {
     token: 0,
     nft: 1,
     trade: 2
+}
+
+async function deployMetaFactory() {
+
+    const [owner, otherAccount] = await ethers.getSigners();
+
+    const nft = new ethers.Contract(
+        "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18",
+        NFT_ABI,
+        owner
+    )
+
+    const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
+    const linearCurve = await LinearCurve.deploy();
+
+    const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
+    const exponencialCurve = await ExponencialCurve.deploy();
+
+
+    const CPCurve = await hre.ethers.getContractFactory("CPCurve");
+    const cPCurve = await CPCurve.deploy();
+
+    const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
+    const metaFactory = await MetaFactory.deploy(
+        linearCurve.address,
+        exponencialCurve.address,
+        cPCurve.address
+    );
+
+    return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve };
+
 }
 
 async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, curve, poolType, _fee, _tokenAmount ) {
@@ -121,13 +152,13 @@ function getTokenInput( curve, spotPrice, delta, numItems ) {
 
     switch ( curve ) {
 
-        case "linear":
+        case "linearCurve":
 
             buyPrice = spotPrice + delta
 
             return numItems * buyPrice + ( numItems * ( numItems - 1) * delta ) / 2;
 
-        case "exponencial":
+        case "exponencialCurve":
 
             const deltaPow = delta ** numItems
 
@@ -135,7 +166,7 @@ function getTokenInput( curve, spotPrice, delta, numItems ) {
 
             return buyPrice * ( deltaPow - 1 ) / ( delta - 1 )
 
-        case "cp":
+        case "cPCurve":
 
             const tokenBalance = spotPrice
 
@@ -154,5 +185,6 @@ module.exports = {
     mintNFT, 
     sendBulkNfts,
     getNumber,
-    getTokenInput
+    getTokenInput,
+    deployMetaFactory
 }

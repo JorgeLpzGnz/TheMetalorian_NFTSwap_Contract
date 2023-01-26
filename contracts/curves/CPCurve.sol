@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
 
 contract CPCurve is ICurve, CurveErrors {
+
+    using FixedPointMathLib for uint256;
 
     function validateSpotPrice( uint ) external pure override returns( bool ) {
 
@@ -34,21 +37,23 @@ contract CPCurve is ICurve, CurveErrors {
 
         uint nftBalance = _delta;
 
-        if ( _numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        uint numItems = _numItems * 1e18;
 
-        inputValue = ( _numItems * tokenBalance ) / ( nftBalance - _numItems);
+        if ( numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+
+        inputValue = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
 
         // update ( Fees )
 
-        uint poolFee = inputValue * _poolFee;
+        uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
-        protocolFee = inputValue * _protocolFee;
+        protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         inputValue += ( protocolFee + poolFee );
 
         newSpotPrice = uint128( _spotPrice + inputValue );
 
-        newDelta = uint128( nftBalance - _numItems );
+        newDelta = uint128( nftBalance - numItems );
 
         error = Error.OK;
 
@@ -69,15 +74,17 @@ contract CPCurve is ICurve, CurveErrors {
 
         uint nftBalance = _delta;
 
-        if ( _numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        uint numItems = _numItems * 1e18;
 
-        outputValue = ( _numItems * tokenBalance ) / ( nftBalance + _numItems);
+        if ( numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+
+        outputValue = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
 
         // update ( Fees )
 
-        uint poolFee = outputValue * _poolFee;
+        uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
-        protocolFee = outputValue * _protocolFee;
+        protocolFee = outputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         outputValue -=  ( protocolFee + poolFee );
 

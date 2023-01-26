@@ -9,46 +9,14 @@ const {
     mintNFT, 
     sendBulkNfts,
     getNumber,
-    getTokenInput
+    getTokenInput,
+    deployMetaFactory
 } = require("../utils/tools" )
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const NFT_ABI = require("../utils/nftABI")
 const provider = ethers.provider
 
 describe("MetaPairs", function () {
-
-    async function deployMetaFactory() {
-
-        const [owner, otherAccount] = await ethers.getSigners();
-
-        const nft = new ethers.Contract(
-            "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18",
-            NFT_ABI,
-            owner
-        )
-
-        const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
-        const linearCurve = await LinearCurve.deploy();
-
-        const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
-        const exponencialCurve = await ExponencialCurve.deploy();
-
-
-        const CPCurve = await hre.ethers.getContractFactory("CPCurve");
-        const cPCurve = await CPCurve.deploy();
-
-        const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
-        const metaFactory = await MetaFactory.deploy(
-            linearCurve.address,
-            exponencialCurve.address,
-            cPCurve.address
-        );
-
-        return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve };
-
-    }
 
     describe("init", () => {
 
@@ -58,7 +26,7 @@ describe("MetaPairs", function () {
 
                 const { metaFactory, nft, linearCurve, otherAccount } = await loadFixture(deployMetaFactory)
 
-                const { pair } = await createPair( metaFactory, nft, 10, 1, 0.5, linearCurve, poolType.nft, 0, 0)
+                const { pair } = await createPair( metaFactory, nft, 0, 1, 0.5, linearCurve, poolType.token, 0, 10)
                 
                 await expect( 
                     pair.init(
@@ -368,7 +336,7 @@ describe("MetaPairs", function () {
 
     })
 
-    describe("swap token For NFTs", () => {
+    describe("swap token For especific NFTs", () => {
 
         describe(" - Errors", () => {
 
@@ -456,11 +424,13 @@ describe("MetaPairs", function () {
 
                 const maxEspected = ethers.utils.parseEther("1.6")
 
-                const { pair, tokenIds } = await createPair( metaFactory, nft, 10, 1, 1.5, exponencialCurve, poolType.nft, 0, 0)
+                const spotPrice = 1
 
-                const espectedInput = getTokenInput("exponencial", 1, 1.5, 1)
+                const delta = 1.5
 
-                console.log( espectedInput )
+                const { pair, tokenIds } = await createPair( metaFactory, nft, 10, spotPrice, delta, exponencialCurve, poolType.nft, 0, 0)
+
+                const espectedInput = getTokenInput("exponencialCurve", spotPrice, delta, 1)
 
                 const ownerBalanceBefore = await owner.getBalance()
 
@@ -480,6 +450,296 @@ describe("MetaPairs", function () {
                 const pairBalanceAfter = await provider.getBalance( pair.address )
 
                 const { amoutIn } = await getEventLog( tx, "BuyLog")
+
+                expect( espectedInput ).to.be.equal( getNumber( pairBalanceAfter ) )
+
+                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput )
+
+                expect( 
+                    Math.floor( getNumber( ownerBalanceBefore ) ) 
+                ).to.be.equal(
+                    Math.floor( getNumber( ownerBalanceAfer.add( amoutIn ) ) )
+                 )
+
+            })
+
+            it("2. should should pay a fee", async () => {
+
+                const { metaFactory, nft, owner, cPCurve } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("3")
+
+                const nftAmount = 10
+
+                const spotPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const delta = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pair, tokenIds } = await createPair( metaFactory, nft, nftAmount, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+
+                const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, 2 )
+
+                const fee = getNumber( await metaFactory.PROTOCOL_FEE() )
+
+                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const recipientBalanceBefore = getNumber( await provider.getBalance( feeRecipient ))
+
+                await pair.swapTokenForNFT(
+                    [ tokenIds[0], tokenIds[1] ],
+                    maxEspected,
+                    owner.address,
+                    { value: maxEspected }
+                )
+
+                const recipientBalanceAfter = getNumber( await provider.getBalance( feeRecipient ))
+
+                expect( espectedInput * fee ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
+
+            })
+
+        })
+
+    })
+
+    describe("swap token For any NFTs", () => {
+
+        describe(" - Errors", () => {
+            
+            it("1. should fail if poolType is token", async () => {
+
+                const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("10")
+
+                const spotPrice = 1
+
+                const delta = 0.5
+
+                const { pair } = await createPair( metaFactory, nft, 10, spotPrice, delta, linearCurve, poolType.token, 0, 0)
+                
+                await expect( 
+                    pair.swapTokenForAnyNFT(
+                        3,
+                        maxEspected,
+                        owner.address
+                    )
+                ).to.be.revertedWith("invalid pool Type")
+
+            })
+
+            it("2. should fail if in curve error", async () => {
+
+                const { metaFactory, nft, exponencialCurve, owner } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("10")
+
+                const spotPrice = 1
+
+                const delta = 1.5
+
+                const { pair } = await createPair( metaFactory, nft, 10, spotPrice, delta, exponencialCurve, poolType.nft, 0, 0)
+                
+                await expect( 
+                    pair.swapTokenForAnyNFT(
+                        0,
+                        maxEspected,
+                        owner.address
+                    )
+                ).to.be.revertedWith("curve Error")
+
+            })
+
+            it("3. should fail if output amount is less than expected", async () => {
+
+                const { metaFactory, nft, cPCurve, owner } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("2.7")
+
+                const numItem = 10
+
+                const spotPrice = numItem + 1
+
+                const delta = numItem * 1
+
+                const { pair } = await createPair( metaFactory, nft, numItem, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+                
+                await expect( 
+                    pair.swapTokenForAnyNFT(
+                        2,
+                        maxEspected,
+                        owner.address
+                    )
+                ).to.be.revertedWith("output amount is less than min espected")
+
+
+            })
+
+            it("4. should fail if pass less amount of ETH than needed", async () => {
+
+                const { metaFactory, nft, exponencialCurve, owner } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("10")
+
+                const spotPrice = 1
+
+                const delta = 1.5
+
+                const { pair } = await createPair( metaFactory, nft, 10, spotPrice, delta, exponencialCurve, poolType.nft, 0, 0)
+                
+                await expect( 
+                    pair.swapTokenForAnyNFT(
+                        2,
+                        maxEspected,
+                        owner.address
+                    )
+                ).to.be.revertedWith("insufficent amount of ETH")
+
+            })
+
+            it("5. should fail if tries to buy more than owns", async () => {
+
+                const { metaFactory, nft, cPCurve, owner } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("10")
+
+                const numItem = 10
+
+                const spotPrice = numItem + 1
+
+                const delta = numItem * 1
+
+                const { pair } = await createPair( metaFactory, nft, numItem, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+                
+                await expect( 
+                    pair.swapTokenForAnyNFT(
+                        11,
+                        maxEspected,
+                        owner.address,
+                        { value: maxEspected.mul( 10 ) }
+                    )
+                ).to.be.revertedWith( "curve Error" )
+
+            })
+
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should swap a amount of tokens ", async () => {
+
+                const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("1.6")
+
+                const spotPrice = 1
+
+                const delta = 1.5
+
+                const { pair } = await createPair( metaFactory, nft, 10, spotPrice, delta, exponencialCurve, poolType.nft, 0, 0)
+
+                const espectedInput = getTokenInput("exponencialCurve", spotPrice, delta, 1)
+
+                const ownerBalanceBefore = await owner.getBalance()
+
+                const pairBalanceBefore = await provider.getBalance( pair.address )
+
+                expect( pairBalanceBefore ).to.be.equal( 0 )
+
+                const tx = await pair.swapTokenForAnyNFT(
+                    1,
+                    maxEspected,
+                    owner.address,
+                    { value: maxEspected }
+                )
+
+                const ownerBalanceAfer = await owner.getBalance()
+
+                const pairBalanceAfter = await provider.getBalance( pair.address )
+
+                const { amoutIn } = await getEventLog( tx, "BuyLog")
+
+                expect( espectedInput ).to.be.equal( getNumber( pairBalanceAfter ) )
+
+                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput )
+
+                expect( 
+                    Math.floor( getNumber( ownerBalanceBefore ) ) 
+                ).to.be.equal(
+                    Math.floor( getNumber( ownerBalanceAfer.add( amoutIn ) ) )
+                 )
+
+            })
+
+            it("2. should should pay a fee", async () => {
+
+                const { metaFactory, nft, owner, cPCurve } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("3")
+
+                const nftAmount = 10
+
+                const spotPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const delta = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pair } = await createPair( metaFactory, nft, nftAmount, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+
+                const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, 2 )
+
+                const fee = getNumber( await metaFactory.PROTOCOL_FEE() )
+
+                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const recipientBalanceBefore = getNumber( await provider.getBalance( feeRecipient ))
+
+
+                await pair.swapTokenForAnyNFT(
+                    2,
+                    maxEspected,
+                    owner.address,
+                    { value: maxEspected }
+                )
+
+                const recipientBalanceAfter = getNumber( await provider.getBalance( feeRecipient ))
+
+                expect( espectedInput * fee ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
+
+            })
+
+            it("3. should should pay a pair fee", async () => {
+
+                const { metaFactory, nft, owner, cPCurve } = await loadFixture(deployMetaFactory)
+
+                const maxEspected = ethers.utils.parseEther("3")
+
+                const nftAmount = 10
+
+                const spotPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const delta = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pair } = await createPair( metaFactory, nft, nftAmount, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+
+                const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, 2 )
+
+                const fee = getNumber( await metaFactory.PROTOCOL_FEE() )
+
+                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const recipientBalanceBefore = getNumber( await provider.getBalance( feeRecipient ))
+
+
+                await pair.swapTokenForAnyNFT(
+                    2,
+                    maxEspected,
+                    owner.address,
+                    { value: maxEspected }
+                )
+
+                const recipientBalanceAfter = getNumber( await provider.getBalance( feeRecipient ))
+
+                expect( espectedInput * fee ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
 
             })
 
