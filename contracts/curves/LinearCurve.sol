@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
-import "./CurveErrors.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
 
@@ -23,7 +22,7 @@ contract LinearCurve is ICurve, CurveErrors {
 
     function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
@@ -31,12 +30,12 @@ contract LinearCurve is ICurve, CurveErrors {
         ) {
 
         if ( _numItems == 0 ) 
-            return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+            return (false, 0, 0, 0, 0);
 
         uint _newSpotPrice = uint( _spotPrice + _delta ).fmul( _numItems, FixedPointMathLib.WAD );
 
         if( _newSpotPrice > type( uint128 ).max )
-            return (Error.SPOT_PRICE_OVERFLOW, 0, 0, 0, 0);
+            return ( false, 0, 0, 0, 0);
 
         uint256 buyPrice = _spotPrice + _delta;
 
@@ -55,13 +54,13 @@ contract LinearCurve is ICurve, CurveErrors {
 
         newDelta = _delta;
 
-        error = Error.OK;
+        isValid = true;
 
     }
 
     function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 outputValue, 
@@ -69,7 +68,7 @@ contract LinearCurve is ICurve, CurveErrors {
         ) {
 
         if ( _numItems == 0 ) 
-            return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+            return (false, 0, 0, 0, 0);
 
         uint decrease = _delta * _numItems;
 
@@ -95,7 +94,7 @@ contract LinearCurve is ICurve, CurveErrors {
 
         newDelta = _delta;
 
-        error = Error.OK;
+        isValid = true;
 
     }
     

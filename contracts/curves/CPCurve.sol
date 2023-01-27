@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
-import "./CurveErrors.sol";
 import "hardhat/console.sol";
 
 contract CPCurve is ICurve, CurveErrors {
@@ -24,15 +23,16 @@ contract CPCurve is ICurve, CurveErrors {
 
     function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
             uint256 protocolFee 
         ) 
     {
+        // num Items should be > 0
 
-        if (_numItems == 0) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        if (_numItems == 0) return ( false, 0, 0, 0, 0);
 
         uint tokenBalance = _spotPrice;
 
@@ -40,7 +40,9 @@ contract CPCurve is ICurve, CurveErrors {
 
         uint numItems = _numItems * 1e18;
 
-        if ( numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        // num Items should be < NFT balance ( delta = numItems  initial Price )
+
+        if ( numItems >= nftBalance ) return ( false, 0, 0, 0, 0);
 
         // input value = ( tokenBalance * numItems ) / ( nftBalance - numItems )
 
@@ -58,20 +60,20 @@ contract CPCurve is ICurve, CurveErrors {
 
         newDelta = uint128( nftBalance - numItems );
 
-        error = Error.OK;
+        isValid = true;
 
     }
 
     function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 outputValue, 
             uint256 protocolFee 
         ) 
     {
-        if ( _numItems == 0) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        if ( _numItems == 0) return (false, 0, 0, 0, 0);
 
         uint tokenBalance = _spotPrice;
 
@@ -79,7 +81,7 @@ contract CPCurve is ICurve, CurveErrors {
 
         uint numItems = _numItems * 1e18;
 
-        if ( numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        if ( numItems >= nftBalance ) return (false, 0, 0, 0, 0);
 
         outputValue = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
 
@@ -95,7 +97,7 @@ contract CPCurve is ICurve, CurveErrors {
 
         newDelta = uint128( nftBalance + _numItems );
 
-        error = Error.OK;
+        isValid = true;
 
     }
     

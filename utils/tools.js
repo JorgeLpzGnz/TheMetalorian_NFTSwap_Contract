@@ -178,11 +178,45 @@ function getTokenInput( curve, spotPrice, delta, numItems ) {
 
             const nftBalance = delta
 
-            return ( numItems * tokenBalance ) / ( nftBalance - numItems)
+            return ( tokenBalance * numItems ) / ( nftBalance - numItems)
 
     }
 
 }
+
+function getTokenOutput( curve, spotPrice, delta, numItems ) {
+
+    let buyPrice
+
+    switch ( curve ) {
+
+        case "linearCurve":
+
+            buyPrice = spotPrice + delta
+
+            return numItems * buyPrice + ( numItems * ( numItems - 1) * delta ) / 2;
+
+        case "exponencialCurve":
+
+            const deltaPow = delta ** numItems
+
+            buyPrice = spotPrice * delta
+
+            return buyPrice * ( deltaPow - 1 ) / ( delta - 1 )
+
+        case "cPCurve":
+
+            const tokenBalance = spotPrice
+
+            const nftBalance = delta
+
+            return ( tokenBalance * numItems ) / ( nftBalance + numItems)
+
+    }
+
+}
+
+function roundNumber( x, base ) { return ( Math.round( x * base ) ) / base } 
 
 module.exports = {
     poolType, 
@@ -192,5 +226,7 @@ module.exports = {
     sendBulkNfts,
     getNumber,
     getTokenInput,
-    deployMetaFactory
+    deployMetaFactory,
+    getTokenOutput,
+    roundNumber
 }

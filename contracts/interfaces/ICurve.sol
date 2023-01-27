@@ -11,7 +11,7 @@ interface ICurve {
 
     function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external view 
         returns ( 
-            CurveErrors.Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
@@ -20,7 +20,7 @@ interface ICurve {
 
     function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external view
         returns ( 
-            CurveErrors.Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 outputValue, 

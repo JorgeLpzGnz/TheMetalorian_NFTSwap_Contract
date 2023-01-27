@@ -4,7 +4,6 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     poolType, 
-    createPair, 
     getEventLog, 
     mintNFT, 
     sendBulkNfts,

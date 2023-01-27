@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
-import "./CurveErrors.sol";
 
 contract ExponencialCurve is ICurve, CurveErrors {
 
@@ -27,7 +26,7 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
     function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
@@ -35,14 +34,14 @@ contract ExponencialCurve is ICurve, CurveErrors {
         ) 
     {
 
-        if( _numItems == 0 ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        if( _numItems == 0 ) return (false, 0, 0, 0, 0);
 
         uint deltaPow = uint( _delta ).fpow( _numItems, FixedPointMathLib.WAD );
 
         uint _newSpotPrice = uint( _spotPrice ).fmul( deltaPow, FixedPointMathLib.WAD);
 
         if( _newSpotPrice > type( uint128 ).max )
-            return (Error.SPOT_PRICE_OVERFLOW, 0, 0, 0, 0);
+            return ( false, 0, 0, 0, 0);
 
         newSpotPrice = uint128( _newSpotPrice );
 
@@ -65,20 +64,20 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         newDelta = _delta;
 
-        error = Error.OK;
+        isValid = true;
 
     }
 
     function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
-            Error error, 
+            bool isValid, 
             uint128 newSpotPrice, 
             uint128 newDelta, 
             uint256 outputValue, 
             uint256 protocolFee 
         ) 
     {
-        if( _numItems == 0 ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+        if( _numItems == 0 ) return (false, 0, 0, 0, 0);
 
         uint invDelta = FixedPointMathLib.WAD.fdiv( _delta, FixedPointMathLib.WAD );
 
@@ -110,7 +109,7 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         newDelta = _delta;
 
-        error = Error.OK;
+        isValid = true;
         
     }
     

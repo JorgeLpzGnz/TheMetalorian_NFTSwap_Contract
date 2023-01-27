@@ -41,14 +41,14 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
         ) 
     {
 
-        CurveErrors.Error error;
+        bool isValid;
 
         uint128 newSpotPrice;
 
         uint128 newDelta;
 
         (
-            error, 
+            isValid, 
             newSpotPrice, 
             newDelta, 
             outputValue, 
@@ -61,7 +61,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             tradeFee
             );
 
-        require( error == CurveErrors.Error.OK, "curve Error" );
+        require( isValid, "curve Error" );
 
         require( outputValue >= _minExpected, "output amount is les than min espected" );
 
@@ -77,14 +77,14 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
         ) 
     {
 
-        CurveErrors.Error error;
+        bool isValid;
 
         uint128 newSpotPrice;
 
         uint128 newDelta;
 
         (
-            error, 
+            isValid, 
             newSpotPrice, 
             newDelta, 
             inputValue, 
@@ -97,7 +97,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             tradeFee
             );
 
-        require( error == CurveErrors.Error.OK, "curve Error" );
+        require( isValid, "curve Error" );
 
         require( inputValue <= _maxEspectedIn, "output amount is less than min espected" );
 
