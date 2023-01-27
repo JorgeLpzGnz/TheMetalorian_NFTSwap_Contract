@@ -21,7 +21,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     uint128 public constant MAX_TRADE_FEE = 0.9e18;
 
-    address public rewardsRecipent;
+    address public assetsRecipient;
 
     address public NFT;
 
@@ -123,11 +123,21 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         require( msg.value >= _inputAmount, "insufficent amount of ETH" );
 
+        address _assetsRecipient = getAssetsRecipient();
+
+        if( _assetsRecipient != address( this ) ) {
+
+            ( bool isAssetSended, ) = payable( _assetsRecipient ).call{ value: _inputAmount - _protocolFee }("");
+
+            require( isAssetSended, "tx error" );
+
+        }
+
         address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
 
-        ( bool isSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
+        ( bool isFeeSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
 
-        require( isSended, "tx error");
+        require( isFeeSended, "tx error");
 
     }
 
@@ -137,10 +147,18 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
+    function getAssetsRecipient() public view returns ( address _assetsRecipient ) {
+
+        if ( assetsRecipient == address(0) ) _assetsRecipient = address( this );
+
+        else _assetsRecipient = assetsRecipient;
+
+    }
+
     function init(
         uint128 _delta, 
         uint128 _spotPrice, 
-        address _rewardsRecipent, 
+        address _assetsRecipient, 
         address _owner, 
         address _NFT, 
         uint128 _fee, 
@@ -153,7 +171,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         _transferOwnership( _owner );
 
-        if( rewardsRecipent != _rewardsRecipent ) rewardsRecipent = _rewardsRecipent;
+        if( assetsRecipient != _assetsRecipient ) assetsRecipient = _assetsRecipient;
 
         if( tradeFee != _fee) tradeFee = _fee;
 
@@ -177,7 +195,9 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
         ( uint256 outputAmount, uint256 protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
 
-        _sendNFTsTo( _user, address( this ), _tokenIDs );
+        address _assetsRecipient = getAssetsRecipient();
+
+        _sendNFTsTo( _user, _assetsRecipient, _tokenIDs );
 
         _sendTokensAndPayFee( protocolFee, outputAmount, _user );
 
@@ -203,7 +223,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             
         }
 
-        emit BuyLog( _user, inputAmount - protocolFee, _tokenIDs.length);
+        emit BuyLog( _user, inputAmount, _tokenIDs.length);
         
     }
 
@@ -225,7 +245,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
             
         }
 
-        emit BuyLog( _user, inputAmount - protocolFee, _numNFTs);
+        emit BuyLog( _user, inputAmount, _numNFTs);
         
     }
 

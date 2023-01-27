@@ -72,7 +72,7 @@ contract MetaFactory is Ownable {
 
     }
 
-    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _rewardsRecipent, uint128 _spotPrice, uint128 _delta, ICurve _curve ) public view returns( bool ) {
+    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _assetsRecipient, uint128 _spotPrice, uint128 _delta, ICurve _curve ) public view returns( bool ) {
 
         if( _poolType == PoolTypes.PoolType.Token || _poolType == PoolTypes.PoolType.NFT ) {
 
@@ -80,7 +80,7 @@ contract MetaFactory is Ownable {
 
         } else {
 
-            if ( _rewardsRecipent != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
+            if ( _assetsRecipient != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
 
         }
 
@@ -95,7 +95,7 @@ contract MetaFactory is Ownable {
         uint[] calldata _nftIds,
         uint128 _delta,
         uint128 _spotPrice,
-        address _rewardsRecipent,
+        address _assetsRecipient,
         uint128 _fee,
         ICurve _curve, 
         PoolTypes.PoolType _poolType
@@ -106,14 +106,14 @@ contract MetaFactory is Ownable {
 
         require( isMSCurve[ address(_curve) ], "invalid curve");
 
-        require( checkInitParams( _poolType, _fee, _rewardsRecipent, _spotPrice, _delta, _curve ), "invalid init params" );
+        require( checkInitParams( _poolType, _fee, _assetsRecipient, _spotPrice, _delta, _curve ), "invalid init params" );
 
         pair = _creteContract( _nft );
 
         pair.init(
             _delta, 
             _spotPrice, 
-            _rewardsRecipent,
+            _assetsRecipient,
             msg.sender, 
             _nft, 
             _fee, 

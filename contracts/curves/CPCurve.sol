@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
 import "./CurveErrors.sol";
+import "hardhat/console.sol";
 
 contract CPCurve is ICurve, CurveErrors {
 
@@ -40,6 +41,8 @@ contract CPCurve is ICurve, CurveErrors {
         uint numItems = _numItems * 1e18;
 
         if ( numItems >= nftBalance ) return (Error.INVALID_NUMITEMS, 0, 0, 0, 0);
+
+        // input value = ( tokenBalance * numItems ) / ( nftBalance - numItems )
 
         inputValue = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
 

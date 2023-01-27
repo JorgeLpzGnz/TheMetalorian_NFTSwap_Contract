@@ -12,7 +12,7 @@ interface IMetaFactory {
         uint[] memory _nftIds,
         uint128 _delta,
         uint128 _spotPrice,
-        address _rewardsRecipent,
+        address _assetsRecipient,
         uint128 _fee,
         ICurve _curve, 
         PoolTypes.PoolType _poolType

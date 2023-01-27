@@ -97,7 +97,7 @@ describe("MetaPairs", function () {
 
                 // check rewards recipent
                 
-                expect( await pair.rewardsRecipent() ).to.be.equal( owner.address )
+                expect( await pair.assetsRecipient() ).to.be.equal( owner.address )
 
                 // check nft collection address
                 
@@ -141,7 +141,7 @@ describe("MetaPairs", function () {
 
                 // check rewards recipent
                 
-                expect( await pair.rewardsRecipent() ).to.be.equal( owner.address )
+                expect( await pair.assetsRecipient() ).to.be.equal( owner.address )
 
                 // check nft collection address
                 
@@ -190,7 +190,7 @@ describe("MetaPairs", function () {
 
                 // check rewards recipent
                 
-                expect( await pair.rewardsRecipent() ).to.be.equal( ethers.constants.AddressZero )
+                expect( await pair.assetsRecipient() ).to.be.equal( ethers.constants.AddressZero )
 
                 // check nft collection address
                 
@@ -303,7 +303,13 @@ describe("MetaPairs", function () {
 
                 const { pair, tokenIds } = await createPair( metaFactory, nft, 10, 1, 0.5, linearCurve, poolType.token, 0, 10)
 
+                const assetsRecipient = await pair.getAssetsRecipient()
+
                 const idsBefore = await pair.getNFTIds()
+
+                // in not trade pairs all input assets will be sent to pair owner
+
+                expect( assetsRecipient ).to.be.equal( owner.address )
 
                 expect( idsBefore.length ).to.be.equal( 0 )
 
@@ -315,8 +321,6 @@ describe("MetaPairs", function () {
 
                 const { amoutOut } = await getEventLog( tx, "SellLog")
 
-                const idsAfter = await pair.getNFTIds()
-
                 const nftOwner = await nft.ownerOf( tokenIds[0] )
 
                 expect( 
@@ -326,9 +330,7 @@ describe("MetaPairs", function () {
                         Math.floor( getNumber(ownerBalanceAfter))
                         )
 
-                expect( nftOwner ).to.be.equal( pair.address )
-
-                expect( idsAfter[ 0 ].toNumber() ).to.be.equal( tokenIds[0] )
+                expect( nftOwner ).to.be.equal( assetsRecipient )
 
             })
 
@@ -420,7 +422,7 @@ describe("MetaPairs", function () {
 
             it("1. should swap a amount of tokens ", async () => {
 
-                const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, otherAccount, exponencialCurve } = await loadFixture(deployMetaFactory)
 
                 const maxEspected = ethers.utils.parseEther("1.6")
 
@@ -432,13 +434,15 @@ describe("MetaPairs", function () {
 
                 const espectedInput = getTokenInput("exponencialCurve", spotPrice, delta, 1)
 
+                const poolFee = getNumber(await metaFactory.PROTOCOL_FEE())
+
                 const ownerBalanceBefore = await owner.getBalance()
 
                 const pairBalanceBefore = await provider.getBalance( pair.address )
 
                 expect( pairBalanceBefore ).to.be.equal( 0 )
 
-                const tx = await pair.swapTokenForNFT(
+                const tx = await pair.connect( otherAccount ).swapTokenForNFT(
                     [ tokenIds[0] ],
                     maxEspected,
                     owner.address,
@@ -451,14 +455,20 @@ describe("MetaPairs", function () {
 
                 const { amoutIn } = await getEventLog( tx, "BuyLog")
 
-                expect( espectedInput ).to.be.equal( getNumber( pairBalanceAfter ) )
+                // check than after pair swap in not trade pairs the pool dont keep any asset
 
-                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput )
+                expect( pairBalanceAfter ).to.be.equal( 0 )
+
+                // check if the amount that came out is equal to what was expected
+
+                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput + ( espectedInput * poolFee) )
+
+                // verify if assets were send to the owner
 
                 expect( 
-                    Math.floor( getNumber( ownerBalanceBefore ) ) 
+                    Math.floor( getNumber( ownerBalanceBefore.add(amoutIn) ) ) 
                 ).to.be.equal(
-                    Math.floor( getNumber( ownerBalanceAfer.add( amoutIn ) ) )
+                    Math.floor( getNumber( ownerBalanceAfer ) )
                  )
 
             })
@@ -628,7 +638,7 @@ describe("MetaPairs", function () {
 
             it("1. should swap a amount of tokens ", async () => {
 
-                const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, otherAccount, exponencialCurve } = await loadFixture(deployMetaFactory)
 
                 const maxEspected = ethers.utils.parseEther("1.6")
 
@@ -642,36 +652,52 @@ describe("MetaPairs", function () {
 
                 const ownerBalanceBefore = await owner.getBalance()
 
-                const pairBalanceBefore = await provider.getBalance( pair.address )
+                const assetRecipiet = await pair.getAssetsRecipient()
 
-                expect( pairBalanceBefore ).to.be.equal( 0 )
+                const recipientBalanceBefore = getNumber(await provider.getBalance( assetRecipiet ))
 
-                const tx = await pair.swapTokenForAnyNFT(
+                // check than pair have balance 0
+
+                expect( await provider.getBalance( pair.address ) ).to.be.equal( 0 )
+
+                const tx = await pair.connect( otherAccount ).swapTokenForAnyNFT(
                     1,
                     maxEspected,
-                    owner.address,
+                    otherAccount.address,
                     { value: maxEspected }
                 )
 
+                // check than pair keeps balance 0
+
+                expect( await provider.getBalance( pair.address ) ).to.be.equal( 0 )
+
                 const ownerBalanceAfer = await owner.getBalance()
 
-                const pairBalanceAfter = await provider.getBalance( pair.address )
+                const recipientBalanceAfter = getNumber(await provider.getBalance( assetRecipiet ))
 
                 const { amoutIn } = await getEventLog( tx, "BuyLog")
 
-                expect( espectedInput ).to.be.equal( getNumber( pairBalanceAfter ) )
+                const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
 
-                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput )
+                // check if input amount was sended to assets repient ( only in not trade pools )
+
+                expect( espectedInput ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
+
+                // check if the amount that came out is equal to what was expected
+
+                expect( getNumber( amoutIn ) ).to.be.equal( espectedInput + ( espectedInput * protocolFee ) )
+
+                // check if amount In was sended to pool assets recipient ( only for not trade pools )
 
                 expect( 
-                    Math.floor( getNumber( ownerBalanceBefore ) ) 
+                    Math.floor( getNumber( ownerBalanceBefore.add( amoutIn ) ) ) 
                 ).to.be.equal(
-                    Math.floor( getNumber( ownerBalanceAfer.add( amoutIn ) ) )
+                    Math.floor( getNumber( ownerBalanceAfer ) )
                  )
 
             })
 
-            it("2. should should pay a fee", async () => {
+            it("2. should should pay a protocol fee", async () => {
 
                 const { metaFactory, nft, owner, cPCurve } = await loadFixture(deployMetaFactory)
 
@@ -703,7 +729,9 @@ describe("MetaPairs", function () {
 
                 const recipientBalanceAfter = getNumber( await provider.getBalance( feeRecipient ))
 
-                expect( espectedInput * fee ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
+                // check if was sended to pool owner
+
+                expect( recipientBalanceAfter - recipientBalanceBefore ).to.be.equal( espectedInput * fee )
 
             })
 
@@ -711,7 +739,7 @@ describe("MetaPairs", function () {
 
                 const { metaFactory, nft, owner, cPCurve } = await loadFixture(deployMetaFactory)
 
-                const maxEspected = ethers.utils.parseEther("3")
+                const maxEspected = ethers.utils.parseEther("3.0525")
 
                 const nftAmount = 10
 
@@ -719,16 +747,19 @@ describe("MetaPairs", function () {
 
                 const delta = nftAmount * 1   // nft balance ( nftAmount * startPrice )
 
-                const { pair } = await createPair( metaFactory, nft, nftAmount, spotPrice, delta, cPCurve, poolType.nft, 0, 0)
+                const { pair } = await createPair( metaFactory, nft, nftAmount, spotPrice, delta, cPCurve, poolType.trade, 0.1, 10)
 
                 const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, 2 )
 
-                const fee = getNumber( await metaFactory.PROTOCOL_FEE() )
+                const feeRecipient = await pair.getAssetsRecipient()
 
-                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+                const tradeFee = getNumber( await pair.tradeFee() )
+
+                // in trade pool assents recipient should be the same address than the pool
+
+                expect( feeRecipient ).to.be.equal( pair.address )
 
                 const recipientBalanceBefore = getNumber( await provider.getBalance( feeRecipient ))
-
 
                 await pair.swapTokenForAnyNFT(
                     2,
@@ -739,12 +770,136 @@ describe("MetaPairs", function () {
 
                 const recipientBalanceAfter = getNumber( await provider.getBalance( feeRecipient ))
 
-                expect( espectedInput * fee ).to.be.equal( recipientBalanceAfter - recipientBalanceBefore )
+                // check if current balance is equal to the amout puls trade fee
+
+                // is multiplied by 1000 to handle javaScript precition errors and the divided
+
+                expect( 
+                    ((recipientBalanceAfter * 1000 ) - ( recipientBalanceBefore * 1000 )) / 1000
+                ).to.be.equal(
+                    espectedInput + ( espectedInput * tradeFee) 
+                )
 
             })
 
         })
 
     })
+
+    // update ( make test of this functions )
+
+    // describe( "Token Pools", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+
+    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+
+    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+
+    //         } )
+            
+    //     })
+
+    // })
+
+    // describe( "NFT Pools", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+
+    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+
+    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+
+    //         } )
+            
+    //     })
+
+    // })
+
+    // describe( "Trade Pools", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+
+    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+
+    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+
+    //         } )
+            
+    //     })
+
+    // })
+
+    // describe( "get NFT IDs", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+
+    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+
+    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+
+    //         } )
+            
+    //     })
+
+    // })
+
+    // describe( "get Assets Recipient", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. ", async () => {} )
+            
+    //     })
+
+    // })
+
+    // describe( "set SpotPrice", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. ", async () => {} )
+            
+    //     })
+
+    // })
+
+    // describe( "set Delta", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. ", async () => {} )
+            
+    //     })
+
+    // })
+
+    // describe( "withdraw Token", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. ", async () => {} )
+            
+    //     })
+
+    // })
+
+    // describe( "withdraw NFTs", () => {
+
+    //     describe(" - Functionalities", () => {
+
+    //         it("1. ", async () => {} )
+            
+    //     })
+
+    // })
 
 });

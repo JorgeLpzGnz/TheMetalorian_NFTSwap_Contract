@@ -110,9 +110,15 @@ async function getEventLog( _tx, _event ) {
 
 }
 
-async function mintNFT(NFT, amount, metaFactory) {
+async function mintNFT(NFT, amount, addressToApprove, _account ) {
+
+    let [ account ] = await ethers.getSigners() 
+
+    if ( _account ) account = _account
 
     const tokenIds = []
+
+    NFT.connect( account )
 
     const mintCost = await NFT.mintCost()
 
@@ -123,7 +129,7 @@ async function mintNFT(NFT, amount, metaFactory) {
         { value: mintCost.mul(amount) }
     )
 
-    await NFT.setApprovalForAll( metaFactory.address, true )
+    await NFT.setApprovalForAll( addressToApprove.address, true )
 
     for (let i = firsToken; i < firsToken + amount; i++)
         tokenIds.push( i )
