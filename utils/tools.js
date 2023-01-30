@@ -186,15 +186,11 @@ function getTokenInput( curve, spotPrice, delta, numItems ) {
 
 function getTokenOutput( curve, spotPrice, delta, numItems ) {
 
-    let buyPrice
-
     switch ( curve ) {
 
         case "linearCurve":
 
-            buyPrice = spotPrice + delta
-
-            return numItems * buyPrice + ( numItems * ( numItems - 1) * delta ) / 2;
+            return numItems * spotPrice - ( numItems * ( numItems - 1) * delta ) / 2;
 
         case "exponencialCurve":
 

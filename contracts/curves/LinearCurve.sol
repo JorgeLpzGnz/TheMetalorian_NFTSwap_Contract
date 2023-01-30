@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
+import "hardhat/console.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
 
@@ -32,8 +33,8 @@ contract LinearCurve is ICurve, CurveErrors {
         if ( _numItems == 0 ) 
             return (false, 0, 0, 0, 0);
 
-        uint _newSpotPrice = uint( _spotPrice + _delta ).fmul( _numItems, FixedPointMathLib.WAD );
-
+        uint _newSpotPrice = _spotPrice + ( _delta * _numItems );
+        
         if( _newSpotPrice > type( uint128 ).max )
             return ( false, 0, 0, 0, 0);
 
