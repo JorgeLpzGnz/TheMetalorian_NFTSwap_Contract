@@ -198,11 +198,11 @@ function getTokenOutput( curve, spotPrice, delta, numItems ) {
 
         case "exponencialCurve":
 
-            const deltaPow = delta ** numItems
+            const invDelta = 1 / delta
 
-            buyPrice = spotPrice * delta
+            const invDeltaPow = invDelta ** numItems
 
-            return buyPrice * ( deltaPow - 1 ) / ( delta - 1 )
+            return spotPrice * ( 1 - invDeltaPow ) / ( 1 - invDelta )
 
         case "cPCurve":
 

@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
-import "hardhat/console.sol";
 
 contract CPCurve is ICurve, CurveErrors {
 
@@ -95,7 +94,7 @@ contract CPCurve is ICurve, CurveErrors {
 
         newSpotPrice = uint128( _spotPrice - outputValue );
 
-        newDelta = uint128( nftBalance + _numItems );
+        newDelta = uint128( nftBalance + numItems );
 
         isValid = true;
 

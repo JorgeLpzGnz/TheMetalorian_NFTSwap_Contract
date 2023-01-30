@@ -1,5 +1,4 @@
 const {
-    time,
     loadFixture,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
@@ -11,10 +10,8 @@ const {
 } = require("../utils/tools" )
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const provider = ethers.provider
 const { utils } = ethers
 const { parseEther } = utils
-const { formatEther } = utils
 
 describe("Constant Product Curve", function () {
 
@@ -122,7 +119,7 @@ describe("Constant Product Curve", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should return a input value", async () => {
+            it("1. should return a input value and isValid must be true", async () => {
 
                 const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -138,7 +135,7 @@ describe("Constant Product Curve", function () {
 
                 const poolFee0 = 0
 
-                const [ , , , inputValue ] = await cPCurve.getBuyInfo(
+                const [ isValid, , , inputValue ] = await cPCurve.getBuyInfo(
                     delta,
                     spotPrice,
                     numItems,
@@ -149,6 +146,10 @@ describe("Constant Product Curve", function () {
                 // check that input value is greater than 0
 
                 expect( inputValue ).to.be.greaterThan( 0 )
+
+                // check than params return a valid return ( true )
+
+                expect( isValid ).to.be.true
 
             })
 
@@ -224,6 +225,48 @@ describe("Constant Product Curve", function () {
 
             })
 
+            it("4. should return a valid new spot Price and new Delta", async () => {
+
+                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+
+                const numItems = 10
+
+                const initialPrice = 5
+
+                const spotPrice = numItems * initialPrice 
+
+                const delta = numItems + 1
+
+                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+
+                const poolFeeMul = 0.1
+
+                const [ , newSpotPrice, newDelta, input ] = await cPCurve.getBuyInfo(
+                    parseEther( `${ delta }` ),
+                    parseEther( `${ spotPrice }` ),
+                    numItems,
+                    parseEther( `${ protocolFeeMult }` ),
+                    parseEther( `${ poolFeeMul }` )
+                )
+
+                const espectedInputWithoufee = getTokenInput( "cPCurve", spotPrice, delta, numItems )
+
+                const protocolFeeEspct = espectedInputWithoufee *  protocolFeeMult
+
+                const poolFee = espectedInputWithoufee * poolFeeMul
+
+                const espectedInput = espectedInputWithoufee + protocolFeeEspct + poolFee
+
+                // tokenBalance ( spotPrice ) must be current balance + input
+
+                expect( getNumber( newSpotPrice ) ).to.be.equal( spotPrice + espectedInput )
+
+                // NFTBalance ( delta ) must be current balance - number Of Items
+
+                expect( getNumber( newDelta )  ).to.be.equal( delta - numItems)
+
+            })
+
         })
 
     })
@@ -292,7 +335,7 @@ describe("Constant Product Curve", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should return a input value", async () => {
+            it("1. should return a input value and isValid must be true", async () => {
 
                 const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -308,7 +351,7 @@ describe("Constant Product Curve", function () {
 
                 const poolFee0 = 0
 
-                const [ , , , outputValue ] = await cPCurve.getSellInfo(
+                const [ isValid, , , outputValue ] = await cPCurve.getSellInfo(
                     delta,
                     spotPrice,
                     numItems,
@@ -319,6 +362,10 @@ describe("Constant Product Curve", function () {
                 // check that input value is greater than 0
 
                 expect( outputValue ).to.be.greaterThan( 0 )
+
+                // valid params should return true
+
+                expect( isValid ).to.be.true
 
             })
 
@@ -391,6 +438,48 @@ describe("Constant Product Curve", function () {
                 // raturnal protocol fee should be the same than espected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
+
+            })
+
+            it("4. test new spot Price and new delta", async () => {
+
+                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+
+                const numItems = 10
+
+                const initialPrice = 5
+
+                const spotPrice = numItems * initialPrice
+
+                const delta = numItems + 1
+
+                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+
+                const poolFeeMul = 0.1
+
+                const [ , newSpotPrice, newDelta, , ] = await cPCurve.getSellInfo(
+                    parseEther( `${ delta }` ),
+                    parseEther( `${ spotPrice }` ),
+                    numItems,
+                    parseEther( `${ protocolFeeMult }` ),
+                    parseEther( `${ poolFeeMul }` )
+                )
+
+                const espectedOutputWithoutFee = getTokenOutput( "cPCurve", spotPrice, delta, numItems )
+
+                const protocolFeeEspct = espectedOutputWithoutFee * protocolFeeMult 
+
+                const poolFee = espectedOutputWithoutFee * poolFeeMul
+
+                const espectedOutput = espectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
+
+                // input value should be equal to espected value plus fees
+
+                expect( getNumber( newSpotPrice ) ).to.be.equal( spotPrice - espectedOutput )
+
+                // raturnal protocol fee should be the same than espected
+
+                expect( getNumber( newDelta )  ).to.be.equal( delta + numItems )
 
             })
 

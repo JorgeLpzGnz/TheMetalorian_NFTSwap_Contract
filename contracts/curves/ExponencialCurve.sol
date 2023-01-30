@@ -40,8 +40,7 @@ contract ExponencialCurve is ICurve, CurveErrors {
 
         uint _newSpotPrice = uint( _spotPrice ).fmul( deltaPow, FixedPointMathLib.WAD);
 
-        if( _newSpotPrice > type( uint128 ).max )
-            return ( false, 0, 0, 0, 0);
+        if( _newSpotPrice > type( uint128 ).max ) return ( false, 0, 0, 0, 0);
 
         newSpotPrice = uint128( _newSpotPrice );
 
