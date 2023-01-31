@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../libraries/Arrays.sol";
 import "./MSPairBasic.sol";
+import "hardhat/console.sol";
 
 contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
@@ -11,7 +12,7 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
     uint[] private _TOKEN_IDS;
 
-    function _sendNFTsTo( address _from, address _to, uint[] calldata _tokenIDs ) internal override {
+    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 
@@ -19,9 +20,13 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
             _NFT.safeTransferFrom(_from, _to, _tokenIDs[i]);
 
-            ( uint index, bool isIncluded ) = _tokenIDs.indexOf( _tokenIDs[i] );
+            if( _from == address( this ) && _TOKEN_IDS.includes( _tokenIDs[i] ) ) {
 
-            if( _to != address( this ) && isIncluded ) delete _TOKEN_IDS[ index ];
+                uint tokenIndex = _TOKEN_IDS.indexOf( _tokenIDs[i] );
+
+                require(_TOKEN_IDS.remove( tokenIndex ), "Unknow tokenID" );
+
+            }
 
         }
 
@@ -65,7 +70,7 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
                 poolNFT.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
-                delete _TOKEN_IDS[ _nftIds[i] ];
+                require( _TOKEN_IDS.remove( _TOKEN_IDS.indexOf(_nftIds[i]) ), "");
 
             }
 

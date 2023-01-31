@@ -10,11 +10,16 @@ const {
     sendBulkNfts,
     getNumber,
     getTokenInput,
-    deployMetaFactory
+    deployMetaFactory,
+    getNumberForBNArray,
+    getTokenOutput,
+    roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const provider = ethers.provider
+const { utils } = ethers
+const { parseEther, formatEther } = utils
 
 describe("MetaPairs", function () {
 
@@ -119,9 +124,9 @@ describe("MetaPairs", function () {
 
             it("3. check initial info for token pair", async() => {
 
-                const { metaFactory, nft, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
+                const { metaFactory, NFTEnumerable, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
 
-                const { pair } = await createPair( metaFactory, nft, 0, 1, 1.5, exponencialCurve, poolType.token, 0, 10)
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 0, 1, 1.5, exponencialCurve, poolType.token, 0, 10)
 
                 const tokenBalance = await provider.getBalance( pair.address )
 
@@ -145,7 +150,7 @@ describe("MetaPairs", function () {
 
                 // check nft collection address
                 
-                expect( await pair.NFT() ).to.be.equal( nft.address )
+                expect( await pair.NFT() ).to.be.equal( NFTEnumerable.address )
 
                 // check the pair factory
                 
@@ -208,6 +213,24 @@ describe("MetaPairs", function () {
                 
                 expect( await pair.curve() ).to.be.equal( cPCurve.address )
 
+
+            })
+
+            it("5. should create a new Enumerable pair", async() => {
+
+                const { metaFactory, NFTEnumerable, linearCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair, tokenIds } = await createPair( metaFactory, NFTEnumerable, 10, 5, 0.5, linearCurve, poolType.nft, 0, 0 )
+
+                const nftIds = await pair.getNFTIds()
+
+                // NFT address should be the passed nft Addres
+
+                expect( await pair.NFT() ).to.be.equal( NFTEnumerable.address )
+
+                // check than pool NFTs are the same that was sended to pool
+
+                expect( getNumberForBNArray( nftIds ) ).to.deep.equal( tokenIds )
 
             })
 
@@ -786,120 +809,503 @@ describe("MetaPairs", function () {
 
     })
 
-    // update ( make test of this functions )
+    // update ( make proves of each poolType )
 
-    // describe( "Token Pools", () => {
+    describe( "get NFT IDs", () => {
 
-    //     describe(" - Functionalities", () => {
+        describe(" - Functionalities", () => {
 
-    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+            it("1. prove Not NFT Enumerable IDs array updating", async () => {
 
-    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
 
-    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+                const startPrice = 5
 
-    //         } )
+                const delta = 0.3
+
+                const numItems = 10
+
+                const tokenAmount = getTokenOutput("linearCurve", startPrice, delta, numItems )
+
+                const { pair, tokenIds } = await createPair( metaFactory, nft, numItems, startPrice, delta, linearCurve, poolType.trade, 0.1, tokenAmount)
+
+                const ownerNFTs = await mintNFT(nft, 5, pair )
+
+                expect( 
+                    getNumberForBNArray( await pair.getNFTIds() ) 
+                ).to.deep.equal(
+                    tokenIds
+                )
+
+                await pair.swapNFTsForToken( 
+                    ownerNFTs,
+                    0,
+                    owner.address
+                    )
+
+                // check that poolNFTs is equal to initial NFTs + swap NFTs
+
+                expect( getNumberForBNArray( await pair.getNFTIds() ) ).to.deep.equal( tokenIds.concat(ownerNFTs) )
+
+                await pair.swapTokenForNFT( 
+                    tokenIds,
+                    parseEther("100"),
+                    owner.address, 
+                    { value: parseEther("100")}
+                    )
+
+                // check that poolNFTs are equal to current NFTs - swap NFTs
+    
+                expect( getNumberForBNArray( await pair.getNFTIds() ).sort() ).to.deep.equal( ownerNFTs )
+
+            } )
+
+            it("1. prove NFT Enumerable IDs array updating", async () => {
+
+                const { metaFactory, NFTEnumerable, linearCurve, owner } = await loadFixture( deployMetaFactory )
+
+                const startPrice = 5
+
+                const delta = 0.3
+
+                const numItems = 10
+
+                const tokenAmount = getTokenOutput("linearCurve", startPrice, delta, numItems )
+
+                const { pair, tokenIds } = await createPair( metaFactory, NFTEnumerable, numItems, startPrice, delta, linearCurve, poolType.trade, 0.1, tokenAmount)
+
+                const ownerNFTs = await mintNFT(NFTEnumerable, 5, pair )
+
+                expect( 
+                    getNumberForBNArray( await pair.getNFTIds() ) 
+                ).to.deep.equal(
+                    tokenIds
+                )
+
+                await pair.swapNFTsForToken( 
+                    ownerNFTs,
+                    0,
+                    owner.address
+                    )
+
+                // check that poolNFTs is equal to initial NFTs + swap NFTs
+
+                expect( getNumberForBNArray( await pair.getNFTIds() ) ).to.deep.equal( tokenIds.concat(ownerNFTs) )
+
+                await pair.swapTokenForNFT( 
+                    tokenIds,
+                    parseEther("100"),
+                    owner.address, 
+                    { value: parseEther("100")}
+                    )
+
+                // check that poolNFTs are equal to current NFTs - swap NFTs
+    
+                expect( getNumberForBNArray( await pair.getNFTIds() ).sort() ).to.deep.equal( ownerNFTs )
+
+            } )
             
-    //     })
+        })
 
-    // })
+    })
 
-    // describe( "NFT Pools", () => {
+    describe( "get Assets Recipient", () => {
 
-    //     describe(" - Functionalities", () => {
+        describe(" - Functionalities", () => {
 
-    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+            it("1. Should return an address in Token pool", async () => {
 
-    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, linearCurve, owner } = await loadFixture( deployMetaFactory )
 
-    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 0.1, linearCurve, poolType.token, 0, 0 )
 
-    //         } )
+                expect( await pair.getAssetsRecipient() ).to.be.equal( owner.address )
+
+            } )
+
+            it("2. Should return an address in NFT pool", async () => {
+
+                const { metaFactory, NFTEnumerable, cPCurve, owner } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 0.1, cPCurve, poolType.nft, 0, 0 )
+
+                expect( await pair.getAssetsRecipient() ).to.be.equal( owner.address )
+
+            } )
+
+            it("3. Should return the pool address in trade pool", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.trade, 0.1, 10 )
+
+                expect( await pair.getAssetsRecipient() ).to.be.equal( pair.address )
+
+            } )
             
-    //     })
+        })
 
-    // })
+    })
 
-    // describe( "Trade Pools", () => {
+    describe( "set Assets Recipient", () => {
 
-    //     describe(" - Functionalities", () => {
+        describe(" - Errors", () => {
 
-    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
+            it("1. should fail if a not owner try to call", async () => {
 
-    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount } = await loadFixture( deployMetaFactory )
 
-    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.trade, 0, 0 )
 
-    //         } )
+                await expect( 
+                    pair.connect(otherAccount).setAssetsRecipient( otherAccount.address )
+                ).to.be.rejected
             
-    //     })
+            } )
 
-    // })
+            it("2. should fail if try to set on trade pool", async () => {
 
-    // describe( "get NFT IDs", () => {
+                const { metaFactory, NFTEnumerable, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
 
-    //     describe(" - Functionalities", () => {
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.trade, 0, 0 )
 
-    //         it("1. prove Not NFT Enumerable IDs array updating", async () => {
-
-    //             const { metaFactory, nft, linearCurve, owner } = await loadFixture(deployMetaFactory)
-
-    //             const { pair } = await createPair( metaFactory, nft, 10, 5, 0.5, linearCurve, poolType.trade, 0.1, )
-
-    //         } )
+                await expect( 
+                    pair.setAssetsRecipient( owner.address )
+                ).to.be.rejectedWith( "Recipient not supported in trade pools" )
             
-    //     })
+            } )
 
-    // })
+            it("3. should fail if try to set the same address than the current", async () => {
 
-    // describe( "get Assets Recipient", () => {
+                const { metaFactory, NFTEnumerable, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
 
-    //     describe(" - Functionalities", () => {
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
 
-    //         it("1. ", async () => {} )
+                await expect( 
+                    pair.setAssetsRecipient( owner.address )
+                ).to.be.rejectedWith( "New recipient is equal than current" )
             
-    //     })
-
-    // })
-
-    // describe( "set SpotPrice", () => {
-
-    //     describe(" - Functionalities", () => {
-
-    //         it("1. ", async () => {} )
+            } )
             
-    //     })
+        })
 
-    // })
+        describe(" - Functionalities", () => {
 
-    // describe( "set Delta", () => {
+            it("1. should set a new recipient", async () => {
 
-    //     describe(" - Functionalities", () => {
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount, owner } = await loadFixture( deployMetaFactory )
 
-    //         it("1. ", async () => {} )
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                // check that the recipient is equal to the owner
+
+                expect( await pair.getAssetsRecipient() ).to.be.equal( owner.address )
+
+                await pair.setAssetsRecipient( otherAccount.address )
+
+                // verify that it sets the new recipient
+
+                expect( await pair.getAssetsRecipient() ).to.be.equal( otherAccount.address )
             
-    //     })
-
-    // })
-
-    // describe( "withdraw Token", () => {
-
-    //     describe(" - Functionalities", () => {
-
-    //         it("1. ", async () => {} )
+            } )
             
-    //     })
+        })
 
-    // })
+    })
 
-    // describe( "withdraw NFTs", () => {
+    describe( "set SpotPrice", () => {
 
-    //     describe(" - Functionalities", () => {
+        describe(" - Errors", () => {
 
-    //         it("1. ", async () => {} )
+            it("1. should fail when not owner try to set new spot price", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                await expect( pair.connect( otherAccount ).setSpotPrice( 0 ) ).to.be.reverted
+
+            } )
+
+            it("2. should fail if new spot Price is equal than current", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                const spotPrice = await pair.spotPrice()
+
+                await expect( pair.setSpotPrice( spotPrice ) ).to.be.revertedWith( "new price is equal than current" )
+
+            } )
+
+            it("3. should fail when new spot price is invalid for the curve", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                // min spot price = 1 gwei = 1e9
+
+                const spotPrice = 1e7
+
+                await expect( pair.setSpotPrice( spotPrice ) ).to.be.revertedWith( "invalid Spot Price" )
+
+            } )
             
-    //     })
+        })
 
-    // })
+        describe(" - Functionalities", () => {
+
+            it("1. should set a new spot price", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const spotPrice = 5
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, spotPrice, 1.5, exponencialCurve, poolType.nft, 0, 0 )
+
+                // current spot price is the same as initial
+
+                expect( getNumber(await pair.spotPrice()) ).to.be.equal( spotPrice )
+
+                const newSpotPrice = parseEther("7")
+
+                await pair.setSpotPrice( newSpotPrice )
+
+                expect( await pair.spotPrice() ).to.be.equal( newSpotPrice )
+            
+            } )
+            
+        })
+
+    })
+
+    describe( "set Delta", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail when not owner try to set new delta", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                await expect( pair.connect( otherAccount ).setDelta( 0 ) ).to.be.reverted
+
+            } )
+
+            it("2. should fail if new delta is equal than current", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                const delta = await pair.delta()
+
+                await expect( pair.setDelta( delta ) ).to.be.revertedWith( "delta is equal than current" )
+
+            } )
+
+            it("3. should fail when new spot price is invalid for the curve", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                // Min delta = 1e18
+
+                const delta = 1e7
+
+                await expect( pair.setDelta( delta ) ).to.be.revertedWith( "invalid delta" )
+
+            } )
+            
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should set a new delta", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const delta = 1.1
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, delta, exponencialCurve, poolType.nft, 0, 0 )
+
+                expect( getNumber( await pair.delta() ) ).to.be.equal( delta )
+
+                const newDelta = parseEther( "1.5" )
+
+                await pair.setDelta( newDelta ) 
+
+                expect( await pair.delta() ).to.be.equal( newDelta)
+            
+            } )
+            
+        })
+
+    })
+
+    describe( "withdraw Token", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail when not owner try to withdraw", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.token, 0, 10 )
+
+                await expect( pair.connect( otherAccount ).withdrawToken() ).to.be.reverted
+            
+            } )
+
+            it("2. should fail if contract have insufficent founds", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                await expect( pair.withdrawToken() ).to.be.revertedWith( "insufficent balance")
+            
+            } )
+            
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should withdraw contract balance", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
+
+                const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.token, 0, 10 )
+
+                const currentBalance = getNumber(await provider.getBalance( pair.address ))
+
+                const ownerBalanceBefore = getNumber(await owner.getBalance())
+
+                // check than current balance is not cero
+
+                expect( currentBalance ).to.be.greaterThan( 0 )
+
+                await pair.withdrawToken()
+
+                const ownerBalanceAfter = getNumber(await owner.getBalance())
+
+                // check that contract balance was sended to owner
+                // is rounded to hamdle gas cost
+
+                expect( Math.floor( ownerBalanceBefore + currentBalance ) ).to.be.equal( Math.floor( ownerBalanceAfter ))
+
+                // chack that the contract balance is 0
+
+                expect( await provider.getBalance( pair.address ) ).to.be.equal( 0 )
+            
+            } )
+            
+        })
+
+    })
+
+    describe( "withdraw NFTs", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if a not owner tries to withdraw", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, otherAccount } = await loadFixture( deployMetaFactory )
+
+                const { pair, tokenIds } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                expect( pair.connect( otherAccount ).withdrawNFTs( NFTEnumerable.address, tokenIds) ).to.be.reverted
+
+            } )
+
+            it("2. should fail if pair doesn't have the NFTs", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve } = await loadFixture( deployMetaFactory )
+
+                // the pool is type token so in the initial time it doesn't have NFTs
+
+                const { pair, tokenIds } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.token, 0, 0 )
+
+                expect( pair.withdrawNFTs( NFTEnumerable.address, tokenIds) ).to.be.reverted
+
+            } )
+            
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should withdraw Not Enumerable NFT and update Pool NFT IDs", async () => {
+
+                const { metaFactory, nft, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
+
+                const { pair, tokenIds } = await createPair( metaFactory, nft, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                // check stored NFT IDs and current NFT Balance
+
+                expect( await pair.getNFTIds() ).to.deep.equal( tokenIds )
+
+                expect( await nft.balanceOf( pair.address ) ).to.be.equal( tokenIds.length )
+
+                // check that owner don't have NFTs before withdrown
+
+                expect( await nft.balanceOf( owner.address ) ).to.be.equal( 0 )
+
+
+                await pair.withdrawNFTs( nft.address, tokenIds )
+
+                // after withdrawn NFT Balance must be 0
+
+                expect( await nft.balanceOf( pair.address ) ).to.be.equal( 0 )
+
+                // check pair owner NFT balance
+
+                expect( await nft.balanceOf( owner.address ) ).to.be.equal( tokenIds.length )
+
+                // check the stored NFT IDs array
+
+                expect( await pair.getNFTIds() ).to.deep.equal( [] )
+            
+            } )
+
+            it("2. should withdraw Enumerable NFTs", async () => {
+
+                const { metaFactory, NFTEnumerable, exponencialCurve, owner } = await loadFixture( deployMetaFactory )
+
+                const { pair, tokenIds } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponencialCurve, poolType.nft, 0, 0 )
+
+                // check stored NFT IDs and current NFT Balance
+
+                expect( await pair.getNFTIds() ).to.deep.equal( tokenIds )
+
+                expect( await NFTEnumerable.balanceOf( pair.address ) ).to.be.equal( tokenIds.length )
+
+                // check that owner don't have NFTs before withdrown
+
+                expect( await NFTEnumerable.balanceOf( owner.address ) ).to.be.equal( 0 )
+
+
+                await pair.withdrawNFTs( NFTEnumerable.address, tokenIds )
+
+                // after withdrawn NFT Balance must be 0
+
+                expect( await NFTEnumerable.balanceOf( pair.address ) ).to.be.equal( 0 )
+
+                // check pair owner NFT balance
+
+                expect( await NFTEnumerable.balanceOf( owner.address ) ).to.be.equal( tokenIds.length )
+
+                // check the stored NFT IDs array
+
+                expect( await pair.getNFTIds() ).to.deep.equal( [] )
+            
+            } )
+            
+        })
+
+    })
 
 });

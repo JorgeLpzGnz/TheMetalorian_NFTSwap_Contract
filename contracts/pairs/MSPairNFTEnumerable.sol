@@ -2,20 +2,24 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "./MSPairBasic.sol";
 
 contract MSPairNFTEnumerable is MSPairBasic, IERC721Receiver {
 
     function getNFTIds() public view override returns ( uint[] memory nftIds) {
 
-        ERC721Enumerable _NFT = ERC721Enumerable( NFT );
+        IERC721Enumerable _NFT = IERC721Enumerable( NFT );
 
-        uint lastIndex = _NFT.balanceOf( address( this ) ) - 1;
+        uint pairBalance = _NFT.balanceOf( address( this ) );
 
-        uint[] memory _nftIds = new uint[](lastIndex);
+        if ( pairBalance == 0 ) return nftIds;
 
-        for (uint256 i = 0; i < lastIndex; i++) {
+        uint lastIndex = pairBalance - 1;
+
+        uint[] memory _nftIds = new uint[]( lastIndex + 1 );
+
+        for (uint256 i = 0; i <= lastIndex; i++) {
             
             _nftIds[i] = _NFT.tokenOfOwnerByIndex( address( this ), i);
 
@@ -25,7 +29,7 @@ contract MSPairNFTEnumerable is MSPairBasic, IERC721Receiver {
 
     }
 
-    function _sendNFTsTo( address _from, address _to, uint[] calldata _tokenIDs ) internal override {
+    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 

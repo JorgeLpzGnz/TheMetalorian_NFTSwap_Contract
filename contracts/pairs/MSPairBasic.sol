@@ -141,7 +141,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function _sendNFTsTo( address _from, address _to, uint[] calldata _tokenIDs ) internal virtual;
+    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal virtual;
 
     function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal virtual;
 
@@ -189,7 +189,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function swapNFTsForToken( uint[] calldata _tokenIDs, uint _minExpected, address _user ) public nonReentrant {
+    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant {
 
         require( currentPoolType == PoolTypes.PoolType.Token || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
@@ -205,7 +205,7 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function swapTokenForNFT( uint[] calldata _tokenIDs, uint _maxEspectedIn, address _user ) public payable {
+    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxEspectedIn, address _user ) public payable {
 
         require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
@@ -251,33 +251,43 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     receive() external payable {}
 
-    function setSpotPrice( uint128 _newSpotPrice ) public onlyOwner {
+    function setAssetsRecipient( address _newRecipient ) external onlyOwner {
 
-        require( spotPrice != _newSpotPrice, "thats the current value");
+        require( currentPoolType != PoolTypes.PoolType.Trade, "Recipient not supported in trade pools");
 
-        require( curve.validateSpotPrice( _newSpotPrice ) );
+        require( assetsRecipient != _newRecipient, "New recipient is equal than current" );
+
+        assetsRecipient = _newRecipient;
+
+    }
+
+    function setSpotPrice( uint128 _newSpotPrice ) external onlyOwner {
+
+        require( spotPrice != _newSpotPrice, "new price is equal than current");
+
+        require( curve.validateSpotPrice( _newSpotPrice ), "invalid Spot Price" );
 
         spotPrice = _newSpotPrice;
 
     }
 
-    function setDelta( uint128 _newDelta ) public onlyOwner {
+    function setDelta( uint128 _newDelta ) external onlyOwner {
 
-        require( delta != _newDelta, "thats the current value");
+        require( delta != _newDelta, "delta is equal than current");
 
-        require( curve.validateDelta( _newDelta ) );
+        require( curve.validateDelta( _newDelta ), "invalid delta" );
 
         delta = _newDelta;
         
     }
 
-    function withdrawToken() public onlyOwner {
+    function withdrawToken() external onlyOwner {
 
         uint balance = address( this ).balance;
 
         require( balance > 0, "insufficent balance" );
 
-        ( bool isSended, ) = payable( address( this )).call{ value: balance }("");
+        ( bool isSended, ) = owner().call{ value: balance }("");
 
         require(isSended, "amount not sended" );
 

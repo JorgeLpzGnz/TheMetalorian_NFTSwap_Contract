@@ -2,6 +2,8 @@ const { ethers } = require("hardhat")
 const PAIR_NFT_BASIC = require("../artifacts/contracts/pairs/MSPairNFTBasic.sol/MSPairNFTBasic.json")
 const PAIR_NFT_ENUMERABLE = require("../artifacts/contracts/pairs/MSPairNFTEnumerable.sol/MSPairNFTEnumerable.json")
 const NFT_ABI = require("../utils/nftABI")
+const { utils } = ethers
+const { parseEther, formatEther } = utils
 
 const poolType = {
     token: 0,
@@ -18,6 +20,8 @@ async function deployMetaFactory() {
         NFT_ABI,
         owner
     )
+
+    const NFTEnumerable = await (await hre.ethers.getContractFactory("NFTEnumerable")).deploy()
 
     const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
     const linearCurve = await LinearCurve.deploy();
@@ -36,7 +40,7 @@ async function deployMetaFactory() {
         cPCurve.address
     );
 
-    return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve };
+    return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve, NFTEnumerable };
 
 }
 
@@ -48,19 +52,19 @@ async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, c
 
     if ( poolType == 0 ) nftIds = []
 
-    const delta = ethers.utils.parseEther(`${ _delta }`)
+    const delta = parseEther(`${ _delta }`)
 
-    const spotPrice = ethers.utils.parseEther(`${_spotPrice}`)
+    const spotPrice = parseEther(`${_spotPrice}`)
 
     const [ owner ] = await ethers.getSigners();
 
-    const fee = ethers.utils.parseEther( `${ _fee }` )
+    const fee = parseEther( `${ _fee }` )
 
     let rewardRecipient = owner.address
 
     if( poolType == 2 ) rewardRecipient = ethers.constants.AddressZero
 
-    const tokenAmount = ethers.utils.parseEther( `${_tokenAmount}` )
+    const tokenAmount = parseEther( `${_tokenAmount}` )
 
     const tx = await metaFactory.createPair( 
         nft.address,    // colection
@@ -110,7 +114,7 @@ async function getEventLog( _tx, _event ) {
 
 }
 
-async function mintNFT(NFT, amount, addressToApprove, _account ) {
+async function mintNFT(NFT, amount, contractToApprove, _account ) {
 
     let [ account ] = await ethers.getSigners() 
 
@@ -124,12 +128,15 @@ async function mintNFT(NFT, amount, addressToApprove, _account ) {
 
     const firsToken = (await NFT.tokenIdCounter()).toNumber()
 
-    await NFT.mintTheMetalorianDAOSilver(
-        amount,
-        { value: mintCost.mul(amount) }
-    )
+    if( NFT.address == "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18" ) 
+        await NFT.mintTheMetalorianDAOSilver(
+            amount,
+            { value: mintCost.mul(amount) }
+        )
 
-    await NFT.setApprovalForAll( addressToApprove.address, true )
+    else await NFT.safeMint( amount )
+
+    await NFT.setApprovalForAll( contractToApprove.address, true )
 
     for (let i = firsToken; i < firsToken + amount; i++)
         tokenIds.push( i )
@@ -148,7 +155,7 @@ async function sendBulkNfts( nft, tokenIds, to ) {
 
 function getNumber( bignumber ) {
 
-    return Number( ethers.utils.formatEther( bignumber ))
+    return Number( formatEther( bignumber ))
 
 }
 
@@ -212,6 +219,22 @@ function getTokenOutput( curve, spotPrice, delta, numItems ) {
 
 }
 
+// This function assumes that the BigNumber is smaller than javascript limit
+
+function getNumberForBNArray( BNArray ) {
+
+    const numbers = []
+
+    for (let i = 0; i < BNArray.length; i++) {
+
+        numbers.push( BNArray[i].toNumber() );
+        
+    }
+
+    return numbers
+
+}
+
 function roundNumber( x, base ) { return ( Math.round( x * base ) ) / base } 
 
 module.exports = {
@@ -224,5 +247,6 @@ module.exports = {
     getTokenInput,
     deployMetaFactory,
     getTokenOutput,
-    roundNumber
+    roundNumber,
+    getNumberForBNArray
 }
