@@ -28,9 +28,9 @@ contract MetaFactory is Ownable {
 
     address public PROTOCOL_FEE_RECIPIENT;
 
-    MSPairNFTEnumerable pairEnumerableImplementation;
+    MSPairNFTEnumerable public pairEnumTemplate;
 
-    MSPairNFTBasic pairBasicImplementation;
+    MSPairNFTBasic public pairNotEnumTemplate;
 
     mapping( address => bool ) isMSCurve;
 
@@ -46,9 +46,9 @@ contract MetaFactory is Ownable {
 
         PROTOCOL_FEE_RECIPIENT = address( this );
 
-        pairEnumerableImplementation = new MSPairNFTEnumerable();
+        pairEnumTemplate = new MSPairNFTEnumerable();
 
-        pairBasicImplementation = new MSPairNFTBasic();
+        pairNotEnumTemplate = new MSPairNFTBasic();
 
     }
 
@@ -65,8 +65,8 @@ contract MetaFactory is Ownable {
         require( isEnumerable || isBasic );
 
         address implementation = isEnumerable
-            ? address( pairEnumerableImplementation )
-            : address( pairBasicImplementation );
+            ? address( pairEnumTemplate )
+            : address( pairNotEnumTemplate );
 
         _newPair = MSPairBasic( payable( implementation.clone() ) );
 

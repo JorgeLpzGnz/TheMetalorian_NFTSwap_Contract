@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/ICurve.sol";
-import "hardhat/console.sol";
 
 contract LinearCurve is ICurve, CurveErrors {
 

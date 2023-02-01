@@ -8,10 +8,9 @@ import "./PoolTypes.sol";
 import "../interfaces/ICurve.sol";
 import "../interfaces/IMetaFactory.sol";
 import "../curves/CurveErrors.sol";
-// Uncomment this line to use console.log
-import "hardhat/console.sol";
+import "../interfaces/IMSPair.sol";
 
-abstract contract MSPairBasic is ReentrancyGuard, Ownable {
+abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     uint128 public delta;
 
@@ -147,6 +146,42 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
+    function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newSpotPrice, uint128 newDelta, uint inputValue, uint protocolFee ) {
+
+        (
+            isValid, 
+            newSpotPrice, 
+            newDelta, 
+            inputValue, 
+            protocolFee 
+        ) = curve.getBuyInfo( 
+            delta, 
+            spotPrice, 
+            _numNFTs, 
+            IMetaFactory( factory ).PROTOCOL_FEE(),
+            tradeFee
+            );
+    
+    }
+
+    function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newSpotPrice, uint128 newDelta, uint outputValue, uint protocolFee ) {
+
+        (
+            isValid, 
+            newSpotPrice, 
+            newDelta, 
+            outputValue, 
+            protocolFee 
+        ) = curve.getSellInfo( 
+            delta, 
+            spotPrice, 
+            _numNFTs, 
+            IMetaFactory( factory ).PROTOCOL_FEE(),
+            tradeFee
+            );
+    
+    }
+
     function getAssetsRecipient() public view returns ( address _assetsRecipient ) {
 
         if ( assetsRecipient == address(0) ) _assetsRecipient = address( this );
@@ -189,11 +224,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant {
+    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant returns( uint256 outputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Token || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
-        ( uint256 outputAmount, uint256 protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
+        uint256 protocolFee;
+
+        ( outputAmount, protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
 
         address _assetsRecipient = getAssetsRecipient();
 
@@ -205,11 +242,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
 
     }
 
-    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxEspectedIn, address _user ) public payable {
+    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxEspectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
-        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedIn );
+        uint protocolFee;
+
+        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedIn );
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
@@ -227,11 +266,13 @@ abstract contract MSPairBasic is ReentrancyGuard, Ownable {
         
     }
 
-    function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedIn, address _user ) public payable {
+    function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
-        ( uint inputAmount, uint protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedIn );
+        uint protocolFee;
+
+        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedIn );
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 

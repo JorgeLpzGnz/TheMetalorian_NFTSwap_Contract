@@ -8,41 +8,58 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
-  const linearCurve = await LinearCurve.deploy();
+    // linear Market curve
 
-  await linearCurve.deployed();
+    const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
+    const linearCurve = await LinearCurve.deploy();
 
-  const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
-  const exponencialCurve = await ExponencialCurve.deploy();
+    await linearCurve.deployed();
 
-  await exponencialCurve.deployed();
+    console.log(`linearCurve deployed at ${linearCurve.address}`);
 
-  const CPCurve = await hre.ethers.getContractFactory("CPCurve");
-  const cPCurve = await CPCurve.deploy();
 
-  await cPCurve.deployed();
+    // Exponencial Market curve
 
-  const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
-  const metaFactory = await MetaFactory.deploy( 
-    linearCurve.address,
-    exponencialCurve.address,
-    cPCurve.address
-  );
+    const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
+    const exponencialCurve = await ExponencialCurve.deploy();
 
-  await metaFactory.deployed();
+    await exponencialCurve.deployed();
 
-  console.log(`
-    linearCurve deployed at ${linearCurve.address}
-    exponencialCurve deployed at ${exponencialCurve.address}
-    CPCurve deployed at ${cPCurve.address}
-    MSPairBasic deployed to ${metaFactory.address}`
-  );
+    console.log(`ExponencialCurve deployed at ${exponencialCurve.address}`);
+
+
+    // Constant Product curve
+
+    const CPCurve = await hre.ethers.getContractFactory("CPCurve");
+    const cPCurve = await CPCurve.deploy();
+
+    await cPCurve.deployed();
+
+    console.log(`CPCurve deployed at ${cPCurve.address}`);
+
+
+    // Meta Factory
+
+    const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
+    const metaFactory = await MetaFactory.deploy(
+        linearCurve.address,
+        exponencialCurve.address,
+        cPCurve.address
+    );
+
+    await metaFactory.deployed();
+
+    console.log(`Meta Factory deployed to ${metaFactory.address}`);
+
+    console.log(`pair Enumerable Implementation deployed to ${ await metaFactory.pairEnumTemplate() }`);
+
+    console.log(`pair Basic Implementation deployed to ${ await metaFactory.pairNotEnumTemplate() }`);
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
 });
