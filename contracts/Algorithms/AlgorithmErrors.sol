@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
-contract CurveErrors {
+contract AlgorithmErrors {
     enum Error {
         OK, // No error
         INVALID_NUMITEMS, // The numItem value is 0

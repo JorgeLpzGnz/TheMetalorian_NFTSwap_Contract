@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
-import "../interfaces/ICurve.sol";
+import "../interfaces/IMetaAlgorithm.sol";
 
-contract LinearCurve is ICurve, CurveErrors {
+contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     using FixedPointMathLib for uint256;
 
-    function validateSpotPrice( uint ) external pure override returns( bool ) {
+    function validateStartPrice( uint ) external pure override returns( bool ) {
 
         return true;
 
@@ -20,10 +20,10 @@ contract LinearCurve is ICurve, CurveErrors {
 
     }
 
-    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
+    function getBuyInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
             bool isValid, 
-            uint128 newSpotPrice, 
+            uint128 newStartPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
             uint256 protocolFee 
@@ -32,15 +32,15 @@ contract LinearCurve is ICurve, CurveErrors {
         if ( _numItems == 0 ) 
             return (false, 0, 0, 0, 0);
 
-        uint _newSpotPrice = _spotPrice + ( _delta * _numItems );
+        uint _newStartPrice = _startPrice + ( _multiplier * _numItems );
         
-        if( _newSpotPrice > type( uint128 ).max )
+        if( _newStartPrice > type( uint128 ).max )
             return ( false, 0, 0, 0, 0);
 
-        uint256 buyPrice = _spotPrice + _delta;
+        uint256 buyPrice = _startPrice + _multiplier;
 
         inputValue = 
-            _numItems * buyPrice + ( _numItems * ( _numItems - 1 ) * _delta ) / 2;
+            _numItems * buyPrice + ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
 
         // update ( Fees )
 
@@ -50,18 +50,18 @@ contract LinearCurve is ICurve, CurveErrors {
 
         inputValue += ( protocolFee + poolFee );
 
-        newSpotPrice = uint128(_newSpotPrice);
+        newStartPrice = uint128(_newStartPrice);
 
-        newDelta = _delta;
+        newDelta = _multiplier;
 
         isValid = true;
 
     }
 
-    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
+    function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override
         returns ( 
             bool isValid, 
-            uint128 newSpotPrice, 
+            uint128 newStartPrice, 
             uint128 newDelta, 
             uint256 outputValue, 
             uint256 protocolFee 
@@ -70,19 +70,19 @@ contract LinearCurve is ICurve, CurveErrors {
         if ( _numItems == 0 ) 
             return (false, 0, 0, 0, 0);
 
-        uint decrease = _delta * _numItems;
+        uint decrease = _multiplier * _numItems;
 
-        if( _spotPrice < decrease ){
+        if( _startPrice < decrease ){
 
-            newSpotPrice = 0;
+            newStartPrice = 0;
 
-            _numItems = _spotPrice / _delta + 1;
+            _numItems = _startPrice / _multiplier + 1;
 
         }
 
-        else newSpotPrice = _spotPrice - uint128( decrease );
+        else newStartPrice = _startPrice - uint128( decrease );
 
-        outputValue = _numItems * _spotPrice - ( _numItems * ( _numItems - 1 ) * _delta ) / 2;
+        outputValue = _numItems * _startPrice - ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
 
         // update ( Fees )
 
@@ -92,7 +92,7 @@ contract LinearCurve is ICurve, CurveErrors {
 
         outputValue -= ( protocolFee + poolFee );
 
-        newDelta = _delta;
+        newDelta = _multiplier;
 
         isValid = true;
 

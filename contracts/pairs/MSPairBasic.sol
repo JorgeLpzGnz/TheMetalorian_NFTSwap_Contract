@@ -5,22 +5,22 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PoolTypes.sol";
-import "../interfaces/ICurve.sol";
+import "../interfaces/IMetaAlgorithm.sol";
 import "../interfaces/IMetaFactory.sol";
-import "../curves/CurveErrors.sol";
+import "../Algorithms/AlgorithmErrors.sol";
 import "../interfaces/IMSPair.sol";
 
 abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
-    uint128 public delta;
+    uint128 public multiplier;
 
-    uint128 public spotPrice;
+    uint128 public startPrice;
 
     uint128 public tradeFee;
 
     uint128 public constant MAX_TRADE_FEE = 0.9e18;
 
-    address public assetsRecipient;
+    address public recipient;
 
     address public NFT;
 
@@ -28,11 +28,11 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     PoolTypes.PoolType public currentPoolType;
 
-    ICurve public curve;
+    IMetaAlgorithm public Algorithm;
 
-    event SellLog( address user, uint inputNFTs, uint amoutOut );
+    event SellLog( address user, uint inputNFTs, uint amountOut );
 
-    event BuyLog( address user, uint amoutIn, uint outputNFTs );
+    event BuyLog( address user, uint amountIn, uint outputNFTs );
 
     function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) internal virtual returns ( 
             uint256 outputValue, 
@@ -42,35 +42,35 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         bool isValid;
 
-        uint128 newSpotPrice;
+        uint128 newStartPrice;
 
         uint128 newDelta;
 
         (
             isValid, 
-            newSpotPrice, 
+            newStartPrice, 
             newDelta, 
             outputValue, 
             protocolFee 
-        ) = curve.getSellInfo( 
-            delta, 
-            spotPrice, 
+        ) = Algorithm.getSellInfo( 
+            multiplier, 
+            startPrice, 
             _numNFTs,
             IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
             );
 
-        require( isValid, "curve Error" );
+        require( isValid, "Algorithm Error" );
 
-        require( outputValue >= _minExpected, "output amount is les than min espected" );
+        require( outputValue >= _minExpected, "output amount is les than min expected" );
 
-        if( delta != newDelta ) delta = newDelta;
+        if( multiplier != newDelta ) multiplier = newDelta;
 
-        if( spotPrice != newSpotPrice ) spotPrice = newSpotPrice;
+        if( startPrice != newStartPrice ) startPrice = newStartPrice;
 
     }
 
-    function _getBuyNFTInfo( uint _numNFTs, uint _maxEspectedIn ) internal virtual returns ( 
+    function _getBuyNFTInfo( uint _numNFTs, uint _maxExpectedIn ) internal virtual returns ( 
             uint256 inputValue, 
             uint256 protocolFee 
         ) 
@@ -78,35 +78,35 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         bool isValid;
 
-        uint128 newSpotPrice;
+        uint128 newStartPrice;
 
         uint128 newDelta;
 
         (
             isValid, 
-            newSpotPrice, 
+            newStartPrice, 
             newDelta, 
             inputValue, 
             protocolFee 
-        ) = curve.getBuyInfo( 
-            delta, 
-            spotPrice, 
+        ) = Algorithm.getBuyInfo( 
+            multiplier, 
+            startPrice, 
             _numNFTs, 
             IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
             );
 
-        require( isValid, "curve Error" );
+        require( isValid, "Algorithm Error" );
 
-        require( inputValue <= _maxEspectedIn, "output amount is less than min espected" );
+        require( inputValue <= _maxExpectedIn, "output amount is less than min expected" );
 
-        if( delta != newDelta ) delta = newDelta;
+        if( multiplier != newDelta ) multiplier = newDelta;
 
-        if( spotPrice != newSpotPrice ) spotPrice = newSpotPrice;
+        if( startPrice != newStartPrice ) startPrice = newStartPrice;
 
     }
 
-    function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
+    function _sendSellsAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
 
         address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
 
@@ -118,15 +118,15 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
+    function _receiveSellsAndPayFee( uint _inputAmount, uint _protocolFee ) private {
 
-        require( msg.value >= _inputAmount, "insufficent amount of ETH" );
+        require( msg.value >= _inputAmount, "insufficient amount of ETH" );
 
-        address _assetsRecipient = getAssetsRecipient();
+        address _recipient = getAssetsRecipient();
 
-        if( _assetsRecipient != address( this ) ) {
+        if( _recipient != address( this ) ) {
 
-            ( bool isAssetSended, ) = payable( _assetsRecipient ).call{ value: _inputAmount - _protocolFee }("");
+            ( bool isAssetSended, ) = payable( _recipient ).call{ value: _inputAmount - _protocolFee }("");
 
             require( isAssetSended, "tx error" );
 
@@ -146,17 +146,17 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
-    function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newSpotPrice, uint128 newDelta, uint inputValue, uint protocolFee ) {
+    function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint inputValue, uint protocolFee ) {
 
         (
             isValid, 
-            newSpotPrice, 
+            newStartPrice, 
             newDelta, 
             inputValue, 
             protocolFee 
-        ) = curve.getBuyInfo( 
-            delta, 
-            spotPrice, 
+        ) = Algorithm.getBuyInfo( 
+            multiplier, 
+            startPrice, 
             _numNFTs, 
             IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
@@ -164,17 +164,17 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     
     }
 
-    function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newSpotPrice, uint128 newDelta, uint outputValue, uint protocolFee ) {
+    function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint outputValue, uint protocolFee ) {
 
         (
             isValid, 
-            newSpotPrice, 
+            newStartPrice, 
             newDelta, 
             outputValue, 
             protocolFee 
-        ) = curve.getSellInfo( 
-            delta, 
-            spotPrice, 
+        ) = Algorithm.getSellInfo( 
+            multiplier, 
+            startPrice, 
             _numNFTs, 
             IMetaFactory( factory ).PROTOCOL_FEE(),
             tradeFee
@@ -182,22 +182,22 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     
     }
 
-    function getAssetsRecipient() public view returns ( address _assetsRecipient ) {
+    function getAssetsRecipient() public view returns ( address _recipient ) {
 
-        if ( assetsRecipient == address(0) ) _assetsRecipient = address( this );
+        if ( recipient == address(0) ) _recipient = address( this );
 
-        else _assetsRecipient = assetsRecipient;
+        else _recipient = recipient;
 
     }
 
     function init(
-        uint128 _delta, 
-        uint128 _spotPrice, 
-        address _assetsRecipient, 
+        uint128 _multiplier, 
+        uint128 _startPrice, 
+        address _recipient, 
         address _owner, 
         address _NFT, 
         uint128 _fee, 
-        ICurve _curve, 
+        IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType 
         ) public payable 
     {
@@ -206,15 +206,15 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         _transferOwnership( _owner );
 
-        if( assetsRecipient != _assetsRecipient ) assetsRecipient = _assetsRecipient;
+        if( recipient != _recipient ) recipient = _recipient;
 
         if( tradeFee != _fee) tradeFee = _fee;
 
-        curve = _curve;
+        Algorithm = _Algorithm;
 
-        delta = _delta;
+        multiplier = _multiplier;
 
-        spotPrice = _spotPrice;
+        startPrice = _startPrice;
 
         NFT = _NFT;
 
@@ -224,33 +224,33 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant returns( uint256 outputAmount ) {
+    function swapNFTsForSell( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant returns( uint256 outputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.Token || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
         uint256 protocolFee;
 
         ( outputAmount, protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
 
-        address _assetsRecipient = getAssetsRecipient();
+        address _recipient = getAssetsRecipient();
 
-        _sendNFTsTo( _user, _assetsRecipient, _tokenIDs );
+        _sendNFTsTo( _user, _recipient, _tokenIDs );
 
-        _sendTokensAndPayFee( protocolFee, outputAmount, _user );
+        _sendSellsAndPayFee( protocolFee, outputAmount, _user );
 
         emit SellLog( _user, _tokenIDs.length, outputAmount );
 
     }
 
-    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxEspectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
+    function swapSellForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
         uint protocolFee;
 
-        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxEspectedIn );
+        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxExpectedIn );
 
-        _receiveTokensAndPayFee( inputAmount, protocolFee );
+        _receiveSellsAndPayFee( inputAmount, protocolFee );
 
         _sendNFTsTo( address( this ), _user, _tokenIDs );
 
@@ -266,15 +266,15 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
         
     }
 
-    function swapTokenForAnyNFT( uint _numNFTs, uint _maxEspectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
+    function swapSellForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.NFT || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
         uint protocolFee;
 
-        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxEspectedIn );
+        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxExpectedIn );
 
-        _receiveTokensAndPayFee( inputAmount, protocolFee );
+        _receiveSellsAndPayFee( inputAmount, protocolFee );
 
         _sendAnyOutNFTs( _user, _numNFTs );
 
@@ -296,37 +296,37 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         require( currentPoolType != PoolTypes.PoolType.Trade, "Recipient not supported in trade pools");
 
-        require( assetsRecipient != _newRecipient, "New recipient is equal than current" );
+        require( recipient != _newRecipient, "New recipient is equal than current" );
 
-        assetsRecipient = _newRecipient;
+        recipient = _newRecipient;
 
     }
 
-    function setSpotPrice( uint128 _newSpotPrice ) external onlyOwner {
+    function setStartPrice( uint128 _newStartPrice ) external onlyOwner {
 
-        require( spotPrice != _newSpotPrice, "new price is equal than current");
+        require( startPrice != _newStartPrice, "new price is equal than current");
 
-        require( curve.validateSpotPrice( _newSpotPrice ), "invalid Spot Price" );
+        require( Algorithm.validateStartPrice( _newStartPrice ), "invalid Start Price" );
 
-        spotPrice = _newSpotPrice;
+        startPrice = _newStartPrice;
 
     }
 
     function setDelta( uint128 _newDelta ) external onlyOwner {
 
-        require( delta != _newDelta, "delta is equal than current");
+        require( multiplier != _newDelta, "multiplier is equal than current");
 
-        require( curve.validateDelta( _newDelta ), "invalid delta" );
+        require( Algorithm.validateDelta( _newDelta ), "invalid multiplier" );
 
-        delta = _newDelta;
+        multiplier = _newDelta;
         
     }
 
-    function withdrawToken() external onlyOwner {
+    function withdrawSell() external onlyOwner {
 
         uint balance = address( this ).balance;
 
-        require( balance > 0, "insufficent balance" );
+        require( balance > 0, "insufficient balance" );
 
         ( bool isSended, ) = owner().call{ value: balance }("");
 

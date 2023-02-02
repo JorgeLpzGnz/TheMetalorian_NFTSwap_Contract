@@ -1,10 +1,10 @@
 const hre = require("hardhat");
 
-const linearCurve = "0x710c2B94AbeA7959FE5e4eE49A766210972DbCa4"
+const linearAlgorithm = "0x710c2B94AbeA7959FE5e4eE49A766210972DbCa4"
 
-const exponentialCurve = "0x51dF3Ef70124bFE72BFD6bC4f022B6a3B856484d"
+const exponentialAlgorithm = "0x51dF3Ef70124bFE72BFD6bC4f022B6a3B856484d"
 
-const constantPCurve = "0x9bFbfFeFd44797609cfb5d9426aE9051b705CBBE"
+const constantPAlgorithm = "0x9bFbfFeFd44797609cfb5d9426aE9051b705CBBE"
 
 const metaFactory = "0xE9a6f72426ef5B48085435807F5c6bE522755D88"
 
@@ -14,22 +14,22 @@ const notEnumerableImplementation = "0x81169202898eB02F1F05feb62E7B44DE8F25A0DD"
 
 async function verifyContracts() {
 
-    // Linerar curve
+    // Linear Algorithm
 
     await hre.run( "verify:verify", {
-        address: linearCurve,
+        address: linearAlgorithm,
     } ).catch((error) => console.log( error ) )
 
-    // Eponential curve
+    // Exponential Algorithm
 
     await hre.run( "verify:verify", {
-        address: exponentialCurve,
+        address: exponentialAlgorithm,
     } ).catch((error) => console.log( error ) )
 
-    // Constant product curve
+    // Constant product Algorithm
 
     await hre.run( "verify:verify", {
-        address: constantPCurve,
+        address: constantPAlgorithm,
     } ).catch((error) => console.log( error ) )
 
     // Meta Factory
@@ -37,9 +37,9 @@ async function verifyContracts() {
     await hre.run( "verify:verify", {
         address: metaFactory,
         constructorArguments: [
-            linearCurve,
-            exponentialCurve,
-            constantPCurve
+            linearAlgorithm,
+            exponentialAlgorithm,
+            constantPAlgorithm
         ]
     } ).catch((error) => console.log( error ) )
 

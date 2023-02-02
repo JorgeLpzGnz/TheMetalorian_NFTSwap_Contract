@@ -4,9 +4,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getTokenInput,
+    getSellInput,
     deployMetaFactory,
-    getTokenOutput,
+    getSellOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -14,17 +14,17 @@ const { ethers } = require("hardhat");
 const { utils } = ethers
 const { parseEther, parseUnits } = utils
 
-describe("Exponential Curve", function () {
+describe("Exponential Algorithm", function () {
 
-    describe("validate Spot Price", () => {
+    describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {
 
             it("1. should return true when pass correct value", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponencialCurve.validateSpotPrice(
+                expect( await exponentialAlgorithm.validateStartPrice(
                     parseEther(`1`)
                 ) ).to.be.true
 
@@ -32,9 +32,9 @@ describe("Exponential Curve", function () {
 
             it("2. should return false when pass less than 1 gwei", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponencialCurve.validateSpotPrice(
+                expect( await exponentialAlgorithm.validateStartPrice(
                     parseUnits(`1`, 8)
                 ) ).to.be.false
 
@@ -50,17 +50,17 @@ describe("Exponential Curve", function () {
 
             it("1. should return true when passed value is greater than 1e18", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponencialCurve.validateDelta(  parseEther(`1.1`)) ).to.be.true
+                expect( await exponentialAlgorithm.validateDelta(  parseEther(`1.1`)) ).to.be.true
 
             })
 
             it("2. should return false when passed value is less than 1e18", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponencialCurve.validateDelta(  parseEther(`0.9`)) ).to.be.false
+                expect( await exponentialAlgorithm.validateDelta(  parseEther(`0.9`)) ).to.be.false
 
             })
 
@@ -74,21 +74,21 @@ describe("Exponential Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
-                const spotPrice = parseEther( `3` )
+                const startPrice = parseEther( `3` )
 
-                const delta = parseEther( `1.2` )
+                const multiplier = parseEther( `1.2` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await exponencialCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -100,21 +100,21 @@ describe("Exponential Curve", function () {
 
             it("2. should return false when new spot price is more than uint128 limit", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 50
 
-                const spotPrice = parseEther( `100` )
+                const startPrice = parseEther( `100` )
 
-                const delta = parseEther( `5` )
+                const multiplier = parseEther( `5` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await exponencialCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -130,21 +130,21 @@ describe("Exponential Curve", function () {
 
             it("1. should return a input value and isValid must be true", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = parseEther( `3` )
+                const startPrice = parseEther( `3` )
 
-                const delta = parseEther( `1.2` )
+                const multiplier = parseEther( `1.2` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , inputValue ] = await exponencialCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -162,105 +162,105 @@ describe("Exponential Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 2
+                const startPrice = 2
 
-                const delta = 1.5
+                const multiplier = 1.5
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , inputValue ] = await exponencialCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedInput = getTokenInput( "exponencialCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( getNumber( inputValue ) ).to.be.equal( espectedInput )
+                expect( getNumber( inputValue ) ).to.be.equal( expectedInput )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 5
+                const startPrice = 5
 
-                const delta = 1.5
+                const multiplier = 1.5
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , inputValue, protocolFee ] = await exponencialCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue, protocolFee ] = await exponentialAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedInput = getTokenInput( "exponencialCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedInput *  protocolFeeMult 
+                const protocolFeeEspct = expectedInput *  protocolFeeMult 
 
-                const poolFee = espectedInput * protocolFeeMult
+                const poolFee = expectedInput * protocolFeeMult
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( getNumber(inputValue) ).to.be.greaterThan( espectedInput + ( protocolFeeEspct + poolFee ) )
+                expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
             })
 
-            it("4. test new spot price and new delta", async () => {
+            it("4. test new spot price and new multiplier", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 3
+                const startPrice = 3
 
-                const delta = 1.7
+                const multiplier = 1.7
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, , ] = await exponencialCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, , ] = await exponentialAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const deltaPow = delta ** numItems
+                const multiplierPow = multiplier ** numItems
 
-                const newEspectedSpotPrice = spotPrice * deltaPow
+                const newExpectedStartPrice = startPrice * multiplierPow
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( roundNumber( getNumber( newSpotPrice ), 1000 ) ).to.be.equal( roundNumber( newEspectedSpotPrice, 1000 ) )
+                expect( roundNumber( getNumber( newStartPrice ), 1000 ) ).to.be.equal( roundNumber( newExpectedStartPrice, 1000 ) )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( delta )
+                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
 
             })
 
@@ -274,21 +274,21 @@ describe("Exponential Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
-                const spotPrice = parseEther( `1` )
+                const startPrice = parseEther( `1` )
 
-                const delta = parseEther( `1.3` )
+                const multiplier = parseEther( `1.3` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await exponencialCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await exponentialAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -304,21 +304,21 @@ describe("Exponential Curve", function () {
 
             it("1. should return a input value and is Valid must be true", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = parseEther( `1` )
+                const startPrice = parseEther( `1` )
 
-                const delta = parseEther( `1.3` )
+                const multiplier = parseEther( `1.3` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , outputValue ] = await exponencialCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , outputValue ] = await exponentialAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -336,115 +336,115 @@ describe("Exponential Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 2
+                const startPrice = 2
 
-                const delta = 1.5
+                const multiplier = 1.5
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , outputValue ] = await exponencialCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue ] = await exponentialAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedOutput = getTokenOutput( "exponencialCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( roundNumber(getNumber(outputValue), 1000) ).to.be.equal( roundNumber(espectedOutput, 1000) )
+                expect( roundNumber(getNumber(outputValue), 1000) ).to.be.equal( roundNumber(expectedOutput, 1000) )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 4
+                const startPrice = 4
 
-                const delta = 1.4
+                const multiplier = 1.4
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , outputValue, protocolFee ] = await exponencialCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue, protocolFee ] = await exponentialAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedOutput = getTokenOutput( "exponencialCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedOutput * protocolFeeMult 
+                const protocolFeeEspct = expectedOutput * protocolFeeMult 
 
-                const poolFee = espectedOutput * poolFeeMul
+                const poolFee = expectedOutput * poolFeeMul
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect( 
                     roundNumber( getNumber(outputValue), 1000 ) 
                 ).to.be.equal( 
-                    roundNumber( espectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
+                    roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 
             })
 
-            it("3. test new Spot Price and new delta", async () => {
+            it("3. test new Start Price and new multiplier", async () => {
 
-                const { exponencialCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 4
+                const startPrice = 4
 
-                const delta = 1.4
+                const multiplier = 1.4
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, ,  ] = await exponencialCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, ,  ] = await exponentialAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const invDelta = 1 / delta
+                const invDelta = 1 / multiplier
 
                 const invDeltaPow = invDelta ** numItems
 
-                const espectedNewSpotPrice = spotPrice * invDeltaPow
+                const expectedNewStartPrice = startPrice * invDeltaPow
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect( 
-                    roundNumber( getNumber( newSpotPrice ), 1000 ) 
+                    roundNumber( getNumber( newStartPrice ), 1000 ) 
                 ).to.be.equal( 
-                    roundNumber( espectedNewSpotPrice, 1000 )
+                    roundNumber( expectedNewStartPrice, 1000 )
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( delta )
+                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
 
             })
 

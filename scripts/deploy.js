@@ -8,43 +8,43 @@ const hre = require("hardhat");
 
 async function main() {
 
-    // linear Market curve
+    // linear Market Algorithm
 
-    const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
-    const linearCurve = await LinearCurve.deploy();
+    const LinearAlgorithm = await hre.ethers.getContractFactory("LinearAlgorithm");
+    const linearAlgorithm = await LinearAlgorithm.deploy();
 
-    await linearCurve.deployed();
+    await linearAlgorithm.deployed();
 
-    console.log(`linearCurve deployed at ${linearCurve.address}`);
-
-
-    // Exponencial Market curve
-
-    const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
-    const exponencialCurve = await ExponencialCurve.deploy();
-
-    await exponencialCurve.deployed();
-
-    console.log(`ExponencialCurve deployed at ${exponencialCurve.address}`);
+    console.log(`linearAlgorithm deployed at ${linearAlgorithm.address}`);
 
 
-    // Constant Product curve
+    // Exponential Market Algorithm
 
-    const CPCurve = await hre.ethers.getContractFactory("CPCurve");
-    const cPCurve = await CPCurve.deploy();
+    const ExponentialAlgorithm = await hre.ethers.getContractFactory("ExponentialAlgorithm");
+    const exponentialAlgorithm = await ExponentialAlgorithm.deploy();
 
-    await cPCurve.deployed();
+    await exponentialAlgorithm.deployed();
 
-    console.log(`CPCurve deployed at ${cPCurve.address}`);
+    console.log(`ExponentialAlgorithm deployed at ${exponentialAlgorithm.address}`);
+
+
+    // Constant Product Algorithm
+
+    const CPAlgorithm = await hre.ethers.getContractFactory("CPAlgorithm");
+    const cPAlgorithm = await CPAlgorithm.deploy();
+
+    await cPAlgorithm.deployed();
+
+    console.log(`CPAlgorithm deployed at ${cPAlgorithm.address}`);
 
 
     // Meta Factory
 
     const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
     const metaFactory = await MetaFactory.deploy(
-        linearCurve.address,
-        exponencialCurve.address,
-        cPCurve.address
+        linearAlgorithm.address,
+        exponentialAlgorithm.address,
+        cPAlgorithm.address
     );
 
     await metaFactory.deployed();

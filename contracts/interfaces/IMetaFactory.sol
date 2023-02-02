@@ -3,18 +3,18 @@ pragma solidity ^0.8.0;
 
 import "../pairs/MSPairBasic.sol";
 import "../pairs/PoolTypes.sol";
-import "./ICurve.sol";
+import "./IMetaAlgorithm.sol";
 
 interface IMetaFactory {
 
     function createPair( 
         address _nft, 
         uint[] memory _nftIds,
-        uint128 _delta,
-        uint128 _spotPrice,
-        address _assetsRecipient,
+        uint128 _multiplier,
+        uint128 _startPrice,
+        address _recipient,
         uint128 _fee,
-        ICurve _curve, 
+        IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
         ) external payable  returns(
             MSPairBasic pair

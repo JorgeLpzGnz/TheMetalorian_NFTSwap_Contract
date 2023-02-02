@@ -32,17 +32,17 @@ contract MetaFactory is Ownable {
 
     MSPairNFTBasic public pairNotEnumTemplate;
 
-    mapping( address => bool ) isMSCurve;
+    mapping( address => bool ) isMSAlgorithm;
 
     event NewPair( address pair, address owner);
 
-    constructor( address  _LinearCurve, address _ExponencialCurve, address _CPCurve ) {
+    constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm ) {
 
-        isMSCurve[_LinearCurve] = true;
+        isMSAlgorithm[_LinearAlgorithm] = true;
 
-        isMSCurve[_ExponencialCurve] = true;
+        isMSAlgorithm[_ExponentialAlgorithm] = true;
 
-        isMSCurve[_CPCurve] = true;
+        isMSAlgorithm[_CPAlgorithm] = true;
 
         PROTOCOL_FEE_RECIPIENT = address( this );
 
@@ -72,19 +72,19 @@ contract MetaFactory is Ownable {
 
     }
 
-    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _assetsRecipient, uint128 _spotPrice, uint128 _delta, ICurve _curve ) public view returns( bool ) {
+    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _recipient, uint128 _startPrice, uint128 _multiplier, IMetaAlgorithm _Algorithm ) public view returns( bool ) {
 
-        if( _poolType == PoolTypes.PoolType.Token || _poolType == PoolTypes.PoolType.NFT ) {
+        if( _poolType == PoolTypes.PoolType.Sell || _poolType == PoolTypes.PoolType.Buy ) {
 
             if ( _fee != 0 ) return false;
 
         } else {
 
-            if ( _assetsRecipient != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
+            if ( _recipient != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
 
         }
 
-        if ( !_curve.validateSpotPrice( _spotPrice ) || !_curve.validateDelta( _delta ) ) return false;
+        if ( !_Algorithm.validateStartPrice( _startPrice ) || !_Algorithm.validateDelta( _multiplier ) ) return false;
 
         return true;
         
@@ -93,35 +93,35 @@ contract MetaFactory is Ownable {
     function createPair( 
         address _nft, 
         uint[] calldata _nftIds,
-        uint128 _delta,
-        uint128 _spotPrice,
-        address _assetsRecipient,
+        uint128 _multiplier,
+        uint128 _startPrice,
+        address _recipient,
         uint128 _fee,
-        ICurve _curve, 
+        IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
         ) public payable  returns(
             MSPairBasic pair
         )
     {
 
-        require( isMSCurve[ address(_curve) ], "invalid curve");
+        require( isMSAlgorithm[ address(_Algorithm) ], "invalid Algorithm");
 
-        require( checkInitParams( _poolType, _fee, _assetsRecipient, _spotPrice, _delta, _curve ), "invalid init params" );
+        require( checkInitParams( _poolType, _fee, _recipient, _startPrice, _multiplier, _Algorithm ), "invalid init params" );
 
         pair = _creteContract( _nft );
 
         pair.init(
-            _delta, 
-            _spotPrice, 
-            _assetsRecipient,
+            _multiplier, 
+            _startPrice, 
+            _recipient,
             msg.sender, 
             _nft, 
             _fee, 
-            _curve, 
+            _Algorithm, 
             _poolType
         );
 
-        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.Token ) {
+        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.Sell ) {
 
             ( bool isSended, ) = payable( address( pair ) ).call{ value: msg.value }("");
 
@@ -130,7 +130,7 @@ contract MetaFactory is Ownable {
         }
         
 
-        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.NFT ) {
+        if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.Buy ) {
 
             for (uint256 i = 0; i < _nftIds.length; i++) {
 
@@ -174,7 +174,7 @@ contract MetaFactory is Ownable {
 
         uint balance = address( this ).balance;
 
-        require( balance > 0, "insufficent balance" );
+        require( balance > 0, "insufficient balance" );
 
         ( bool isSended, ) = owner().call{ value: balance }("");
 

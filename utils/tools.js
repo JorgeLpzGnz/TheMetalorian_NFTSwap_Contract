@@ -23,28 +23,28 @@ async function deployMetaFactory() {
 
     const NFTEnumerable = await (await hre.ethers.getContractFactory("NFTEnumerable")).deploy()
 
-    const LinearCurve = await hre.ethers.getContractFactory("LinearCurve");
-    const linearCurve = await LinearCurve.deploy();
+    const LinearAlgorithm = await hre.ethers.getContractFactory("LinearAlgorithm");
+    const linearAlgorithm = await LinearAlgorithm.deploy();
 
-    const ExponencialCurve = await hre.ethers.getContractFactory("ExponencialCurve");
-    const exponencialCurve = await ExponencialCurve.deploy();
+    const ExponentialAlgorithm = await hre.ethers.getContractFactory("ExponentialAlgorithm");
+    const exponentialAlgorithm = await ExponentialAlgorithm.deploy();
 
 
-    const CPCurve = await hre.ethers.getContractFactory("CPCurve");
-    const cPCurve = await CPCurve.deploy();
+    const CPAlgorithm = await hre.ethers.getContractFactory("CPAlgorithm");
+    const cPAlgorithm = await CPAlgorithm.deploy();
 
     const MetaFactory = await hre.ethers.getContractFactory("MetaFactory");
     const metaFactory = await MetaFactory.deploy(
-        linearCurve.address,
-        exponencialCurve.address,
-        cPCurve.address
+        linearAlgorithm.address,
+        exponentialAlgorithm.address,
+        cPAlgorithm.address
     );
 
-    return { metaFactory, owner, otherAccount, nft, cPCurve, exponencialCurve, linearCurve, NFTEnumerable };
+    return { metaFactory, owner, otherAccount, nft, cPAlgorithm, exponentialAlgorithm, linearAlgorithm, NFTEnumerable };
 
 }
 
-async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, curve, poolType, _fee, _tokenAmount ) {
+async function createPair( metaFactory, nft, amountOfNFTs, _startPrice, _multiplier, Algorithm, poolType, _fee, _tokenAmount ) {
 
     const tokenIds = await mintNFT(nft, amountOfNFTs, metaFactory)
 
@@ -52,9 +52,9 @@ async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, c
 
     if ( poolType == 0 ) nftIds = []
 
-    const delta = parseEther(`${ _delta }`)
+    const multiplier = parseEther(`${ _multiplier }`)
 
-    const spotPrice = parseEther(`${_spotPrice}`)
+    const startPrice = parseEther(`${_startPrice}`)
 
     const [ owner ] = await ethers.getSigners();
 
@@ -69,11 +69,11 @@ async function createPair( metaFactory, nft, amountOfNFTs, _spotPrice, _delta, c
     const tx = await metaFactory.createPair( 
         nft.address,    // colection
         nftIds,         // token IDs of the NFTs
-        delta,          // delta
-        spotPrice,      // spotprice
+        multiplier,          // multiplier
+        startPrice,      // spotprice
         rewardRecipient,// rewardRecipient
         fee,            // trade fees
-        curve.address,  // curve
+        Algorithm.address,  // Algorithm
         poolType,       // the type of the pool
         { value: tokenAmount }, // the amount of ETH to init the pair
     )
@@ -126,7 +126,7 @@ async function mintNFT(NFT, amount, contractToApprove, _account ) {
 
     const mintCost = await NFT.mintCost()
 
-    const firsToken = (await NFT.tokenIdCounter()).toNumber()
+    const firsSell = (await NFT.tokenIdCounter()).toNumber()
 
     if( NFT.address == "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18" ) 
         await NFT.mintTheMetalorianDAOSilver(
@@ -138,7 +138,7 @@ async function mintNFT(NFT, amount, contractToApprove, _account ) {
 
     await NFT.setApprovalForAll( contractToApprove.address, true )
 
-    for (let i = firsToken; i < firsToken + amount; i++)
+    for (let i = firsSell; i < firsSell + amount; i++)
         tokenIds.push( i )
 
     return tokenIds
@@ -159,31 +159,31 @@ function getNumber( bignumber ) {
 
 }
 
-function getTokenInput( curve, spotPrice, delta, numItems ) {
+function getSellInput( Algorithm, startPrice, multiplier, numItems ) {
 
     let buyPrice
 
-    switch ( curve ) {
+    switch ( Algorithm ) {
 
-        case "linearCurve":
+        case "linearAlgorithm":
 
-            buyPrice = spotPrice + delta
+            buyPrice = startPrice + multiplier
 
-            return numItems * buyPrice + ( numItems * ( numItems - 1) * delta ) / 2;
+            return numItems * buyPrice + ( numItems * ( numItems - 1) * multiplier ) / 2;
 
-        case "exponencialCurve":
+        case "exponentialAlgorithm":
 
-            const deltaPow = delta ** numItems
+            const multiplierPow = multiplier ** numItems
 
-            buyPrice = spotPrice * delta
+            buyPrice = startPrice * multiplier
 
-            return buyPrice * ( deltaPow - 1 ) / ( delta - 1 )
+            return buyPrice * ( multiplierPow - 1 ) / ( multiplier - 1 )
 
-        case "cPCurve":
+        case "cPAlgorithm":
 
-            const tokenBalance = spotPrice
+            const tokenBalance = startPrice
 
-            const nftBalance = delta
+            const nftBalance = multiplier
 
             return ( tokenBalance * numItems ) / ( nftBalance - numItems)
 
@@ -191,27 +191,27 @@ function getTokenInput( curve, spotPrice, delta, numItems ) {
 
 }
 
-function getTokenOutput( curve, spotPrice, delta, numItems ) {
+function getSellOutput( Algorithm, startPrice, multiplier, numItems ) {
 
-    switch ( curve ) {
+    switch ( Algorithm ) {
 
-        case "linearCurve":
+        case "linearAlgorithm":
 
-            return numItems * spotPrice - ( numItems * ( numItems - 1) * delta ) / 2;
+            return numItems * startPrice - ( numItems * ( numItems - 1) * multiplier ) / 2;
 
-        case "exponencialCurve":
+        case "exponentialAlgorithm":
 
-            const invDelta = 1 / delta
+            const invDelta = 1 / multiplier
 
             const invDeltaPow = invDelta ** numItems
 
-            return spotPrice * ( 1 - invDeltaPow ) / ( 1 - invDelta )
+            return startPrice * ( 1 - invDeltaPow ) / ( 1 - invDelta )
 
-        case "cPCurve":
+        case "cPAlgorithm":
 
-            const tokenBalance = spotPrice
+            const tokenBalance = startPrice
 
-            const nftBalance = delta
+            const nftBalance = multiplier
 
             return ( tokenBalance * numItems ) / ( nftBalance + numItems)
 
@@ -244,9 +244,9 @@ module.exports = {
     mintNFT, 
     sendBulkNfts,
     getNumber,
-    getTokenInput,
+    getSellInput,
     deployMetaFactory,
-    getTokenOutput,
+    getSellOutput,
     roundNumber,
     getNumberForBNArray
 }

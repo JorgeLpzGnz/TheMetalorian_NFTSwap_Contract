@@ -3,9 +3,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getTokenInput,
+    getSellInput,
     deployMetaFactory,
-    getTokenOutput,
+    getSellOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -13,17 +13,17 @@ const { ethers } = require("hardhat");
 const { utils } = ethers
 const { parseEther } = utils
 
-describe("Constant Product Curve", function () {
+describe("Constant Product Algorithm", function () {
 
-    describe("validate Spot Price", () => {
+    describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {
 
             it("1. should always return true", async () => {
 
-                const { cPCurve } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await cPCurve.validateSpotPrice(
+                expect( await cPAlgorithm.validateStartPrice(
                     parseEther(
                         `${Math.round( Math.random() * 1000 )}`
                     )
@@ -41,9 +41,9 @@ describe("Constant Product Curve", function () {
 
             it("1. should always return true", async () => {
 
-                const { cPCurve } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await cPCurve.validateDelta(
+                expect( await cPAlgorithm.validateDelta(
                     parseEther(
                         `${Math.round( Math.random() * 1000 )}`
                     )
@@ -61,23 +61,23 @@ describe("Constant Product Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await cPCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await cPAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -89,23 +89,23 @@ describe("Constant Product Curve", function () {
 
             it("2. should return false if number of Items is greatest than NFTbalance", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await cPCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await cPAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems + 1,
                     protocolFee,
                     poolFee0
@@ -121,23 +121,23 @@ describe("Constant Product Curve", function () {
 
             it("1. should return a input value and isValid must be true", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , inputValue ] = await cPCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , inputValue ] = await cPAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -155,115 +155,115 @@ describe("Constant Product Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { cPCurve } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice
+                const startPrice = numItems * initialPrice
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , inputValue ] = await cPCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue ] = await cPAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( getNumber( inputValue ) ).to.be.equal( espectedInput )
+                expect( getNumber( inputValue ) ).to.be.equal( expectedInput )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice
+                const startPrice = numItems * initialPrice
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , inputValue, protocolFee ] = await cPCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue, protocolFee ] = await cPAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedInput = getTokenInput( "cPCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedInput *  protocolFeeMult 
+                const protocolFeeEspct = expectedInput *  protocolFeeMult 
 
-                const poolFee = espectedInput * protocolFeeMult
+                const poolFee = expectedInput * protocolFeeMult
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( inputValue ).to.be.greaterThan( espectedInput + ( protocolFeeEspct + poolFee ) )
+                expect( inputValue ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
             })
 
-            it("4. should return a valid new spot Price and new Delta", async () => {
+            it("4. should return a valid new start Price and new Delta", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice 
+                const startPrice = numItems * initialPrice 
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, input ] = await cPCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, input ] = await cPAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedInputWithoufee = getTokenInput( "cPCurve", spotPrice, delta, numItems )
+                const expectedInputWithoufee = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedInputWithoufee *  protocolFeeMult
+                const protocolFeeEspct = expectedInputWithoufee *  protocolFeeMult
 
-                const poolFee = espectedInputWithoufee * poolFeeMul
+                const poolFee = expectedInputWithoufee * poolFeeMul
 
-                const espectedInput = espectedInputWithoufee + protocolFeeEspct + poolFee
+                const expectedInput = expectedInputWithoufee + protocolFeeEspct + poolFee
 
-                // tokenBalance ( spotPrice ) must be current balance + input
+                // tokenBalance ( startPrice ) must be current balance + input
 
-                expect( getNumber( newSpotPrice ) ).to.be.equal( spotPrice + espectedInput )
+                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice + expectedInput )
 
-                // NFTBalance ( delta ) must be current balance - number Of Items
+                // NFTBalance ( multiplier ) must be current balance - number Of Items
 
-                expect( getNumber( newDelta )  ).to.be.equal( delta - numItems)
+                expect( getNumber( newDelta )  ).to.be.equal( multiplier - numItems)
 
             })
 
@@ -277,23 +277,23 @@ describe("Constant Product Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await cPCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await cPAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -305,23 +305,23 @@ describe("Constant Product Curve", function () {
 
             it("2. should return false if number of Items is greatest than NFTbalance", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await cPCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await cPAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems + 1,
                     protocolFee,
                     poolFee0
@@ -337,23 +337,23 @@ describe("Constant Product Curve", function () {
 
             it("1. should return a input value and isValid must be true", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = parseEther( `${ numItems * initialPrice }` )
+                const startPrice = parseEther( `${ numItems * initialPrice }` )
 
-                const delta = parseEther( `${ numItems + 1 }` )
+                const multiplier = parseEther( `${ numItems + 1 }` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , outputValue ] = await cPCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , outputValue ] = await cPAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -371,115 +371,115 @@ describe("Constant Product Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { cPCurve } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice
+                const startPrice = numItems * initialPrice
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , outputValue ] = await cPCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue ] = await cPAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedOutput = getTokenOutput( "cPCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( getNumber(outputValue) ).to.be.equal( espectedOutput )
+                expect( getNumber(outputValue) ).to.be.equal( expectedOutput )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice
+                const startPrice = numItems * initialPrice
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , outputValue, protocolFee ] = await cPCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue, protocolFee ] = await cPAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedOutput = getTokenOutput( "cPCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedOutput * protocolFeeMult 
+                const protocolFeeEspct = expectedOutput * protocolFeeMult 
 
-                const poolFee = espectedOutput * poolFeeMul
+                const poolFee = expectedOutput * poolFeeMul
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( getNumber(outputValue) ).to.be.equal( espectedOutput - ( protocolFeeEspct + poolFee ) )
+                expect( getNumber(outputValue) ).to.be.equal( expectedOutput - ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 
             })
 
-            it("4. test new spot Price and new delta", async () => {
+            it("4. test new start Price and new multiplier", async () => {
 
-                const { cPCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
                 const initialPrice = 5
 
-                const spotPrice = numItems * initialPrice
+                const startPrice = numItems * initialPrice
 
-                const delta = numItems + 1
+                const multiplier = numItems + 1
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, , ] = await cPCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, , ] = await cPAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedOutputWithoutFee = getTokenOutput( "cPCurve", spotPrice, delta, numItems )
+                const expectedOutputWithoutFee = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedOutputWithoutFee * protocolFeeMult 
+                const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult 
 
-                const poolFee = espectedOutputWithoutFee * poolFeeMul
+                const poolFee = expectedOutputWithoutFee * poolFeeMul
 
-                const espectedOutput = espectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
+                const expectedOutput = expectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( getNumber( newSpotPrice ) ).to.be.equal( spotPrice - espectedOutput )
+                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutput )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta )  ).to.be.equal( delta + numItems )
+                expect( getNumber( newDelta )  ).to.be.equal( multiplier + numItems )
 
             })
 

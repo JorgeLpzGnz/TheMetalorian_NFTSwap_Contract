@@ -5,7 +5,7 @@ module.exports =  [
     'error NftSoldOut(address user)',
     'error NotFondsToTranfer(address owner)',
     'error SaleNotStarted(address user)',
-    'error TokenDoesNotExist()',
+    'error SellDoesNotExist()',
     'error UnsuccessfulPayout(address owner)',
     'event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)',
     'event ApprovalForAll(address indexed owner, address indexed operator, bool approved)',

@@ -4,9 +4,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getTokenInput,
+    getSellInput,
     deployMetaFactory,
-    getTokenOutput,
+    getSellOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -14,17 +14,17 @@ const { ethers } = require("hardhat");
 const { utils } = ethers
 const { parseEther } = utils
 
-describe("Linear Curve", function () {
+describe("Linear Algorithm", function () {
 
-    describe("validate Spot Price", () => {
+    describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {
 
             it("1. should always return true", async () => {
 
-                const { linearCurve } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await linearCurve.validateSpotPrice(
+                expect( await linearAlgorithm.validateStartPrice(
                     parseEther(`${ Math.round( Math.random() * 100)}`)
                 ) ).to.be.true
 
@@ -40,9 +40,9 @@ describe("Linear Curve", function () {
 
             it("1. should always return true", async () => {
 
-                const { linearCurve } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await linearCurve.validateDelta(
+                expect( await linearAlgorithm.validateDelta(
                     parseEther(`${ Math.round( Math.random() * 100)}`))
                 ).to.be.true
 
@@ -58,21 +58,21 @@ describe("Linear Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
-                const spotPrice = parseEther( `3` )
+                const startPrice = parseEther( `3` )
 
-                const delta = parseEther( `1.2` )
+                const multiplier = parseEther( `1.2` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await linearCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await linearAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -84,21 +84,21 @@ describe("Linear Curve", function () {
 
             it("2. should return false when new spot price is more than uint128 limit", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = parseEther("340282366920938463467")
 
-                const spotPrice = parseEther( `100` )
+                const startPrice = parseEther( `100` )
 
-                const delta = parseEther( `5` )
+                const multiplier = parseEther( `5` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await linearCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await linearAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -114,21 +114,21 @@ describe("Linear Curve", function () {
 
             it("1. should return a input value and isValid must be true", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = parseEther( `3` )
+                const startPrice = parseEther( `3` )
 
-                const delta = parseEther( `0.2` )
+                const multiplier = parseEther( `0.2` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , inputValue ] = await linearCurve.getBuyInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , inputValue ] = await linearAlgorithm.getBuyInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -146,105 +146,105 @@ describe("Linear Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { linearCurve } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 2
+                const startPrice = 2
 
-                const delta = 1.5
+                const multiplier = 1.5
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , inputValue ] = await linearCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue ] = await linearAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedInput = getTokenInput( "linearCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "linearAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( getNumber( inputValue ) ).to.be.equal( espectedInput )
+                expect( getNumber( inputValue ) ).to.be.equal( expectedInput )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 5
+                const startPrice = 5
 
-                const delta = 1.5
+                const multiplier = 1.5
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , inputValue, protocolFee ] = await linearCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , inputValue, protocolFee ] = await linearAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedInput = getTokenInput( "linearCurve", spotPrice, delta, numItems )
+                const expectedInput = getSellInput( "linearAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedInput *  protocolFeeMult
+                const protocolFeeEspct = expectedInput *  protocolFeeMult
 
-                const poolFee = espectedInput * protocolFeeMult
+                const poolFee = expectedInput * protocolFeeMult
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
-                expect( getNumber(inputValue) ).to.be.greaterThan( espectedInput + ( protocolFeeEspct + poolFee ) )
+                expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
             })
 
-            it("4. test new spot price and new delta", async () => {
+            it("4. test new spot price and new multiplier", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 3
+                const startPrice = 3
 
-                const delta = 1.7
+                const multiplier = 1.7
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, , ] = await linearCurve.getBuyInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, , ] = await linearAlgorithm.getBuyInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect( 
-                    getNumber( newSpotPrice ),
+                    getNumber( newStartPrice ),
                 ).to.be.equal(
-                    spotPrice + ( delta * numItems ),
+                    startPrice + ( multiplier * numItems ),
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( delta )
+                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
 
             })
 
@@ -258,21 +258,21 @@ describe("Linear Curve", function () {
 
             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 0
 
-                const spotPrice = parseEther( `1` )
+                const startPrice = parseEther( `1` )
 
-                const delta = parseEther( `1.3` )
+                const multiplier = parseEther( `1.3` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid ] = await linearCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid ] = await linearAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -286,27 +286,27 @@ describe("Linear Curve", function () {
 
         // in all this tests the num of items could substract by any number
         // becouse there are a limit of items that can be sell depending of
-        // delta and spot price
+        // multiplier and spot price
 
         describe(" - Functionalities", () => {
 
             it("1. should return a input value and is Valid must be true", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = parseEther( `5` )
+                const startPrice = parseEther( `5` )
 
-                const delta = parseEther( `0.1` )
+                const multiplier = parseEther( `0.1` )
 
                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
                 const poolFee0 = 0
 
-                const [ isValid, , , outputValue ] = await linearCurve.getSellInfo(
-                    delta,
-                    spotPrice,
+                const [ isValid, , , outputValue ] = await linearAlgorithm.getSellInfo(
+                    multiplier,
+                    startPrice,
                     numItems,
                     protocolFee,
                     poolFee0
@@ -324,165 +324,165 @@ describe("Linear Curve", function () {
 
             it("2. test input Value without fees", async () => {
 
-                const { linearCurve } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 5
+                const startPrice = 5
 
-                const delta = 0.2
+                const multiplier = 0.2
 
                 const protocolFee = 0
 
                 const poolFee0 = 0
 
-                const [ , , , outputValue ] = await linearCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue ] = await linearAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     protocolFee,
                     poolFee0
                 )
 
-                const espectedOutput = getTokenOutput( "linearCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "linearAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to espected value
+                // check that input value is equals to expected value
 
-                expect( getNumber(outputValue) ).to.be.equal( espectedOutput )
+                expect( getNumber(outputValue) ).to.be.equal( expectedOutput )
 
             })
 
             it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 5
+                const startPrice = 5
 
-                const delta = 0.4
+                const multiplier = 0.4
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , , , outputValue, protocolFee ] = await linearCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , , , outputValue, protocolFee ] = await linearAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const espectedOutput = getTokenOutput( "linearCurve", spotPrice, delta, numItems )
+                const expectedOutput = getSellOutput( "linearAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = espectedOutput * protocolFeeMult
+                const protocolFeeEspct = expectedOutput * protocolFeeMult
 
-                const poolFee = espectedOutput * poolFeeMul
+                const poolFee = expectedOutput * poolFeeMul
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect(
                     roundNumber( getNumber(outputValue), 1000 )
                 ).to.be.equal(
-                    roundNumber( espectedOutput - ( protocolFeeEspct + poolFee ), 1000)
+                    roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000)
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 
             })
 
-            it("4. test new Spot Price and new delta", async () => {
+            it("4. test new Start Price and new multiplier", async () => {
 
-                const { linearCurve, metaFactory } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
                 const numItems = 10
 
-                const spotPrice = 5
+                const startPrice = 5
 
-                const delta = 0.2
+                const multiplier = 0.2
 
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
 
-                const [ , newSpotPrice, newDelta, ,  ] = await linearCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, ,  ] = await linearAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const decrease = delta * numItems
+                const decrease = multiplier * numItems
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect(
-                    getNumber(newSpotPrice)
+                    getNumber(newStartPrice)
                 ).to.be.equal(
-                    spotPrice - decrease
+                    startPrice - decrease
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( delta )
+                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
 
             })
 
-            // in liniar curve the new spot price for sell is spot price - decrease
+            // in liniar Algorithm the new spot price for sell is spot price - decrease
             // so when the drease is grater than spot price this will throw an 
             // UnderFlow erro so to handle this theres a limit in the items
             // that pool can sell
 
-            it("4. test when decrease is greater then spot Price", async () => {
+            it("4. test when decrease is greater then start Price", async () => {
 
-                const { linearCurve } = await loadFixture(deployMetaFactory)
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 // try to sell 10 NFTs
 
                 const numItems = 10
 
-                const spotPrice = 1
+                const startPrice = 1
 
-                const delta = 0.5
+                const multiplier = 0.5
 
                 const protocolFeeMult = 0
 
                 const poolFeeMul = 0
 
-                const [ , newSpotPrice, newDelta, outputValue,  ] = await linearCurve.getSellInfo(
-                    parseEther( `${ delta }` ),
-                    parseEther( `${ spotPrice }` ),
+                const [ , newStartPrice, newDelta, outputValue,  ] = await linearAlgorithm.getSellInfo(
+                    parseEther( `${ multiplier }` ),
+                    parseEther( `${ startPrice }` ),
                     numItems,
                     parseEther( `${ protocolFeeMult }` ),
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                // in this spot price and delta the max of items that the pool
+                // in this spot price and multiplier the max of items that the pool
                 // can sell is 2 becouse 0.5 * 2 is 1 ( the current spot price )
 
-                const espectedOutput = getTokenOutput("linearCurve", spotPrice, delta, 2)
+                const expectedOutput = getSellOutput("linearAlgorithm", startPrice, multiplier, 2)
 
-                const decrease = delta * 2
+                const decrease = multiplier * 2
 
-                // check that output is the same than espected
+                // check that output is the same than expected
 
-                expect( getNumber( outputValue ) ).to.be.equal( espectedOutput )
+                expect( getNumber( outputValue ) ).to.be.equal( expectedOutput )
 
-                // input value should be equal to espected value plus fees
+                // input value should be equal to expected value plus fees
 
                 expect(
-                    getNumber(newSpotPrice)
+                    getNumber(newStartPrice)
                 ).to.be.equal(
-                    spotPrice - decrease
+                    startPrice - decrease
                 )
 
-                // raturnal protocol fee should be the same than espected
+                // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( delta )
+                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
 
             })
 

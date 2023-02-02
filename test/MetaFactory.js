@@ -21,45 +21,45 @@ describe("MetaFactory", function () {
 
         describe(" - Errors", () => {
 
-            it("1. should fail if passed curve isn't alowed", async () => {
+            it("1. should fail if passed Algorithm isn't alowed", async () => {
 
                 const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+                const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     0,
                     owner.address,
                     poolType.nft
-                )).to.be.revertedWith( "invalid curve" )
+                )).to.be.revertedWith( "invalid Algorithm" )
 
             })
 
             it("2. should fail if not trade fee pass a not cero fee", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+                const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     10000,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.nft
                 )).to.be.revertedWith( "invalid init params" )
                 
@@ -67,11 +67,11 @@ describe("MetaFactory", function () {
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     10000,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.token
                 )).to.be.revertedWith( "invalid init params" )
 
@@ -79,11 +79,11 @@ describe("MetaFactory", function () {
 
             it("3. should fail if trade fee pass recipient and fee exceeds max", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+                const startPrice = ethers.utils.parseEther("1")
 
                 const fee = ethers.utils.parseEther("1")
                 
@@ -91,11 +91,11 @@ describe("MetaFactory", function () {
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     ethers.constants.AddressZero,
                     fee,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.trade
                 )).to.be.revertedWith( "invalid init params" )
                 
@@ -103,11 +103,11 @@ describe("MetaFactory", function () {
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     100000,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.trade
                 )).to.be.revertedWith( "invalid init params" )
                 
@@ -115,33 +115,33 @@ describe("MetaFactory", function () {
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     fee,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.trade
                 )).to.be.revertedWith( "invalid init params" )
 
             })
 
-            it("4. should fail if exponencial curve pass invalid delta and spotPrice", async () => {
+            it("4. should fail if exponential Algorithm pass invalid multiplier and startPrice", async () => {
 
-                const { metaFactory, nft, owner, exponencialCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+                const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
                     0,
-                    spotPrice,
+                    startPrice,
                     owner.address,
                     10000,
-                    exponencialCurve.address,
+                    exponentialAlgorithm.address,
                     poolType.nft
                 )).to.be.revertedWith( "invalid init params" )
                 
@@ -149,11 +149,11 @@ describe("MetaFactory", function () {
                     metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
+                    startPrice.div(2),
                     0,
                     owner.address,
                     10000,
-                    exponencialCurve.address,
+                    exponentialAlgorithm.address,
                     poolType.token
                 )).to.be.revertedWith( "invalid init params" )
                 
@@ -165,7 +165,7 @@ describe("MetaFactory", function () {
                     0,
                     owner.address,
                     10000,
-                    exponencialCurve.address,
+                    exponentialAlgorithm.address,
                     poolType.token
                 )).to.be.revertedWith( "invalid init params" )
 
@@ -177,20 +177,20 @@ describe("MetaFactory", function () {
 
             it("1. factory should create a new pair type NFT", async () => {
 
-                const { metaFactory, nft, owner, linearCurve } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                const spotPrice = ethers.utils.parseEther("1")
+                const startPrice = ethers.utils.parseEther("1")
 
                 const tx = await metaFactory.createPair(
                     nft.address,
                     nftIds,
-                    spotPrice.div(2),
-                    spotPrice,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
                     0,
-                    linearCurve.address,
+                    linearAlgorithm.address,
                     poolType.nft
                 )
 
@@ -206,7 +206,7 @@ describe("MetaFactory", function () {
 
     })
 
-    describe("sget factory info", () => {
+    describe("get factory info", () => {
 
         describe(" - Functionalities", () => {
 
@@ -356,13 +356,13 @@ describe("MetaFactory", function () {
 
             })
 
-            it("2. should fail if contract has insufficent founds", async () => {
+            it("2. should fail if contract has insufficient founds", async () => {
 
                 const { metaFactory } = await loadFixture(deployMetaFactory)
                 
                 await expect( 
                     metaFactory.withdrawETH()
-                    ).to.be.revertedWith("insufficent balance")
+                    ).to.be.revertedWith("insufficient balance")
 
             })
 
@@ -426,7 +426,7 @@ describe("MetaFactory", function () {
 
             })
 
-            it("2. should fail if contract has insufficent NFT founds", async () => {
+            it("2. should fail if contract has insufficient NFT founds", async () => {
 
                 const { metaFactory, nft } = await loadFixture(deployMetaFactory)
                 

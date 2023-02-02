@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "../libraries/FixedPointMathLib.sol";
-import "../interfaces/ICurve.sol";
+import "../interfaces/IMetaAlgorithm.sol";
 
-contract CPCurve is ICurve, CurveErrors {
+contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     using FixedPointMathLib for uint256;
 
-    function validateSpotPrice( uint ) external pure override returns( bool ) {
+    function validateStartPrice( uint ) external pure override returns( bool ) {
 
         return true;
 
@@ -20,10 +20,10 @@ contract CPCurve is ICurve, CurveErrors {
 
     }
 
-    function getBuyInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
+    function getBuyInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
             bool isValid, 
-            uint128 newSpotPrice, 
+            uint128 newStartPrice, 
             uint128 newDelta, 
             uint256 inputValue, 
             uint256 protocolFee 
@@ -33,13 +33,13 @@ contract CPCurve is ICurve, CurveErrors {
 
         if (_numItems == 0) return ( false, 0, 0, 0, 0);
 
-        uint tokenBalance = _spotPrice;
+        uint tokenBalance = _startPrice;
 
-        uint nftBalance = _delta;
+        uint nftBalance = _multiplier;
 
         uint numItems = _numItems * 1e18;
 
-        // num Items should be < NFT balance ( delta = numItems  initial Price )
+        // num Items should be < NFT balance ( multiplier = numItems  initial Price )
 
         if ( numItems >= nftBalance ) return ( false, 0, 0, 0, 0);
 
@@ -55,7 +55,7 @@ contract CPCurve is ICurve, CurveErrors {
 
         inputValue += ( protocolFee + poolFee );
 
-        newSpotPrice = uint128( _spotPrice + inputValue );
+        newStartPrice = uint128( _startPrice + inputValue );
 
         newDelta = uint128( nftBalance - numItems );
 
@@ -63,10 +63,10 @@ contract CPCurve is ICurve, CurveErrors {
 
     }
 
-    function getSellInfo( uint128 _delta, uint128 _spotPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
+    function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
             bool isValid, 
-            uint128 newSpotPrice, 
+            uint128 newStartPrice, 
             uint128 newDelta, 
             uint256 outputValue, 
             uint256 protocolFee 
@@ -74,9 +74,9 @@ contract CPCurve is ICurve, CurveErrors {
     {
         if ( _numItems == 0) return (false, 0, 0, 0, 0);
 
-        uint tokenBalance = _spotPrice;
+        uint tokenBalance = _startPrice;
 
-        uint nftBalance = _delta;
+        uint nftBalance = _multiplier;
 
         uint numItems = _numItems * 1e18;
 
@@ -92,7 +92,7 @@ contract CPCurve is ICurve, CurveErrors {
 
         outputValue -=  ( protocolFee + poolFee );
 
-        newSpotPrice = uint128( _spotPrice - outputValue );
+        newStartPrice = uint128( _startPrice - outputValue );
 
         newDelta = uint128( nftBalance + numItems );
 
