@@ -9,19 +9,26 @@ contract MetaRouter {
     struct SellNFTInfo {
         IMSPair pair;
         uint[] tokenIDs;
-        uint minExpected;
     }
 
     struct BuyNFTInfo {
         IMSPair pair;
         uint[] tokenIDs;
-        uint maxEspected;
     }
 
     struct BuyAnyNFTInfo {
         IMSPair pair;
         uint numNFTs;
-        uint maxEspected;
+    }
+
+    struct SwapNFTToNFT {
+        SellNFTInfo[] sellInfo;
+        BuyNFTInfo[] buyInfo;
+    }
+
+    struct SwapNFTToAnyNFT {
+        SellNFTInfo[] sellInfo;
+        BuyAnyNFTInfo[] buyInfo;
     }
 
     // struct BulkSellNFTInfo {
@@ -52,17 +59,27 @@ contract MetaRouter {
 
     function swapTokenForNFT( BuyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
 
-        _swapTokenForNFT(_swaps);
+        _swapTokenForNFT(_swaps, msg.value);
 
     }
 
     function swapTokenForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
 
-        _swapTokenForAnyNFT(_swaps);
+        _swapTokenForAnyNFT( _swaps, msg.value );
         
     }
 
-    function _swapNFTForToken( SellNFTInfo[] memory _swaps ) private {
+    function swapNFTforNFT( SwapNFTToNFT memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
+
+        uint totalOutput = _swapNFTForToken( _swaps.sellInfo );
+
+        totalOutput += msg.value;
+
+        _swapTokenForNFT( _swaps.buyInfo, totalOutput );
+
+    }
+
+    function _swapNFTForToken( SellNFTInfo[] memory _swaps ) private returns ( uint totalOutput ) {
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
@@ -70,37 +87,45 @@ contract MetaRouter {
 
             // update ( minimum expected )
 
-            _swaps[i].pair.swapNFTsForToken( _swaps[i].tokenIDs, _swaps[i].minExpected, msg.sender );
+            totalOutput += _swaps[i].pair.swapNFTsForToken( _swaps[i].tokenIDs, 0, msg.sender );
 
         }
 
     }
 
-    function _swapTokenForNFT( BuyNFTInfo[] memory _swaps ) private {
+    function _swapTokenForNFT( BuyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
+
+        uint reminingAmount = _inputValue;
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
-            ( , , , uint inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].tokenIDs.length );
+            ( , , , inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].tokenIDs.length );
 
             // update ( maximum expected )
 
-            _swaps[i].pair.swapTokenForNFT{ value: inputValue }( _swaps[i].tokenIDs, _swaps[i].maxEspected , msg.sender );
+            reminingAmount -= _swaps[i].pair.swapTokenForNFT{ value: inputValue }( _swaps[i].tokenIDs, reminingAmount , msg.sender );
 
         }
+
+        if( reminingAmount > 0) require( payable( msg.sender ).send( reminingAmount ));
         
     }
 
-    function _swapTokenForAnyNFT( BuyAnyNFTInfo[] memory _swaps ) private {
+    function _swapTokenForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
+
+        uint reminingAmount = _inputValue;
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
-            ( , , , uint inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].numNFTs );
+            ( , , , inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].numNFTs );
 
             // update ( maximum expected )
 
-            _swaps[i].pair.swapTokenForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, _swaps[i].maxEspected , msg.sender );
+            reminingAmount -= _swaps[i].pair.swapTokenForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, reminingAmount , msg.sender );
 
         }
+
+        if( reminingAmount > 0) require( payable( msg.sender ).send( reminingAmount ));
         
     }
 
