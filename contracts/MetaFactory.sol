@@ -84,7 +84,7 @@ contract MetaFactory is Ownable {
 
         }
 
-        if ( !_Algorithm.validateStartPrice( _startPrice ) || !_Algorithm.validateDelta( _multiplier ) ) return false;
+        if ( !_Algorithm.validateStartPrice( _startPrice ) || !_Algorithm.validateMultiplier( _multiplier ) ) return false;
 
         return true;
         

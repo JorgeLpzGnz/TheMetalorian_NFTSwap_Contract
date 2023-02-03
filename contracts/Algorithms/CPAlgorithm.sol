@@ -14,7 +14,7 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     }
 
-    function validateDelta( uint ) external pure override returns( bool ) {        
+    function validateMultiplier( uint ) external pure override returns( bool ) {        
 
         return true;
 
@@ -24,7 +24,7 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 inputValue, 
             uint256 protocolFee 
         ) 
@@ -55,9 +55,9 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         inputValue += ( protocolFee + poolFee );
 
-        newStartPrice = uint128( _startPrice + inputValue );
+        newStartPrice = uint128( tokenBalance + inputValue );
 
-        newDelta = uint128( nftBalance - numItems );
+        newMultiplier = uint128( nftBalance - numItems );
 
         isValid = true;
 
@@ -67,7 +67,7 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 outputValue, 
             uint256 protocolFee 
         ) 
@@ -92,9 +92,9 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         outputValue -=  ( protocolFee + poolFee );
 
-        newStartPrice = uint128( _startPrice - outputValue );
+        newStartPrice = uint128( tokenBalance - outputValue );
 
-        newDelta = uint128( nftBalance + numItems );
+        newMultiplier = uint128( nftBalance + numItems );
 
         isValid = true;
 

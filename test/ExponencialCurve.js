@@ -44,7 +44,7 @@ describe("Exponential Algorithm", function () {
 
     })
 
-    describe("validate Delta", () => {
+    describe("validate Multiplier", () => {
 
         describe(" - Functionalities", () => {
 
@@ -52,7 +52,7 @@ describe("Exponential Algorithm", function () {
 
                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateDelta(  parseEther(`1.1`)) ).to.be.true
+                expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`1.1`)) ).to.be.true
 
             })
 
@@ -60,7 +60,7 @@ describe("Exponential Algorithm", function () {
 
                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateDelta(  parseEther(`0.9`)) ).to.be.false
+                expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`0.9`)) ).to.be.false
 
             })
 
@@ -242,7 +242,7 @@ describe("Exponential Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, , ] = await exponentialAlgorithm.getBuyInfo(
+                const [ , newStartPrice, newMultiplier, , ] = await exponentialAlgorithm.getBuyInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -260,7 +260,7 @@ describe("Exponential Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
+                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
             })
 
@@ -420,7 +420,7 @@ describe("Exponential Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, ,  ] = await exponentialAlgorithm.getSellInfo(
+                const [ , newStartPrice, newMultiplier, ,  ] = await exponentialAlgorithm.getSellInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -428,11 +428,11 @@ describe("Exponential Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const invDelta = 1 / multiplier
+                const invMultiplier = 1 / multiplier
 
-                const invDeltaPow = invDelta ** numItems
+                const invMultiplierPow = invMultiplier ** numItems
 
-                const expectedNewStartPrice = startPrice * invDeltaPow
+                const expectedNewStartPrice = startPrice * invMultiplierPow
 
                 // input value should be equal to expected value plus fees
 
@@ -444,7 +444,7 @@ describe("Exponential Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
+                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
             })
 

@@ -201,11 +201,11 @@ function getSellOutput( Algorithm, startPrice, multiplier, numItems ) {
 
         case "exponentialAlgorithm":
 
-            const invDelta = 1 / multiplier
+            const invMultiplier = 1 / multiplier
 
-            const invDeltaPow = invDelta ** numItems
+            const invMultiplierPow = invMultiplier ** numItems
 
-            return startPrice * ( 1 - invDeltaPow ) / ( 1 - invDelta )
+            return startPrice * ( 1 - invMultiplierPow ) / ( 1 - invMultiplier )
 
         case "cPAlgorithm":
 

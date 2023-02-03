@@ -10,7 +10,7 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     uint32 public constant MIN_PRICE = 1 gwei; 
 
-    uint public constant MIN_DELTA = 1e18; 
+    uint public constant MIN_MULTIPLIER = 1e18; 
 
     function validateStartPrice( uint _startPrice ) external pure override returns( bool ) {
 
@@ -18,9 +18,9 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     }
 
-    function validateDelta( uint _multiplier ) external pure override returns( bool ) {
+    function validateMultiplier( uint _multiplier ) external pure override returns( bool ) {
 
-        return _multiplier > MIN_DELTA;
+        return _multiplier > MIN_MULTIPLIER;
 
     }
 
@@ -28,7 +28,7 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 inputValue, 
             uint256 protocolFee 
         ) 
@@ -61,7 +61,7 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         newStartPrice = uint128( _newStartPrice );
 
-        newDelta = _multiplier;
+        newMultiplier = _multiplier;
 
         isValid = true;
 
@@ -71,28 +71,28 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 outputValue, 
             uint256 protocolFee 
         ) 
     {
         if( _numItems == 0 ) return (false, 0, 0, 0, 0);
 
-        uint invDelta = FixedPointMathLib.WAD.fdiv( _multiplier, FixedPointMathLib.WAD );
+        uint invMultiplier = FixedPointMathLib.WAD.fdiv( _multiplier, FixedPointMathLib.WAD );
 
-        uint invDeltaPow = invDelta.fpow( _numItems, FixedPointMathLib.WAD );
+        uint invMultiplierPow = invMultiplier.fpow( _numItems, FixedPointMathLib.WAD );
 
         // update ( this is a percentage )
 
         newStartPrice = uint128(
-            uint256( _startPrice ).fmul( invDeltaPow, FixedPointMathLib.WAD )
+            uint256( _startPrice ).fmul( invMultiplierPow, FixedPointMathLib.WAD )
         );
 
         if( newStartPrice < MIN_PRICE ) newStartPrice = MIN_PRICE;
 
         outputValue = uint256( _startPrice ).fmul(
-            ( FixedPointMathLib.WAD - invDeltaPow ).fdiv(
-                FixedPointMathLib.WAD - invDelta,
+            ( FixedPointMathLib.WAD - invMultiplierPow ).fdiv(
+                FixedPointMathLib.WAD - invMultiplier,
                 FixedPointMathLib.WAD
             ),
             FixedPointMathLib.WAD
@@ -106,7 +106,7 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         outputValue -= ( protocolFee + poolFee );
 
-        newDelta = _multiplier;
+        newMultiplier = _multiplier;
 
         isValid = true;
         

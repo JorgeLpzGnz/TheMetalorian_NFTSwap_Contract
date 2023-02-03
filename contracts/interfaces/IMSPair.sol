@@ -8,9 +8,9 @@ interface IMSPair {
     
     function getNFTIds() external view returns ( uint[] memory nftIds);
 
-    function getPoolBuyInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint inputValue, uint protocolFee );
+    function getPoolBuyInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee );
 
-    function getPoolSellInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint outputValue, uint protocolFee );
+    function getPoolSellInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee );
 
     function getAssetsRecipient() external view returns ( address _recipient );
 

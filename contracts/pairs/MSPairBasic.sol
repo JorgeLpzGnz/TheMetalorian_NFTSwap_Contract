@@ -44,12 +44,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         uint128 newStartPrice;
 
-        uint128 newDelta;
+        uint128 newMultiplier;
 
         (
             isValid, 
             newStartPrice, 
-            newDelta, 
+            newMultiplier, 
             outputValue, 
             protocolFee 
         ) = Algorithm.getSellInfo( 
@@ -64,7 +64,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         require( outputValue >= _minExpected, "output amount is les than min expected" );
 
-        if( multiplier != newDelta ) multiplier = newDelta;
+        if( multiplier != newMultiplier ) multiplier = newMultiplier;
 
         if( startPrice != newStartPrice ) startPrice = newStartPrice;
 
@@ -80,12 +80,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         uint128 newStartPrice;
 
-        uint128 newDelta;
+        uint128 newMultiplier;
 
         (
             isValid, 
             newStartPrice, 
-            newDelta, 
+            newMultiplier, 
             inputValue, 
             protocolFee 
         ) = Algorithm.getBuyInfo( 
@@ -100,7 +100,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         require( inputValue <= _maxExpectedIn, "output amount is less than min expected" );
 
-        if( multiplier != newDelta ) multiplier = newDelta;
+        if( multiplier != newMultiplier ) multiplier = newMultiplier;
 
         if( startPrice != newStartPrice ) startPrice = newStartPrice;
 
@@ -146,12 +146,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds);
 
-    function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint inputValue, uint protocolFee ) {
+    function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee ) {
 
         (
             isValid, 
             newStartPrice, 
-            newDelta, 
+            newMultiplier, 
             inputValue, 
             protocolFee 
         ) = Algorithm.getBuyInfo( 
@@ -164,12 +164,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     
     }
 
-    function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newDelta, uint outputValue, uint protocolFee ) {
+    function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee ) {
 
         (
             isValid, 
             newStartPrice, 
-            newDelta, 
+            newMultiplier, 
             outputValue, 
             protocolFee 
         ) = Algorithm.getSellInfo( 
@@ -312,13 +312,13 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    function setDelta( uint128 _newDelta ) external onlyOwner {
+    function setMultiplier( uint128 _newMultiplier ) external onlyOwner {
 
-        require( multiplier != _newDelta, "multiplier is equal than current");
+        require( multiplier != _newMultiplier, "multiplier is equal than current");
 
-        require( Algorithm.validateDelta( _newDelta ), "invalid multiplier" );
+        require( Algorithm.validateMultiplier( _newMultiplier ), "invalid multiplier" );
 
-        multiplier = _newDelta;
+        multiplier = _newMultiplier;
         
     }
 

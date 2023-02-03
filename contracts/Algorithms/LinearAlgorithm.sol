@@ -14,7 +14,7 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     }
 
-    function validateDelta( uint ) external pure override returns( bool ) {
+    function validateMultiplier( uint ) external pure override returns( bool ) {
 
         return true;
 
@@ -24,7 +24,7 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 inputValue, 
             uint256 protocolFee 
         ) {
@@ -52,7 +52,7 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         newStartPrice = uint128(_newStartPrice);
 
-        newDelta = _multiplier;
+        newMultiplier = _multiplier;
 
         isValid = true;
 
@@ -62,7 +62,7 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
-            uint128 newDelta, 
+            uint128 newMultiplier, 
             uint256 outputValue, 
             uint256 protocolFee 
         ) {
@@ -92,7 +92,7 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
         outputValue -= ( protocolFee + poolFee );
 
-        newDelta = _multiplier;
+        newMultiplier = _multiplier;
 
         isValid = true;
 

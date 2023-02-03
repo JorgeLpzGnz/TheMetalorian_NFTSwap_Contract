@@ -35,7 +35,7 @@ describe("Constant Product Algorithm", function () {
 
     })
 
-    describe("validate Delta", () => {
+    describe("validate Multiplier", () => {
 
         describe(" - Functionalities", () => {
 
@@ -43,7 +43,7 @@ describe("Constant Product Algorithm", function () {
 
                 const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await cPAlgorithm.validateDelta(
+                expect( await cPAlgorithm.validateMultiplier(
                     parseEther(
                         `${Math.round( Math.random() * 1000 )}`
                     )
@@ -225,7 +225,7 @@ describe("Constant Product Algorithm", function () {
 
             })
 
-            it("4. should return a valid new start Price and new Delta", async () => {
+            it("4. should return a valid new start Price and new Multiplier", async () => {
 
                 const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -241,7 +241,7 @@ describe("Constant Product Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, input ] = await cPAlgorithm.getBuyInfo(
+                const [ , newStartPrice, newMultiplier, input ] = await cPAlgorithm.getBuyInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -263,7 +263,7 @@ describe("Constant Product Algorithm", function () {
 
                 // NFTBalance ( multiplier ) must be current balance - number Of Items
 
-                expect( getNumber( newDelta )  ).to.be.equal( multiplier - numItems)
+                expect( getNumber( newMultiplier )  ).to.be.equal( multiplier - numItems)
 
             })
 
@@ -457,7 +457,7 @@ describe("Constant Product Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, , ] = await cPAlgorithm.getSellInfo(
+                const [ , newStartPrice, newMultiplier, , ] = await cPAlgorithm.getSellInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -479,7 +479,7 @@ describe("Constant Product Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta )  ).to.be.equal( multiplier + numItems )
+                expect( getNumber( newMultiplier )  ).to.be.equal( multiplier + numItems )
 
             })
 

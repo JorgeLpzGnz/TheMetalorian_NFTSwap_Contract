@@ -34,7 +34,7 @@ describe("Linear Algorithm", function () {
 
     })
 
-    describe("validate Delta", () => {
+    describe("validate Multiplier", () => {
 
         describe(" - Functionalities", () => {
 
@@ -42,7 +42,7 @@ describe("Linear Algorithm", function () {
 
                 const { linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await linearAlgorithm.validateDelta(
+                expect( await linearAlgorithm.validateMultiplier(
                     parseEther(`${ Math.round( Math.random() * 100)}`))
                 ).to.be.true
 
@@ -226,7 +226,7 @@ describe("Linear Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, , ] = await linearAlgorithm.getBuyInfo(
+                const [ , newStartPrice, newMultiplier, , ] = await linearAlgorithm.getBuyInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -244,7 +244,7 @@ describe("Linear Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
+                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
             })
 
@@ -408,7 +408,7 @@ describe("Linear Algorithm", function () {
 
                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newDelta, ,  ] = await linearAlgorithm.getSellInfo(
+                const [ , newStartPrice, newMultiplier, ,  ] = await linearAlgorithm.getSellInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -428,7 +428,7 @@ describe("Linear Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
+                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
             })
 
@@ -453,7 +453,7 @@ describe("Linear Algorithm", function () {
 
                 const poolFeeMul = 0
 
-                const [ , newStartPrice, newDelta, outputValue,  ] = await linearAlgorithm.getSellInfo(
+                const [ , newStartPrice, newMultiplier, outputValue,  ] = await linearAlgorithm.getSellInfo(
                     parseEther( `${ multiplier }` ),
                     parseEther( `${ startPrice }` ),
                     numItems,
@@ -482,7 +482,7 @@ describe("Linear Algorithm", function () {
 
                 // raturnal protocol fee should be the same than expected
 
-                expect( getNumber( newDelta ) ).to.be.equal( multiplier )
+                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
             })
 

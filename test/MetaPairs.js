@@ -1081,7 +1081,7 @@ describe("MetaPairs", function () {
 
     })
 
-    describe( "set Delta", () => {
+    describe( "set Multiplier", () => {
 
         describe(" - Errors", () => {
 
@@ -1091,7 +1091,7 @@ describe("MetaPairs", function () {
 
                 const { pair } = await createPair( metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.nft, 0, 0 )
 
-                await expect( pair.connect( otherAccount ).setDelta( 0 ) ).to.be.reverted
+                await expect( pair.connect( otherAccount ).setMultiplier( 0 ) ).to.be.reverted
 
             } )
 
@@ -1103,7 +1103,7 @@ describe("MetaPairs", function () {
 
                 const multiplier = await pair.multiplier()
 
-                await expect( pair.setDelta( multiplier ) ).to.be.revertedWith( "multiplier is equal than current" )
+                await expect( pair.setMultiplier( multiplier ) ).to.be.revertedWith( "multiplier is equal than current" )
 
             } )
 
@@ -1117,7 +1117,7 @@ describe("MetaPairs", function () {
 
                 const multiplier = 1e7
 
-                await expect( pair.setDelta( multiplier ) ).to.be.revertedWith( "invalid multiplier" )
+                await expect( pair.setMultiplier( multiplier ) ).to.be.revertedWith( "invalid multiplier" )
 
             } )
             
@@ -1135,11 +1135,11 @@ describe("MetaPairs", function () {
 
                 expect( getNumber( await pair.multiplier() ) ).to.be.equal( multiplier )
 
-                const newDelta = parseEther( "1.5" )
+                const newMultiplier = parseEther( "1.5" )
 
-                await pair.setDelta( newDelta ) 
+                await pair.setMultiplier( newMultiplier ) 
 
-                expect( await pair.multiplier() ).to.be.equal( newDelta)
+                expect( await pair.multiplier() ).to.be.equal( newMultiplier)
             
             } )
             
