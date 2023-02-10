@@ -15,6 +15,22 @@ const { parseEther } = utils
 
 describe("Constant Product Algorithm", function () {
 
+    describe("name", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return algorithm name", async () => {
+
+                const { cPAlgorithm } = await loadFixture(deployMetaFactory)
+
+                expect( await cPAlgorithm.name() ).to.be.equal( "Constant Product" )
+
+            })
+
+        })
+
+    })
+
     describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {

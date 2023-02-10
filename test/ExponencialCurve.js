@@ -16,6 +16,22 @@ const { parseEther, parseUnits } = utils
 
 describe("Exponential Algorithm", function () {
 
+    describe("name", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return algorithm name", async () => {
+
+                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                expect( await exponentialAlgorithm.name() ).to.be.equal( "Exponential" )
+
+            })
+
+        })
+
+    })
+
     describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {

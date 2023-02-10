@@ -1811,6 +1811,68 @@ describe("MetaPairs", function () {
 
     })
 
+    describe("get Algorithm", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return 'Constant product' in a pair with this algorithm", async () => {
+
+                const { cPAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
+
+                const numItems = 10
+
+                const initialPrice = 5
+
+                const startPrice = numItems * initialPrice
+
+                const multiplier = numItems + 1
+
+                const { pair } = await createPair(metaFactory, nft, numItems, startPrice, multiplier, cPAlgorithm, poolType.nft, 0, 0)
+
+                const algorithm = await pair.getAlgorithm()
+
+                expect( algorithm ).to.be.equal( "Constant Product" )
+                
+            })
+
+            it("2. should return 'Exponential' in a pair with this algorithm", async () => {
+
+                const { exponentialAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
+
+                const numItems = 10
+
+                const startPrice = 1
+
+                const multiplier = 1.5
+
+                const { pair } = await createPair(metaFactory, nft, numItems, startPrice, multiplier, exponentialAlgorithm, poolType.nft, 0, 0)
+
+                const algorithm = await pair.getAlgorithm()
+
+                expect( algorithm ).to.be.equal( "Exponential" )
+                
+            })
+
+            it("3. should return 'Linear' in a pair with this algorithm", async () => {
+
+                const { linearAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
+
+                const numItems = 10
+
+                const startPrice = 1
+
+                const multiplier = 1.5
+
+                const { pair } = await createPair(metaFactory, nft, numItems, startPrice, multiplier, linearAlgorithm, poolType.nft, 0, 0)
+
+                const algorithm = await pair.getAlgorithm()
+
+                expect( algorithm ).to.be.equal( "Linear" )
+                
+            })
+        })
+    })
+
     describe("set Assets Recipient", () => {
 
         describe(" - Errors", () => {

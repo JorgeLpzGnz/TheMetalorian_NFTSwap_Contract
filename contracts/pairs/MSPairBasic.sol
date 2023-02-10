@@ -218,6 +218,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
+    function getAlgorithm() public view returns( string memory ) {
+
+        return IMetaAlgorithm( Algorithm ).name();
+        
+    }
+
     function init(
         uint128 _multiplier, 
         uint128 _startPrice, 

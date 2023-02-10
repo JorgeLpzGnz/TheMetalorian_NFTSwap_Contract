@@ -5,6 +5,8 @@ import "../Algorithms/AlgorithmErrors.sol";
 
 interface IMetaAlgorithm {
 
+    function name() external pure returns( string memory );
+
     function validateStartPrice( uint _startPrice ) external pure returns( bool );
 
     function validateMultiplier( uint _multiplier ) external pure returns( bool );

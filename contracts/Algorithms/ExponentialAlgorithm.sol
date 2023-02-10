@@ -12,6 +12,12 @@ contract ExponentialAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     uint public constant MIN_MULTIPLIER = 1e18; 
 
+    function name() external pure override returns( string memory ) {
+
+        return "Exponential";
+
+    }
+
     function validateStartPrice( uint _startPrice ) external pure override returns( bool ) {
 
         return _startPrice >= MIN_PRICE;

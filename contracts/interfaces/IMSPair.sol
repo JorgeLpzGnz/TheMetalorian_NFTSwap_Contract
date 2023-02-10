@@ -14,6 +14,8 @@ interface IMSPair {
 
     function getAssetsRecipient() external view returns ( address _recipient );
 
+    function getAlgorithm() external view returns( string memory );
+
     function init(
         uint128 _multiplier, 
         uint128 _startPrice, 

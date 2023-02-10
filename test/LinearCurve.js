@@ -16,6 +16,22 @@ const { parseEther } = utils
 
 describe("Linear Algorithm", function () {
 
+    describe("name", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return algorithm name", async () => {
+
+                const { linearAlgorithm } = await loadFixture(deployMetaFactory)
+
+                expect( await linearAlgorithm.name() ).to.be.equal( "Linear" )
+
+            })
+
+        })
+
+    })
+
     describe("validate Start Price", () => {
 
         describe(" - Functionalities", () => {

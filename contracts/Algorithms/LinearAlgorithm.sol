@@ -8,6 +8,12 @@ contract LinearAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     using FixedPointMathLib for uint256;
 
+    function name() external pure override returns( string memory ) {
+
+        return "Linear";
+
+    }
+
     function validateStartPrice( uint ) external pure override returns( bool ) {
 
         return true;

@@ -8,6 +8,12 @@ contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
 
     using FixedPointMathLib for uint256;
 
+    function name() external pure override returns( string memory ) {
+
+        return "Constant Product";
+
+    }
+
     function validateStartPrice( uint ) external pure override returns( bool ) {
 
         return true;
