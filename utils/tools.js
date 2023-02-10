@@ -159,7 +159,7 @@ function getNumber( bignumber ) {
 
 }
 
-function getSellInput( Algorithm, startPrice, multiplier, numItems ) {
+function getTokenInput( Algorithm, startPrice, multiplier, numItems ) {
 
     let buyPrice
 
@@ -191,7 +191,7 @@ function getSellInput( Algorithm, startPrice, multiplier, numItems ) {
 
 }
 
-function getSellOutput( Algorithm, startPrice, multiplier, numItems ) {
+function getTokenOutput( Algorithm, startPrice, multiplier, numItems ) {
 
     switch ( Algorithm ) {
 
@@ -244,9 +244,9 @@ module.exports = {
     mintNFT, 
     sendBulkNfts,
     getNumber,
-    getSellInput,
+    getTokenInput,
     deployMetaFactory,
-    getSellOutput,
+    getTokenOutput,
     roundNumber,
     getNumberForBNArray
 }

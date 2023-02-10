@@ -13,6 +13,7 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const NFT_ABI = require("../utils/nftABI")
+const { parseEther } = ethers.utils
 const provider = ethers.provider
 
 describe("MetaFactory", function () {
@@ -467,6 +468,129 @@ describe("MetaFactory", function () {
                 // rauded to handle withdraw gas cost
 
                 expect( ownerBalanceAfter ).to.be.equal( nftIds.length )
+
+            })
+
+        })
+
+    })
+
+    describe("Events", () => {
+
+        describe(" - Functionalities", () => {
+
+            it( "NewPair", async () => {
+
+                const { metaFactory, owner, nft, linearAlgorithm } = await loadFixture( deployMetaFactory )
+
+				await expect(
+                    metaFactory.createPair(
+                        nft.address,
+                        [],
+                        parseEther("5"),
+                        parseEther("0.1"),
+                        owner.address,
+                        0,
+                        linearAlgorithm.address,
+                        poolType.token
+                    )
+				).to.emit( metaFactory, "NewPair" )
+
+            })
+
+            it( "NewProtocolFee", async () => {
+
+                const { metaFactory } = await loadFixture( deployMetaFactory )
+
+                const newFee = parseEther("0.1")
+
+				await expect( metaFactory.setProtocolFee( newFee ) )
+                    .to.emit( metaFactory, "NewProtocolFee" )
+                    .withArgs( newFee )
+
+            })
+
+            it( "NewFeeRecipient", async () => {
+
+                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+
+				await expect( 
+                    metaFactory.setProtocolFeeRecipient( owner.address ) 
+                ).to.emit( metaFactory, "NewFeeRecipient" )
+                .withArgs( owner.address )
+
+            })
+
+            it( "AlgorithmApproval", async () => {
+
+                const { metaFactory, owner, cPAlgorithm } = await loadFixture( deployMetaFactory )
+
+				await expect( 
+                    metaFactory.setAlgorithmApproval( 
+                        cPAlgorithm.address,
+                        false
+                    ) 
+                ).to.emit( metaFactory, "AlgorithmApproval" )
+                .withArgs( cPAlgorithm.address, false )
+
+            })
+
+            it( "TokenDeposit", async () => {
+
+                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+
+                const amountOfETH = parseEther("1")
+
+				await expect( 
+                    owner.sendTransaction({
+                        to: metaFactory.address,
+                        value: amountOfETH
+                    })
+                ).to.emit( metaFactory, "TokenDeposit" )
+                .withArgs( amountOfETH )
+
+            })
+
+            it( "TokenWithdrawal", async () => {
+
+                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+
+                const amount = parseEther("1")
+
+                await owner.sendTransaction({
+                    to: metaFactory.address,
+                    value: amount
+                })
+
+				await expect( 
+                    metaFactory.withdrawETH()
+                ).to.emit( metaFactory, "TokenWithdrawal" )
+                .withArgs( owner.address, amount )
+
+            })
+
+            it( "NFTWithdrawal", async () => {
+
+                const { metaFactory, owner, nft } = await loadFixture( deployMetaFactory )
+
+                const tokenIDs = await mintNFT( nft, 2, metaFactory )
+
+                await nft.transferFrom( 
+                    owner.address,
+                    metaFactory.address,
+                    tokenIDs[ 0 ]
+                )
+
+                await nft.transferFrom( 
+                    owner.address,
+                    metaFactory.address,
+                    tokenIDs[ 1 ]
+                )
+
+				await expect( 
+                    metaFactory.withdrawNFTs( nft.address, tokenIDs )
+                ).to.emit( metaFactory, "NFTWithdrawal" )
+                .withArgs( owner.address, tokenIDs.length )
 
             })
 

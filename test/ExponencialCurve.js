@@ -4,9 +4,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getSellInput,
+    getTokenInput,
     deployMetaFactory,
-    getSellOutput,
+    getTokenOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -182,7 +182,7 @@ describe("Exponential Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedInput = getSellInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -212,7 +212,7 @@ describe("Exponential Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedInput = getSellInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedInput *  protocolFeeMult 
 
@@ -356,7 +356,7 @@ describe("Exponential Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedOutput = getSellOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -386,7 +386,7 @@ describe("Exponential Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedOutput = getSellOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedOutput * protocolFeeMult 
 

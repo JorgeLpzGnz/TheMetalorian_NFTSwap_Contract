@@ -4,9 +4,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getSellInput,
+    getTokenInput,
     deployMetaFactory,
-    getSellOutput,
+    getTokenOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -166,7 +166,7 @@ describe("Linear Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedInput = getSellInput( "linearAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "linearAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -196,7 +196,7 @@ describe("Linear Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedInput = getSellInput( "linearAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "linearAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedInput *  protocolFeeMult
 
@@ -344,7 +344,7 @@ describe("Linear Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedOutput = getSellOutput( "linearAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "linearAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -374,7 +374,7 @@ describe("Linear Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedOutput = getSellOutput( "linearAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "linearAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedOutput * protocolFeeMult
 
@@ -464,7 +464,7 @@ describe("Linear Algorithm", function () {
                 // in this spot price and multiplier the max of items that the pool
                 // can sell is 2 becouse 0.5 * 2 is 1 ( the current spot price )
 
-                const expectedOutput = getSellOutput("linearAlgorithm", startPrice, multiplier, 2)
+                const expectedOutput = getTokenOutput("linearAlgorithm", startPrice, multiplier, 2)
 
                 const decrease = multiplier * 2
 

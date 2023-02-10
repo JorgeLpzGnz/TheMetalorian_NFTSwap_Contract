@@ -57,15 +57,15 @@ contract MetaRouter {
 
     }
 
-    function swapSellForNFT( BuyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
+    function swapTokenForNFT( BuyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
 
-        _swapSellForNFT(_swaps, msg.value);
+        _swapTokenForNFT(_swaps, msg.value);
 
     }
 
-    function swapSellForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
+    function swapTokenForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _deadLine ) public payable checkDeadLine( _deadLine ) {
 
-        _swapSellForAnyNFT( _swaps, msg.value );
+        _swapTokenForAnyNFT( _swaps, msg.value );
         
     }
 
@@ -75,7 +75,7 @@ contract MetaRouter {
 
         totalOutput += msg.value;
 
-        _swapSellForNFT( _swaps.buyInfo, totalOutput );
+        _swapTokenForNFT( _swaps.buyInfo, totalOutput );
 
     }
 
@@ -87,13 +87,13 @@ contract MetaRouter {
 
             // update ( minimum expected )
 
-            totalOutput += _swaps[i].pair.swapNFTsForSell( _swaps[i].tokenIDs, 0, msg.sender );
+            totalOutput += _swaps[i].pair.swapNFTsForToken( _swaps[i].tokenIDs, 0, msg.sender );
 
         }
 
     }
 
-    function _swapSellForNFT( BuyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
+    function _swapTokenForNFT( BuyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
 
         uint reminingAmount = _inputValue;
 
@@ -103,7 +103,7 @@ contract MetaRouter {
 
             // update ( maximum expected )
 
-            reminingAmount -= _swaps[i].pair.swapSellForNFT{ value: inputValue }( _swaps[i].tokenIDs, reminingAmount , msg.sender );
+            reminingAmount -= _swaps[i].pair.swapTokenForNFT{ value: inputValue }( _swaps[i].tokenIDs, reminingAmount , msg.sender );
 
         }
 
@@ -111,7 +111,7 @@ contract MetaRouter {
         
     }
 
-    function _swapSellForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
+    function _swapTokenForAnyNFT( BuyAnyNFTInfo[] memory _swaps, uint _inputValue ) private returns ( uint inputValue ) {
 
         uint reminingAmount = _inputValue;
 
@@ -121,7 +121,7 @@ contract MetaRouter {
 
             // update ( maximum expected )
 
-            reminingAmount -= _swaps[i].pair.swapSellForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, reminingAmount , msg.sender );
+            reminingAmount -= _swaps[i].pair.swapTokenForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, reminingAmount , msg.sender );
 
         }
 

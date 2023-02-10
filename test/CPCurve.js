@@ -3,9 +3,9 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const {
     getNumber,
-    getSellInput,
+    getTokenInput,
     deployMetaFactory,
-    getSellOutput,
+    getTokenOutput,
     roundNumber
 } = require("../utils/tools" )
 const { expect } = require("chai");
@@ -177,7 +177,7 @@ describe("Constant Product Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedInput = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -209,7 +209,7 @@ describe("Constant Product Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedInput = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedInput = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedInput *  protocolFeeMult 
 
@@ -249,7 +249,7 @@ describe("Constant Product Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedInputWithoufee = getSellInput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedInputWithoufee = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedInputWithoufee *  protocolFeeMult
 
@@ -393,7 +393,7 @@ describe("Constant Product Algorithm", function () {
                     poolFee0
                 )
 
-                const expectedOutput = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 // check that input value is equals to expected value
 
@@ -425,7 +425,7 @@ describe("Constant Product Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedOutput = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutput = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedOutput * protocolFeeMult 
 
@@ -465,7 +465,7 @@ describe("Constant Product Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedOutputWithoutFee = getSellOutput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedOutputWithoutFee = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult 
 

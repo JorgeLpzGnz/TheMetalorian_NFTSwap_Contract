@@ -25,10 +25,10 @@ interface IMSPair {
         PoolTypes.PoolType _poolType 
         ) external payable;
 
-    function swapNFTsForSell( uint[] memory _tokenIDs, uint _minExpected, address _user ) external returns( uint256 outputAmount );
+    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external returns( uint256 outputAmount );
 
-    function swapSellForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
+    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
-    function swapSellForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
+    function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
 }

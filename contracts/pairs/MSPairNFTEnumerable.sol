@@ -55,7 +55,9 @@ contract MSPairNFTEnumerable is MSPairBasic, IERC721Receiver {
 
     }
 
-    function onERC721Received(address, address, uint256, bytes calldata) external pure override returns (bytes4) {
+    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+
+        emit NFTDeposit( msg.sender, id );
 
         return IERC721Receiver.onERC721Received.selector;
 

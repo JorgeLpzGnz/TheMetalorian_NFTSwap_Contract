@@ -49,6 +49,8 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
 
         if( NFT == msg.sender ) _TOKEN_IDS.push(id);
 
+        emit NFTDeposit( msg.sender, id );
+
         return IERC721Receiver.onERC721Received.selector;
 
     }
@@ -80,6 +82,8 @@ contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
                 _nft.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
         }
+
+        emit NFTWithdrawal( owner(), _nftIds.length );
 
     }
 

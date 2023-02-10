@@ -36,6 +36,20 @@ contract MetaFactory is Ownable {
 
     event NewPair( address pair, address owner);
 
+    event NewProtocolFee( uint128 newFee );
+
+    event NewFeeRecipient( address newRecipient );
+
+    event TokenWithdrawal( address owner, uint withdrawAmount );
+
+    event NFTWithdrawal( address owner, uint AmountOfNFTs );
+
+    event TokenDeposit( uint amount );
+
+    event NFTDeposit( address nft, uint tokenID );
+
+    event AlgorithmApproval( address algorithm, bool approval );
+
     constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm ) {
 
         isMSAlgorithm[_LinearAlgorithm] = true;
@@ -158,6 +172,8 @@ contract MetaFactory is Ownable {
 
         PROTOCOL_FEE = _newProtocolFee;
 
+        emit NewProtocolFee( _newProtocolFee );
+
     }
 
     function setProtocolFeeRecipient( address _newRecipient ) public onlyOwner {
@@ -166,9 +182,23 @@ contract MetaFactory is Ownable {
 
         PROTOCOL_FEE_RECIPIENT = _newRecipient;
 
+        emit NewFeeRecipient( _newRecipient );
+
     }
 
-    receive() external payable  {}
+    function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
+
+        isMSAlgorithm[ _algorithm ] = _approval;
+
+        emit AlgorithmApproval( _algorithm, _approval);
+
+    }
+
+    receive() external payable  {
+
+        emit TokenDeposit( msg.value );
+
+    }
 
     function withdrawETH() external onlyOwner {
 
@@ -180,6 +210,8 @@ contract MetaFactory is Ownable {
 
         require( isSended, "transaction not sended" );
 
+        emit TokenWithdrawal( owner(), balance );
+
     }
 
     function withdrawNFTs( address _nft, uint[] memory _nftIds ) external onlyOwner {
@@ -189,6 +221,8 @@ contract MetaFactory is Ownable {
             IERC721(_nft).safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
 
         }
+
+        emit NFTWithdrawal( owner(), _nftIds.length );
 
     }
 
