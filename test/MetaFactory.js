@@ -265,7 +265,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.setProtocolFee( newFee )
-                    ).to.be.revertedWith("new Fee can't be iqual than current")
+                    ).to.be.revertedWith("new fee cannot be the same as the previous one")
 
             })
 
@@ -315,7 +315,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.setProtocolFeeRecipient( metaFactory.address )
-                    ).to.be.revertedWith("new recipient can't be iqual than current")
+                    ).to.be.revertedWith("new fee cannot be the same as the previous one")
 
             })
 
