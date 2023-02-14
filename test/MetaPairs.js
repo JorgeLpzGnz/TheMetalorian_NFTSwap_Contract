@@ -7,7 +7,6 @@ const {
     createPair,
     getEventLog,
     mintNFT,
-    sendBulkNfts,
     getNumber,
     getTokenInput,
     deployMetaFactory,
@@ -18,8 +17,7 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const provider = ethers.provider
-const { utils } = ethers
-const { parseEther, formatEther } = utils
+const { parseEther } = ethers.utils
 
 describe("MetaPairs", function () {
 
@@ -1871,6 +1869,54 @@ describe("MetaPairs", function () {
                 
             })
         })
+    })
+
+    describe("get Pair Info", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return the pool info", async () => {
+
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                const multiplier = 1.5
+
+                const startPrice = 5
+
+                const tradeFee = 0.1
+
+                const { pair, tokenIds } = await createPair(metaFactory, NFTEnumerable, 10, startPrice, multiplier, exponentialAlgorithm, poolType.trade, tradeFee, 10)
+
+                const [
+                    pairMultiplier,
+                    pairStartPrice,
+                    pairTradeFee,
+                    pairNft,
+                    pairPoolType,
+                    pairAlgorithm,
+                    pairNFTs
+                ] = await pair.getPairInfo()
+
+                // check returnal values are the correct
+
+                expect( getNumber( pairMultiplier )).to.be.equal( multiplier )
+
+                expect( getNumber( pairStartPrice )).to.be.equal( startPrice )
+
+                expect( getNumber( pairTradeFee )).to.be.equal( tradeFee )
+
+                expect( pairNft ).to.be.equal( NFTEnumerable.address )
+
+                expect( pairPoolType ).to.be.equal( poolType.trade )
+
+                expect( pairAlgorithm ).to.be.equal( "Exponential" )
+
+                expect( pairNFTs ).to.deep.equal( tokenIds )
+
+            })
+
+        })
+    
     })
 
     describe("set Assets Recipient", () => {

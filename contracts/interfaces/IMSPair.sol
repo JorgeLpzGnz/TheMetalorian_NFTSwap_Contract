@@ -16,6 +16,15 @@ interface IMSPair {
 
     function getAlgorithm() external view returns( string memory );
 
+    function getPairInfo() external view returns( 
+        uint128 pairMultiplier,
+        uint128 pairStartPrice,
+        uint128 pairTradeFee,
+        address pairNft,
+        PoolTypes.PoolType pairPoolType,
+        string memory pairAlgorithm,
+        uint[] memory pairNFTs);
+
     function init(
         uint128 _multiplier, 
         uint128 _startPrice, 

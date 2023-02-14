@@ -172,7 +172,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal virtual;
 
-    function getNFTIds() public virtual view returns ( uint[] memory nftIds);
+    function getNFTIds() public virtual view returns ( uint[] memory nftIds );
 
     function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee ) {
 
@@ -222,6 +222,31 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         return IMetaAlgorithm( Algorithm ).name();
         
+    }
+
+    function getPairInfo() public view returns( 
+        uint128 pairMultiplier,
+        uint128 pairStartPrice,
+        uint128 pairTradeFee,
+        address pairNft,
+        PoolTypes.PoolType pairPoolType,
+        string memory pairAlgorithm,
+        uint[] memory pairNFTs
+    ){
+        pairMultiplier = multiplier;
+
+        pairStartPrice = startPrice;
+
+        pairTradeFee = tradeFee;
+
+        pairNft = NFT;
+
+        pairPoolType = currentPoolType;
+
+        pairAlgorithm = getAlgorithm();
+
+        pairNFTs = getNFTIds();
+
     }
 
     function init(
