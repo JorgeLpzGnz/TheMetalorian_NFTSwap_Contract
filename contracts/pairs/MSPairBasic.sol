@@ -134,7 +134,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    function _sendSellsAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
+    function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
 
         address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
 
@@ -146,7 +146,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    function _receiveSellsAndPayFee( uint _inputAmount, uint _protocolFee ) private {
+    function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
 
         require( msg.value >= _inputAmount, "insufficient amount of ETH" );
 
@@ -295,7 +295,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         _sendNFTsTo( _user, _recipient, _tokenIDs );
 
-        _sendSellsAndPayFee( protocolFee, outputAmount, _user );
+        _sendTokensAndPayFee( protocolFee, outputAmount, _user );
 
         emit SellLog( _user, _tokenIDs.length, outputAmount );
 
@@ -309,13 +309,13 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         ( inputAmount, protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxExpectedIn );
 
-        _receiveSellsAndPayFee( inputAmount, protocolFee );
+        _receiveTokensAndPayFee( inputAmount, protocolFee );
 
         _sendNFTsTo( address( this ), _user, _tokenIDs );
 
         if ( msg.value > inputAmount ) {
 
-            ( bool isSended , ) = payable( _user).call{ value: msg.value - inputAmount }("");
+            ( bool isSended , ) = payable( _user ).call{ value: msg.value - inputAmount }("");
             
             require( isSended, "tx error" );
             
@@ -333,13 +333,13 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         ( inputAmount, protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxExpectedIn );
 
-        _receiveSellsAndPayFee( inputAmount, protocolFee );
+        _receiveTokensAndPayFee( inputAmount, protocolFee );
 
         _sendAnyOutNFTs( _user, _numNFTs );
 
         if ( msg.value > inputAmount ) {
 
-            ( bool isSended , ) = payable( _user).call{ value: msg.value - inputAmount }("");
+            ( bool isSended , ) = payable( _user ).call{ value: msg.value - inputAmount }("");
             
             require( isSended, "tx error" );
             

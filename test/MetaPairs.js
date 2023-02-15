@@ -466,7 +466,7 @@ describe("MetaPairs", function () {
                 const tx = await pair.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0]],
                     maxExpected,
-                    owner.address,
+                    otherAccount.address,
                     { value: maxExpected }
                 )
 
@@ -476,6 +476,8 @@ describe("MetaPairs", function () {
 
                 const { amountIn } = await getEventLog(tx, "BuyLog")
 
+                const feeCharget = parseEther( `${ expectedInput * poolFee }`)
+
                 // check than after pair swap in not trade pairs the pool dont keep any asset
 
                 expect(pairBalanceAfter).to.be.equal(0)
@@ -484,12 +486,12 @@ describe("MetaPairs", function () {
 
                 expect(getNumber(amountIn)).to.be.equal(expectedInput + (expectedInput * poolFee))
 
-                // verify if assets were send to the owner
+                // verify if assets were send to the owne
 
                 expect(
-                    Math.floor(getNumber(ownerBalanceBefore.add(amountIn)))
+                    ownerBalanceBefore.add(amountIn.sub( feeCharget ))
                 ).to.be.equal(
-                    Math.floor(getNumber(ownerBalanceAfer))
+                    ownerBalanceAfer
                 )
 
             })
@@ -700,6 +702,8 @@ describe("MetaPairs", function () {
 
                 const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
 
+                const feeCharget = parseEther( `${ expectedInput * protocolFee }`)
+
                 // check if input amount was sended to assets repient ( only in not trade pools )
 
                 expect(expectedInput).to.be.equal(recipientBalanceAfter - recipientBalanceBefore)
@@ -710,10 +714,12 @@ describe("MetaPairs", function () {
 
                 // check if amount In was sended to pool assets recipient ( only for not trade pools )
 
+                // in the amount in rest the protocol fee
+
                 expect(
-                    Math.floor(getNumber(ownerBalanceBefore.add(amountIn)))
+                    ownerBalanceBefore.add(amountIn.sub( feeCharget ))
                 ).to.be.equal(
-                    Math.floor(getNumber(ownerBalanceAfer))
+                    ownerBalanceAfer
                 )
 
             })
@@ -1764,6 +1770,50 @@ describe("MetaPairs", function () {
                 // check that poolNFTs are equal to current NFTs - swap NFTs
 
                 expect(getNumberForBNArray(await pair.getNFTIds()).sort()).to.deep.equal(ownerNFTs)
+
+            })
+
+            it("2. Should return an empty array when pool doesn't have NFTs ( Enumerable Test )", async () => {
+
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+
+                const startPrice = 5
+
+                const multiplier = 0.3
+
+                const numItems = 10
+
+                const tokenAmount = getTokenOutput("linearAlgorithm", startPrice, multiplier, numItems)
+
+                // in pool type Sell the contract has no NFTs
+
+                const { pair } = await createPair(metaFactory, NFTEnumerable, numItems, startPrice, multiplier, linearAlgorithm, poolType.token, 0, tokenAmount)
+
+                // returnal value should be and empty Array
+
+                expect( await pair.getNFTIds() ).to.deep.equal( [] )
+
+            })
+
+            it("2. Should return an empty array when pool doesn't have NFTs ( NFT basic Test )", async () => {
+
+                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+
+                const startPrice = 5
+
+                const multiplier = 0.3
+
+                const numItems = 10
+
+                const tokenAmount = getTokenOutput("linearAlgorithm", startPrice, multiplier, numItems)
+
+                // in pool type Sell the contract has no NFTs
+
+                const { pair } = await createPair(metaFactory, nft, numItems, startPrice, multiplier, linearAlgorithm, poolType.token, 0, tokenAmount)
+
+                // returnal value should be and empty Array
+
+                expect( await pair.getNFTIds() ).to.deep.equal( [] )
 
             })
 
