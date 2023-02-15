@@ -126,7 +126,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         require( isValid, "Algorithm Error" );
 
-        require( inputValue <= _maxExpectedIn, "output amount is less than min expected" );
+        require( inputValue <= _maxExpectedIn, "input amount is greater than max expected" );
 
         if( startPrice != newStartPrice ) {
             

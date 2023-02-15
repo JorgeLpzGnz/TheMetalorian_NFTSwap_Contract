@@ -399,7 +399,7 @@ describe("MetaPairs", function () {
 
             })
 
-            it("3. should fail if output amount is less than expected", async () => {
+            it("3. should fail if input amount is greater than expected", async () => {
 
                 const { metaFactory, nft, exponentialAlgorithm, owner } = await loadFixture(deployMetaFactory)
 
@@ -413,7 +413,7 @@ describe("MetaPairs", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("output amount is less than min expected")
+                ).to.be.revertedWith("input amount is greater than max expected")
 
 
             })
@@ -583,7 +583,7 @@ describe("MetaPairs", function () {
 
             })
 
-            it("3. should fail if output amount is less than expected", async () => {
+            it("3. should fail if input amount is greater than expected", async () => {
 
                 const { metaFactory, nft, cPAlgorithm, owner } = await loadFixture(deployMetaFactory)
 
@@ -603,7 +603,7 @@ describe("MetaPairs", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("output amount is less than min expected")
+                ).to.be.revertedWith("input amount is greater than max expected")
 
 
             })
