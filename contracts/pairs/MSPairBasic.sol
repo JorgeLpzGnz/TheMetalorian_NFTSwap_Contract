@@ -80,9 +80,21 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
         require( outputValue >= _minExpected, "output amount is les than min expected" );
 
-        if( multiplier != newMultiplier ) multiplier = newMultiplier;
+        if( startPrice != newStartPrice ) {
+            
+            startPrice = newStartPrice;
 
-        if( startPrice != newStartPrice ) startPrice = newStartPrice;
+            emit NewStartPrice( newStartPrice );
+            
+        }
+
+        if( multiplier != newMultiplier ) { 
+            
+            multiplier = newMultiplier;
+
+            emit NewMultiplier( newMultiplier );
+            
+        }
 
     }
 
