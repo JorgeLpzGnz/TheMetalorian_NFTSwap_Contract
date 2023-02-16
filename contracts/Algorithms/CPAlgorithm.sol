@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 
-contract CPAlgorithm is IMetaAlgorithm, AlgorithmErrors {
+contract CPAlgorithm is IMetaAlgorithm {
 
     using FixedPointMathLib for uint256;
 
