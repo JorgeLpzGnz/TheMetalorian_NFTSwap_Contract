@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PoolTypes.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 import "../interfaces/IMetaFactory.sol";
-import "../interfaces/IMSPair.sol";
+import "../interfaces/IMSPool.sol";
 
-/// @title MSPairBasic a basic pair template implementations
+/// @title MSPoolBasic a basic pool template implementations
 /// @notice Basic implementation based on IEP-1167
-abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
+abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice used to calculate the swap price
     uint128 public multiplier;
@@ -32,7 +32,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     /// @notice the collection that the pool trades
     address public NFT;
 
-    /// @notice the address of the factory that creates this pair
+    /// @notice the address of the factory that creates this pool
     address public factory;
 
     /// @notice the type of the pool ( Sell, Buy, Trade )
@@ -44,12 +44,12 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     IMetaAlgorithm public Algorithm;
 
     /// @param user User who sold nfts
-    /// @param inputNFTs Amount of NFTs entered into the pair
+    /// @param inputNFTs Amount of NFTs entered into the pool
     /// @param amountOut Amount of tokens sent to user
     event SellLog( address indexed user, uint inputNFTs, uint amountOut );
 
     /// @param user User who bought nfts
-    /// @param amountIn Amount of tokens that entered the pair
+    /// @param amountIn Amount of tokens that entered the pool
     /// @param outputNFTs Amount of NFTs sent to user
     event BuyLog( address indexed user, uint amountIn, uint outputNFTs );
 
@@ -65,11 +65,11 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     /// @param newFee The new trade fee
     event NewTradeFee( uint newFee );
 
-    /// @param owner pair owner
+    /// @param owner pool owner
     /// @param withdrawAmount amount of tokens withdrawn
     event TokenWithdrawal( address indexed owner, uint withdrawAmount );
 
-    /// @param owner pair owner
+    /// @param owner pool owner
     /// @param AmountOfNFTs amount of NFTs withdrawn
     event NFTWithdrawal( address indexed owner, uint AmountOfNFTs );
 
@@ -84,7 +84,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     /*************************** PRIVATE FUNCTIONS ***************************/
 
     /// @notice Returns the info to sell NFTs and updates the params
-    /// @param _numNFTs number of NFTs to sell at pair
+    /// @param _numNFTs number of NFTs to sell at pool
     /// @param _minExpected the minimum number of tokens expected to be returned to the user
     /// @return outputValue Amount of Tokens to send to the user
     /// @return protocolFee Fee charged in a trade
@@ -137,7 +137,7 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     }
 
     /// @notice Returns the info to buy NFTs and updates the params
-    /// @param _numNFTs NFT number to buy at pair
+    /// @param _numNFTs NFT number to buy at pool
     /// @param _maxExpectedIn the maximum expected cost to buy the NFTs
     /// @return inputValue Amount of tokens to pay the NFTs
     /// @return protocolFee Fee charged in a trade
@@ -205,8 +205,8 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice sends the tokens to the pair and pays the protocol fee
-    /// @param _inputAmount Amount of tokens that input to the pair
+    /// @notice sends the tokens to the pool and pays the protocol fee
+    /// @param _inputAmount Amount of tokens that input to the pool
     /// @param _protocolFee the trade cost
     function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
 
@@ -236,20 +236,82 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     /// @param _tokenIDs NFTs to send
     function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal virtual;
 
-    /// @notice send NFTs from the pair to the given address
+    /// @notice send NFTs from the pool to the given address
     /// @param _to address to send the NFTs
     /// @param _numNFTs the number of NFTs to send
     function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal virtual;
 
-    /// @notice it returns the NFTs hold by the pair 
+    /*************************************************************************/
+    /***************************** SET FUNCTIONS *****************************/
+
+    /// @notice it sets a new recipient 
+    /// @param _newRecipient the new recipient 
+    function setAssetsRecipient( address _newRecipient ) external onlyOwner {
+
+        require( currentPoolType != PoolTypes.PoolType.Trade, "Recipient not supported in trade pools");
+
+        require( recipient != _newRecipient, "New recipient is equal than current" );
+
+        recipient = _newRecipient;
+
+        emit NewAssetsRecipient( _newRecipient );
+
+    }
+
+    /// @notice it sets a new trade fee 
+    /// @param _newFee the new trade fee 
+    function setTradeFee( uint128 _newFee ) external onlyOwner {
+
+        require( currentPoolType == PoolTypes.PoolType.Trade, "fee supported only on trade pools");
+
+        require( tradeFee != _newFee, "New fee is equal than current" );
+
+        tradeFee = _newFee;
+
+        emit NewTradeFee( _newFee );
+
+    }
+
+    /// @notice it sets a new start Price 
+    /// @param _newStartPrice the new start Price 
+    function setStartPrice( uint128 _newStartPrice ) external onlyOwner {
+
+        require( startPrice != _newStartPrice, "new price is equal than current");
+
+        require( Algorithm.validateStartPrice( _newStartPrice ), "invalid Start Price" );
+
+        startPrice = _newStartPrice;
+
+        emit NewStartPrice( _newStartPrice );
+
+    }
+
+    /// @notice it sets a new multiplier
+    /// @param _newMultiplier the new multiplier
+    function setMultiplier( uint128 _newMultiplier ) external onlyOwner {
+
+        require( multiplier != _newMultiplier, "multiplier is equal than current");
+
+        require( Algorithm.validateMultiplier( _newMultiplier ), "invalid multiplier" );
+
+        multiplier = _newMultiplier;
+
+        emit NewMultiplier( _newMultiplier );
+        
+    }
+
+    /*************************************************************************/
+    /************************** GET FUNCTIONS ********************************/
+
+    /// @notice it returns the NFTs hold by the pool 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds );
  
-    /// @notice it return the pair sell info
+    /// @notice it return the pool sell info
     /// @param _numNFTs number of NFTs to buy
     /// @return isValid indicate if will be an error calculating the price
-    /// @return newStartPrice the pair new Star Price
-    /// @return newMultiplier the pair new Multiplier
-    /// @return inputValue the amount of tokens to send at pair to buy NFTs
+    /// @return newStartPrice the pool new Star Price
+    /// @return newMultiplier the pool new Multiplier
+    /// @return inputValue the amount of tokens to send at pool to buy NFTs
     /// @return protocolFee the trade cost
     function getPoolBuyInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee ) {
 
@@ -269,11 +331,11 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
     
     }
  
-    /// @notice it return the pair sell info
+    /// @notice it return the pool sell info
     /// @param _numNFTs number of NFTs to buy
     /// @return isValid indicate if will be an error calculating the price
-    /// @return newStartPrice the pair new Star Price
-    /// @return newMultiplier the pair new Multiplier
+    /// @return newStartPrice the pool new Star Price
+    /// @return newMultiplier the pool new Multiplier
     /// @return outputValue the number of tokens to send to the user when selling NFTs
     /// @return protocolFee the trade cost
     function getPoolSellInfo( uint _numNFTs) public view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee ) {
@@ -310,47 +372,50 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
         
     }
 
-    /// @notice it return the pair sell info
-    /// @return pairMultiplier Current multiplier
-    /// @return pairStartPrice Current Star Price
-    /// @return pairTradeFee Current trade Fee ( 0 in not trade pool )
-    /// @return pairNft address of the NFT collection
-    /// @return pairPoolType Current pool type
-    /// @return pairAlgorithm Current name
-    /// @return pairNFTs collection NFTs hold
-    function getPairInfo() public view returns( 
-        uint128 pairMultiplier,
-        uint128 pairStartPrice,
-        uint128 pairTradeFee,
-        address pairNft,
-        PoolTypes.PoolType pairPoolType,
-        string memory pairAlgorithm,
-        uint[] memory pairNFTs
+    /// @notice it return the pool sell info
+    /// @return poolMultiplier Current multiplier
+    /// @return poolStartPrice Current Star Price
+    /// @return poolTradeFee Current trade Fee ( 0 in not trade pool )
+    /// @return poolNft address of the NFT collection
+    /// @return poolPoolType Current pool type
+    /// @return poolAlgorithm Current name
+    /// @return poolNFTs collection NFTs hold
+    function getPoolInfo() public view returns( 
+        uint128 poolMultiplier,
+        uint128 poolStartPrice,
+        uint128 poolTradeFee,
+        address poolNft,
+        PoolTypes.PoolType poolPoolType,
+        string memory poolAlgorithm,
+        uint[] memory poolNFTs
     ){
-        pairMultiplier = multiplier;
+        poolMultiplier = multiplier;
 
-        pairStartPrice = startPrice;
+        poolStartPrice = startPrice;
 
-        pairTradeFee = tradeFee;
+        poolTradeFee = tradeFee;
 
-        pairNft = NFT;
+        poolNft = NFT;
 
-        pairPoolType = currentPoolType;
+        poolPoolType = currentPoolType;
 
-        pairAlgorithm = getAlgorithm();
+        poolAlgorithm = getAlgorithm();
 
-        pairNFTs = getNFTIds();
+        poolNFTs = getNFTIds();
 
     }
+    
+    /*************************************************************************/
+    /***************************** INIT POOL *********************************/
 
-    /// @notice it set the initial params of the pair
+    /// @notice it set the initial params of the pool
     /// @dev it is expected that the parameters have already been verified
     /// @param _multiplier multiplier to calculate price
     /// @param _startPrice the Star Price ( depending of the algorithm it will be take it by different ways )
     /// @param _recipient the recipient of the input assets
-    /// @param _owner the owner of the pair
+    /// @param _owner the owner of the pool
     /// @param _NFT the NFT collection that will be trade
-    /// @param _fee pair fee charged per trade
+    /// @param _fee pool fee charged per trade
     /// @param _Algorithm address of the algorithm to calculate the price
     /// @param _poolType the type of the pool
     function init(
@@ -386,6 +451,9 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
         factory = msg.sender;
 
     }
+
+    /*************************************************************************/
+    /**************************** TRADE FUNCTIONS ****************************/
 
     /// @notice sell NFTs for tokens
     /// @param _tokenIDs NFTs to sell
@@ -468,61 +536,8 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
         
     }
 
-    /// @notice it sets a new recipient 
-    /// @param _newRecipient the new recipient 
-    function setAssetsRecipient( address _newRecipient ) external onlyOwner {
-
-        require( currentPoolType != PoolTypes.PoolType.Trade, "Recipient not supported in trade pools");
-
-        require( recipient != _newRecipient, "New recipient is equal than current" );
-
-        recipient = _newRecipient;
-
-        emit NewAssetsRecipient( _newRecipient );
-
-    }
-
-    /// @notice it sets a new trade fee 
-    /// @param _newFee the new trade fee 
-    function setTradeFee( uint128 _newFee ) external onlyOwner {
-
-        require( currentPoolType == PoolTypes.PoolType.Trade, "fee supported only on trade pools");
-
-        require( tradeFee != _newFee, "New fee is equal than current" );
-
-        tradeFee = _newFee;
-
-        emit NewTradeFee( _newFee );
-
-    }
-
-    /// @notice it sets a new start Price 
-    /// @param _newStartPrice the new start Price 
-    function setStartPrice( uint128 _newStartPrice ) external onlyOwner {
-
-        require( startPrice != _newStartPrice, "new price is equal than current");
-
-        require( Algorithm.validateStartPrice( _newStartPrice ), "invalid Start Price" );
-
-        startPrice = _newStartPrice;
-
-        emit NewStartPrice( _newStartPrice );
-
-    }
-
-    /// @notice it sets a new multiplier
-    /// @param _newMultiplier the new multiplier
-    function setMultiplier( uint128 _newMultiplier ) external onlyOwner {
-
-        require( multiplier != _newMultiplier, "multiplier is equal than current");
-
-        require( Algorithm.validateMultiplier( _newMultiplier ), "invalid multiplier" );
-
-        multiplier = _newMultiplier;
-
-        emit NewMultiplier( _newMultiplier );
-        
-    }
+    /*************************************************************************/
+    /********************** WITHDRAW FUNCTIONS FUNCTIONS *********************/
 
     /// @notice withdraw the balance tokens
     function withdrawTokens() external onlyOwner {
@@ -541,6 +556,9 @@ abstract contract MSPairBasic is IMSPair, ReentrancyGuard, Ownable {
 
     /// @notice withdraw the balance NFTs
     function withdrawNFTs( IERC721 _nft, uint[] calldata _nftIds ) external virtual;
+
+    /*************************************************************************/
+    /*************************** DEPOSIT FUNCTIONS ***************************/
 
     /// @notice allows the pool to receive ETH
     receive() external payable {

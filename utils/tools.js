@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat")
-const PAIR_NFT_BASIC = require("../artifacts/contracts/pairs/MSPairNFTBasic.sol/MSPairNFTBasic.json")
-const PAIR_NFT_ENUMERABLE = require("../artifacts/contracts/pairs/MSPairNFTEnumerable.sol/MSPairNFTEnumerable.json")
+const PAIR_NFT_BASIC = require("../artifacts/contracts/pools/MSPoolNFTBasic.sol/MSPoolNFTBasic.json")
+const PAIR_NFT_ENUMERABLE = require("../artifacts/contracts/pools/MSPoolNFTEnumerable.sol/MSPoolNFTEnumerable.json")
 const NFT_ABI = require("../utils/nftABI")
 const { utils } = ethers
 const { parseEther, formatEther } = utils
@@ -44,7 +44,7 @@ async function deployMetaFactory() {
 
 }
 
-async function createPair( metaFactory, nft, amountOfNFTs, _startPrice, _multiplier, Algorithm, poolType, _fee, _tokenAmount ) {
+async function createPool( metaFactory, nft, amountOfNFTs, _startPrice, _multiplier, Algorithm, poolType, _fee, _tokenAmount ) {
 
     const tokenIds = await mintNFT(nft, amountOfNFTs, metaFactory)
 
@@ -66,7 +66,7 @@ async function createPair( metaFactory, nft, amountOfNFTs, _startPrice, _multipl
 
     const tokenAmount = parseEther( `${_tokenAmount}` )
 
-    const tx = await metaFactory.createPair( 
+    const tx = await metaFactory.createPool( 
         nft.address,    // colection
         nftIds,         // token IDs of the NFTs
         multiplier,          // multiplier
@@ -75,17 +75,17 @@ async function createPair( metaFactory, nft, amountOfNFTs, _startPrice, _multipl
         fee,            // trade fees
         Algorithm.address,  // Algorithm
         poolType,       // the type of the pool
-        { value: tokenAmount }, // the amount of ETH to init the pair
+        { value: tokenAmount }, // the amount of ETH to init the pool
     )
 
 
-    const { pair } = await getEventLog( tx, "NewPair" )
+    const { pool } = await getEventLog( tx, "NewPool" )
 
-    await nft.setApprovalForAll( pair, true)
+    await nft.setApprovalForAll( pool, true)
 
     return { 
-        pair: new ethers.Contract(
-            pair,
+        pool: new ethers.Contract(
+            pool,
             PAIR_NFT_BASIC.abi,
             owner
         ), tokenIds }
@@ -239,7 +239,7 @@ function roundNumber( x, base ) { return ( Math.round( x * base ) ) / base }
 
 module.exports = {
     poolType, 
-    createPair, 
+    createPool, 
     getEventLog, 
     mintNFT, 
     sendBulkNfts,

@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../libraries/Arrays.sol";
-import "./MSPairBasic.sol";
+import "./MSPoolBasic.sol";
 
-contract MSPairNFTBasic is MSPairBasic, IERC721Receiver {
+contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
     using Arrays for uint[];
 

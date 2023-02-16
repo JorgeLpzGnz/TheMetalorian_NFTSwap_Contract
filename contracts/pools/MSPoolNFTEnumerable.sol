@@ -3,19 +3,19 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "./MSPairBasic.sol";
+import "./MSPoolBasic.sol";
 
-contract MSPairNFTEnumerable is MSPairBasic, IERC721Receiver {
+contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
     function getNFTIds() public view override returns ( uint[] memory nftIds) {
 
         IERC721Enumerable _NFT = IERC721Enumerable( NFT );
 
-        uint pairBalance = _NFT.balanceOf( address( this ) );
+        uint poolBalance = _NFT.balanceOf( address( this ) );
 
-        if ( pairBalance == 0 ) return nftIds;
+        if ( poolBalance == 0 ) return nftIds;
 
-        uint lastIndex = pairBalance - 1;
+        uint lastIndex = poolBalance - 1;
 
         uint[] memory _nftIds = new uint[]( lastIndex + 1 );
 

@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
-import "./interfaces/IMSPair.sol";
+import "./interfaces/IMSPool.sol";
 import "hardhat/console.sol";
 
 contract MetaRouter {
 
     struct SellNFTInfo {
-        IMSPair pair;
+        IMSPool pool;
         uint[] tokenIDs;
     }
 
     struct BuyNFTInfo {
-        IMSPair pair;
+        IMSPool pool;
         uint[] tokenIDs;
     }
 
     struct BuyAnyNFTInfo {
-        IMSPair pair;
+        IMSPool pool;
         uint numNFTs;
     }
 
@@ -83,11 +83,11 @@ contract MetaRouter {
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
-            // ( , , , uint outputValue, ) = _swaps[i].pair.getPoolSellInfo( _swaps[i].tokenIDs.length );
+            // ( , , , uint outputValue, ) = _swaps[i].pool.getPoolSellInfo( _swaps[i].tokenIDs.length );
 
             // update ( minimum expected )
 
-            totalOutput += _swaps[i].pair.swapNFTsForToken( _swaps[i].tokenIDs, 0, msg.sender );
+            totalOutput += _swaps[i].pool.swapNFTsForToken( _swaps[i].tokenIDs, 0, msg.sender );
 
         }
 
@@ -99,11 +99,11 @@ contract MetaRouter {
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
-            ( , , , inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].tokenIDs.length );
+            ( , , , inputValue, ) = _swaps[i].pool.getPoolBuyInfo( _swaps[i].tokenIDs.length );
 
             // update ( maximum expected )
 
-            reminingAmount -= _swaps[i].pair.swapTokenForNFT{ value: inputValue }( _swaps[i].tokenIDs, reminingAmount , msg.sender );
+            reminingAmount -= _swaps[i].pool.swapTokenForNFT{ value: inputValue }( _swaps[i].tokenIDs, reminingAmount , msg.sender );
 
         }
 
@@ -117,11 +117,11 @@ contract MetaRouter {
 
         for (uint256 i = 0; i < _swaps.length; i++) {
 
-            ( , , , inputValue, ) = _swaps[i].pair.getPoolBuyInfo( _swaps[i].numNFTs );
+            ( , , , inputValue, ) = _swaps[i].pool.getPoolBuyInfo( _swaps[i].numNFTs );
 
             // update ( maximum expected )
 
-            reminingAmount -= _swaps[i].pair.swapTokenForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, reminingAmount , msg.sender );
+            reminingAmount -= _swaps[i].pool.swapTokenForAnyNFT{ value: inputValue }( _swaps[i].numNFTs, reminingAmount , msg.sender );
 
         }
 

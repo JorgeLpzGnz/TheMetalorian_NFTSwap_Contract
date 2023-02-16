@@ -51,9 +51,9 @@ async function main() {
 
     console.log(`Meta Factory deployed to ${metaFactory.address}`);
 
-    console.log(`pair Enumerable Implementation deployed to ${ await metaFactory.pairEnumTemplate() }`);
+    console.log(`pool Enumerable Implementation deployed to ${ await metaFactory.poolEnumTemplate() }`);
 
-    console.log(`pair Basic Implementation deployed to ${ await metaFactory.pairNotEnumTemplate() }`);
+    console.log(`pool Basic Implementation deployed to ${ await metaFactory.poolNotEnumTemplate() }`);
 
 }
 

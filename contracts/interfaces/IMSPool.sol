@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
-import "../pairs/PoolTypes.sol";
+import "../pools/PoolTypes.sol";
 import "./IMetaAlgorithm.sol";
 
-interface IMSPair {
+interface IMSPool {
     
     function getNFTIds() external view returns ( uint[] memory nftIds);
 
@@ -16,14 +16,14 @@ interface IMSPair {
 
     function getAlgorithm() external view returns( string memory );
 
-    function getPairInfo() external view returns( 
-        uint128 pairMultiplier,
-        uint128 pairStartPrice,
-        uint128 pairTradeFee,
-        address pairNft,
-        PoolTypes.PoolType pairPoolType,
-        string memory pairAlgorithm,
-        uint[] memory pairNFTs);
+    function getPoolInfo() external view returns( 
+        uint128 poolMultiplier,
+        uint128 poolStartPrice,
+        uint128 poolTradeFee,
+        address poolNft,
+        PoolTypes.PoolType poolPoolType,
+        string memory poolAlgorithm,
+        uint[] memory poolNFTs);
 
     function init(
         uint128 _multiplier, 

@@ -7,7 +7,7 @@
 //     deployMetaFactory,
 //     getTokenOutput,
 //     roundNumber,
-//     createPair,
+//     createPool,
 //     createTradePoolsTypeLinear,
 //     poolType
 // } = require("../utils/tools" )

@@ -18,7 +18,7 @@ const provider = ethers.provider
 
 describe("MetaFactory", function () {
 
-    describe("Create pair", () => {
+    describe("Create pool", () => {
 
         describe(" - Errors", () => {
 
@@ -31,7 +31,7 @@ describe("MetaFactory", function () {
                 const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -53,7 +53,7 @@ describe("MetaFactory", function () {
                 const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -65,7 +65,7 @@ describe("MetaFactory", function () {
                 )).to.be.revertedWith( "invalid init params" )
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -89,7 +89,7 @@ describe("MetaFactory", function () {
                 const fee = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -101,7 +101,7 @@ describe("MetaFactory", function () {
                 )).to.be.revertedWith( "invalid init params" )
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -113,7 +113,7 @@ describe("MetaFactory", function () {
                 )).to.be.revertedWith( "invalid init params" )
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -135,7 +135,7 @@ describe("MetaFactory", function () {
                 const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     0,
@@ -147,7 +147,7 @@ describe("MetaFactory", function () {
                 )).to.be.revertedWith( "invalid init params" )
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -159,7 +159,7 @@ describe("MetaFactory", function () {
                 )).to.be.revertedWith( "invalid init params" )
                 
                 await expect( 
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                     nft.address,
                     nftIds,
                     0,
@@ -176,7 +176,7 @@ describe("MetaFactory", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. factory should create a new pair type NFT", async () => {
+            it("1. factory should create a new pool type NFT", async () => {
 
                 const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -184,7 +184,7 @@ describe("MetaFactory", function () {
 
                 const startPrice = ethers.utils.parseEther("1")
 
-                const tx = await metaFactory.createPair(
+                const tx = await metaFactory.createPool(
                     nft.address,
                     nftIds,
                     startPrice.div(2),
@@ -196,10 +196,10 @@ describe("MetaFactory", function () {
                 )
 
 
-                const newPairInfo = await getEventLog( tx, "NewPair" )
+                const newPoolInfo = await getEventLog( tx, "NewPool" )
 
-                expect( ethers.utils.isAddress( newPairInfo.pair ) ).to.be.true
-                expect( newPairInfo.owner ).to.be.equal( owner.address )
+                expect( ethers.utils.isAddress( newPoolInfo.pool ) ).to.be.true
+                expect( newPoolInfo.owner ).to.be.equal( owner.address )
 
             })
 
@@ -479,12 +479,12 @@ describe("MetaFactory", function () {
 
         describe(" - Functionalities", () => {
 
-            it( "NewPair", async () => {
+            it( "NewPool", async () => {
 
                 const { metaFactory, owner, nft, linearAlgorithm } = await loadFixture( deployMetaFactory )
 
 				await expect(
-                    metaFactory.createPair(
+                    metaFactory.createPool(
                         nft.address,
                         [],
                         parseEther("5"),
@@ -494,7 +494,7 @@ describe("MetaFactory", function () {
                         linearAlgorithm.address,
                         poolType.token
                     )
-				).to.emit( metaFactory, "NewPair" )
+				).to.emit( metaFactory, "NewPool" )
 
             })
 

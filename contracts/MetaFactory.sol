@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./pairs/MSPairBasic.sol";
-import "./pairs/MSPairNFTEnumerable.sol";
-import "./pairs/MSPairNFTBasic.sol";
-import "./pairs/PoolTypes.sol";
+import "./pools/MSPoolBasic.sol";
+import "./pools/MSPoolNFTEnumerable.sol";
+import "./pools/MSPoolNFTBasic.sol";
+import "./pools/PoolTypes.sol";
 
 
 /// @title MetaFactory a contract factory for NFT / ETH liquidity Pools
@@ -37,15 +37,15 @@ contract MetaFactory is Ownable {
     /// @notice recipient that receives the fees
     address public PROTOCOL_FEE_RECIPIENT;
 
-    /// @dev Templates used to create the clone pairs
+    /// @dev Templates used to create the clone pools
 
-    /// @notice Pair Template using ERC-721 Enumerable 
-    MSPairNFTEnumerable public pairEnumTemplate;
+    /// @notice Pool Template using ERC-721 Enumerable 
+    MSPoolNFTEnumerable public poolEnumTemplate;
 
-    /// @notice Pair Template using ERC-721
-    MSPairNFTBasic public pairNotEnumTemplate;
+    /// @notice Pool Template using ERC-721
+    MSPoolNFTBasic public poolNotEnumTemplate;
 
-    /// @notice Algorithms allowed to calculate pair prices
+    /// @notice Algorithms allowed to calculate pool prices
     mapping( address => bool ) isMSAlgorithm;
 
     /// @notice Routers allowed
@@ -54,9 +54,9 @@ contract MetaFactory is Ownable {
     /*************************************************************************/
     /******************************* EVENTS **********************************/
 
-    /// @param pair New pair created
-    /// @param owner Owner of the respective pair
-    event NewPair( address pair, address indexed owner);
+    /// @param pool New pool created
+    /// @param owner Owner of the respective pool
+    event NewPool( address pool, address indexed owner);
 
     /// @param newFee New fee charged per swap 
     event NewProtocolFee( uint128 newFee );
@@ -99,19 +99,19 @@ contract MetaFactory is Ownable {
 
         /// deploy Clone Templates
 
-        pairEnumTemplate = new MSPairNFTEnumerable();
+        poolEnumTemplate = new MSPoolNFTEnumerable();
 
-        pairNotEnumTemplate = new MSPairNFTBasic();
+        poolNotEnumTemplate = new MSPoolNFTBasic();
 
     }
 
     /*************************************************************************/
     /*************************** CREATION UTILS ******************************/
 
-    /// @notice function used to create the new pairs
+    /// @notice function used to create the new pools
     /// @notice the NFT must be a ERC-721 or ERC-721 Enumerable
     /// @param _nft the NFT to init the pool ( this can not be changed after init )
-    function _creteContract( address _nft ) private returns( MSPairBasic _newPair ) {
+    function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
 
         bool isEnumerable =
             IERC165( _nft )
@@ -124,17 +124,17 @@ contract MetaFactory is Ownable {
         require( isEnumerable || isBasic );
 
         address implementation = isEnumerable
-            ? address( pairEnumTemplate )
-            : address( pairNotEnumTemplate );
+            ? address( poolEnumTemplate )
+            : address( poolNotEnumTemplate );
 
-        _newPair = MSPairBasic( payable( implementation.clone() ) );
+        _newPool = MSPoolBasic( payable( implementation.clone() ) );
 
     }
 
     /// @notice verifies that the initialization parameters are correct
-    /// @param _poolType The pool type of the new Pair
+    /// @param _poolType The pool type of the new Pool
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    /// @param _poolType The pool type of the new Pair
+    /// @param _poolType The pool type of the new Pool
     /// @param _recipient The recipient of the swap assets ( not available on trade pools )
     /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
@@ -163,14 +163,14 @@ contract MetaFactory is Ownable {
 
     /// @notice verifies that the initialization parameters are correct
     /// @param _nft the NFT to init the pool ( this can not be changed after init )
-    /// @param _nftIds The NFTs to pull in the pair ( in case of sell pool this must be empty )
+    /// @param _nftIds The NFTs to pull in the pool ( in case of sell pool this must be empty )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
     /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _recipient The recipient of the swap assets ( not available on trade pools )
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
     /// @param _Algorithm algorithm that determines the prices
-    /// @param _poolType The pool type of the new Pair
-    function createPair( 
+    /// @param _poolType The pool type of the new Pool
+    function createPool( 
         address _nft, 
         uint[] calldata _nftIds,
         uint128 _multiplier,
@@ -180,7 +180,7 @@ contract MetaFactory is Ownable {
         IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
         ) public payable  returns(
-            MSPairBasic pair
+            MSPoolBasic pool
         )
     {
 
@@ -188,9 +188,9 @@ contract MetaFactory is Ownable {
 
         require( checkInitParams( _poolType, _fee, _recipient, _startPrice, _multiplier, _Algorithm ), "invalid init params" );
 
-        pair = _creteContract( _nft );
+        pool = _creteContract( _nft );
 
-        pair.init(
+        pool.init(
             _multiplier, 
             _startPrice, 
             _recipient,
@@ -205,7 +205,7 @@ contract MetaFactory is Ownable {
 
         if( _poolType == PoolTypes.PoolType.Trade || _poolType == PoolTypes.PoolType.Sell ) {
 
-            ( bool isSended, ) = payable( address( pair ) ).call{ value: msg.value }("");
+            ( bool isSended, ) = payable( address( pool ) ).call{ value: msg.value }("");
 
             require( isSended );
             
@@ -217,13 +217,13 @@ contract MetaFactory is Ownable {
 
             for (uint256 i = 0; i < _nftIds.length; i++) {
 
-                IERC721( _nft ).safeTransferFrom( msg.sender, address( pair ), _nftIds[i]);
+                IERC721( _nft ).safeTransferFrom( msg.sender, address( pool ), _nftIds[i]);
 
             }
             
         }
 
-        emit NewPair( address( pair ), msg.sender );
+        emit NewPool( address( pool ), msg.sender );
 
     }
 

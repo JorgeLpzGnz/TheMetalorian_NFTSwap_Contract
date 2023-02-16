@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../pairs/MSPairBasic.sol";
-import "../pairs/PoolTypes.sol";
+import "../pools/MSPoolBasic.sol";
+import "../pools/PoolTypes.sol";
 import "./IMetaAlgorithm.sol";
 
 interface IMetaFactory {
 
-    function createPair( 
+    function createPool( 
         address _nft, 
         uint[] memory _nftIds,
         uint128 _multiplier,
@@ -17,7 +17,7 @@ interface IMetaFactory {
         IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
         ) external payable  returns(
-            MSPairBasic pair
+            MSPoolBasic pool
         );
 
     function getFactoryInfo() external view returns( uint128, uint128, address );

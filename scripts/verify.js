@@ -43,13 +43,13 @@ async function verifyContracts() {
         ]
     } ).catch((error) => console.error( error ) )
 
-    // Pair Enumerable Implementation
+    // Pool Enumerable Implementation
 
     await hre.run( "verify:verify", {
         address: enumerableImplementation,
     } ).catch((error) => console.error( error ) )
 
-    // Pair Not Enumerable Implementation
+    // Pool Not Enumerable Implementation
 
     await hre.run( "verify:verify", {
         address: notEnumerableImplementation,
