@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./pools/MSPoolBasic.sol";
@@ -15,7 +16,7 @@ import "./pools/PoolTypes.sol";
 /// @title MetaFactory a contract factory for NFT / ETH liquidity Pools
 /// @notice Factory that creates minimal proxies based on the IEP-1167
 /// @dev All the used in this protocol is on base 18 ( 1e18 )
-contract MetaFactory is Ownable {
+contract MetaFactory is Ownable, IERC721Receiver {
 
     /// @notice Using Clones library from Openzeppelin
     using Clones for address;
@@ -62,6 +63,10 @@ contract MetaFactory is Ownable {
     /// @param approval Approval set it
     event RouterApproval( address indexed router, bool approval);
 
+    /// @param algorithm algorithm to establish approval 
+    /// @param approval algorithm approval 
+    event AlgorithmApproval( address algorithm, bool approval );
+
     /// @param newFee New fee charged per swap 
     event NewProtocolFee( uint128 newFee );
 
@@ -79,15 +84,9 @@ contract MetaFactory is Ownable {
     /// @param amount Amount of ETH deposit
     event TokenDeposit( uint amount );
 
-    // update ( use ? )
-
     /// @param nft NFT collection address
     /// @param tokenID ID of the deposited NFT
     event NFTDeposit( address nft, uint tokenID );
-
-    /// @param algorithm algorithm to establish approval 
-    /// @param approval algorithm approval 
-    event AlgorithmApproval( address algorithm, bool approval );
 
     /*************************************************************************/
     /**************************** CONSTRUCTOR ********************************/
@@ -127,6 +126,19 @@ contract MetaFactory is Ownable {
 
     }
 
+    /// @notice Set approval for a price Algorithm
+    /// @param _algorithm Algorithm to set approval
+    /// @param _approval Approval to set
+    function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
+
+        require( isMSAlgorithm[ _algorithm ] != _approval, "Approval is the same than previous");
+
+        isMSAlgorithm[ _algorithm ] = _approval;
+
+        emit AlgorithmApproval( _algorithm, _approval);
+
+    }
+
     /// @notice Set a new protocol Fee
     /// @param _newProtocolFee A new protocol Fee
     function setProtocolFee( uint128 _newProtocolFee ) external onlyOwner {
@@ -150,19 +162,6 @@ contract MetaFactory is Ownable {
         PROTOCOL_FEE_RECIPIENT = _newRecipient;
 
         emit NewFeeRecipient( _newRecipient );
-
-    }
-
-    /// @notice Set approval for a price Algorithm
-    /// @param _algorithm Algorithm to set approval
-    /// @param _approval Approval to set
-    function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
-
-        require( isMSAlgorithm[ _algorithm ] != _approval, "Approval is the same than previous");
-
-        isMSAlgorithm[ _algorithm ] = _approval;
-
-        emit AlgorithmApproval( _algorithm, _approval);
 
     }
 
@@ -341,6 +340,16 @@ contract MetaFactory is Ownable {
     receive() external payable  {
 
         emit TokenDeposit( msg.value );
+
+    }
+
+    /// @notice ERC-721 Receiver implementation
+    /// @notice Only the owner can withdraw this input NFTs
+    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+
+        emit NFTDeposit( msg.sender, id );
+
+        return IERC721Receiver.onERC721Received.selector;
 
     }
 

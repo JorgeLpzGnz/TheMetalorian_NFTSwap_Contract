@@ -620,6 +620,34 @@ describe("MetaFactory", function () {
 
             })
 
+            it( "RouterApproval", async () => {
+
+                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+
+				await expect( 
+                    metaFactory.setRouterApproval( 
+                        owner.address,
+                        true
+                    ) 
+                ).to.emit( metaFactory, "RouterApproval" )
+                .withArgs( owner.address, true )
+
+            })
+
+            it( "AlgorithmApproval", async () => {
+
+                const { metaFactory, owner, cPAlgorithm } = await loadFixture( deployMetaFactory )
+
+				await expect( 
+                    metaFactory.setAlgorithmApproval( 
+                        cPAlgorithm.address,
+                        false
+                    ) 
+                ).to.emit( metaFactory, "AlgorithmApproval" )
+                .withArgs( cPAlgorithm.address, false )
+
+            })
+
             it( "NewProtocolFee", async () => {
 
                 const { metaFactory } = await loadFixture( deployMetaFactory )
@@ -640,36 +668,6 @@ describe("MetaFactory", function () {
                     metaFactory.setProtocolFeeRecipient( owner.address ) 
                 ).to.emit( metaFactory, "NewFeeRecipient" )
                 .withArgs( owner.address )
-
-            })
-
-            it( "AlgorithmApproval", async () => {
-
-                const { metaFactory, owner, cPAlgorithm } = await loadFixture( deployMetaFactory )
-
-				await expect( 
-                    metaFactory.setAlgorithmApproval( 
-                        cPAlgorithm.address,
-                        false
-                    ) 
-                ).to.emit( metaFactory, "AlgorithmApproval" )
-                .withArgs( cPAlgorithm.address, false )
-
-            })
-
-            it( "TokenDeposit", async () => {
-
-                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
-
-                const amountOfETH = parseEther("1")
-
-				await expect( 
-                    owner.sendTransaction({
-                        to: metaFactory.address,
-                        value: amountOfETH
-                    })
-                ).to.emit( metaFactory, "TokenDeposit" )
-                .withArgs( amountOfETH )
 
             })
 
@@ -713,6 +711,50 @@ describe("MetaFactory", function () {
                     metaFactory.withdrawNFTs( nft.address, tokenIDs )
                 ).to.emit( metaFactory, "NFTWithdrawal" )
                 .withArgs( owner.address, tokenIDs.length )
+
+            })
+
+            it( "TokenDeposit", async () => {
+
+                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+
+                const amountOfETH = parseEther("1")
+
+				await expect( 
+                    owner.sendTransaction({
+                        to: metaFactory.address,
+                        value: amountOfETH
+                    })
+                ).to.emit( metaFactory, "TokenDeposit" )
+                .withArgs( amountOfETH )
+
+            })
+
+            it("NFTDeposit", async () => {
+
+                const { metaFactory, nft, NFTEnumerable, owner } = await loadFixture(deployMetaFactory)
+
+                const nftIDs = await mintNFT( nft, 1, metaFactory)
+
+                const nftIDs2 = await mintNFT( NFTEnumerable, 1, metaFactory)
+
+                await expect(
+                    nft.functions['safeTransferFrom(address,address,uint256)'](
+                        owner.address,
+                        metaFactory.address,
+                        nftIDs[0]
+                    )
+                ).to.emit(metaFactory, "NFTDeposit")
+                    .withArgs(nft.address, nftIDs[0])
+
+                await expect(
+                    NFTEnumerable.functions['safeTransferFrom(address,address,uint256)'](
+                        owner.address,
+                        metaFactory.address,
+                        nftIDs2[0]
+                    )
+                ).to.emit(metaFactory, "NFTDeposit")
+                    .withArgs(NFTEnumerable.address, nftIDs2[0])
 
             })
 
