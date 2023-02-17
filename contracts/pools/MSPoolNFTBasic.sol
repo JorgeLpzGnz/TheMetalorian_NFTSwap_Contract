@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../libraries/Arrays.sol";
 import "./MSPoolBasic.sol";
-import "hardhat/console.sol";
 
 /// @title MSPoolNFTBasic A basic ERC-721 pool template implementation
 /// @notice implementation based on IEP-1167

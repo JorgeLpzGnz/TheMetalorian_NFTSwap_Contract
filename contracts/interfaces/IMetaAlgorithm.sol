@@ -27,7 +27,7 @@ interface IMetaAlgorithm {
     /// @return newMultiplier new multiplier used to calculate the price
     /// @return inputValue amount to send to the pool
     /// @return protocolFee Amount to charged for the trade
-    function getBuyInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external view 
+    function getBuyInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure 
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
@@ -47,7 +47,7 @@ interface IMetaAlgorithm {
     /// @return newMultiplier new multiplier used to calculate the price
     /// @return outputValue amount to send to the user
     /// @return protocolFee Amount to charged for the trade
-    function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external view
+    function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure
         returns ( 
             bool isValid, 
             uint128 newStartPrice, 
