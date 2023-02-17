@@ -464,6 +464,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
 
+        require( address( this ).balance >= _minExpected, "insufficient token balance");
+
         uint256 protocolFee;
 
         ( outputAmount, protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
@@ -486,6 +488,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+
+        require( 
+            IERC721( NFT ).balanceOf( address( this ) ) >= _tokenIDs.length,
+            "Insufficient NFT balance" 
+        );
 
         uint protocolFee;
 
@@ -515,6 +522,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+
+        require( 
+            IERC721( NFT ).balanceOf( address( this ) ) >= _numNFTs,
+            "Insufficient NFT balance" 
+        );
 
         uint protocolFee;
 
@@ -555,6 +567,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     }
 
     /// @notice withdraw the balance NFTs
+    /// @param _nft NFT collection to withdraw
+    /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] calldata _nftIds ) external virtual;
 
     /*************************************************************************/
