@@ -43,6 +43,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @dev See [ IMetaAlgorithm.sol ] for more info
     IMetaAlgorithm public Algorithm;
 
+    /*************************************************************************/
+    /******************************* EVENTS **********************************/
+
     /// @param user User who sold nfts
     /// @param inputNFTs Amount of NFTs entered into the pool
     /// @param amountOut Amount of tokens sent to user
@@ -368,7 +371,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @notice returns the name of the price algorithm used
     function getAlgorithm() public view returns( string memory ) {
 
-        return IMetaAlgorithm( Algorithm ).name();
+        // update ( return address of the algorithm ? )
+
+        return Algorithm.name();
         
     }
 
@@ -402,6 +407,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         poolAlgorithm = getAlgorithm();
 
         poolNFTs = getNFTIds();
+
+        // update ( return the address of the algorithm )
 
     }
     
@@ -447,6 +454,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         NFT = _NFT;
 
         currentPoolType = _poolType;
+
+        // update ( use IFactory interface )
 
         factory = msg.sender;
 

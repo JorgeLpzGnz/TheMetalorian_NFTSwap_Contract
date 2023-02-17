@@ -58,6 +58,10 @@ contract MetaFactory is Ownable {
     /// @param owner Owner of the respective pool
     event NewPool( address pool, address indexed owner);
 
+    /// @param router Router approval set it
+    /// @param approval Approval set it
+    event RouterApproval( address indexed router, bool approval);
+
     /// @param newFee New fee charged per swap 
     event NewProtocolFee( uint128 newFee );
 
@@ -74,6 +78,8 @@ contract MetaFactory is Ownable {
 
     /// @param amount Amount of ETH deposit
     event TokenDeposit( uint amount );
+
+    // update ( use ? )
 
     /// @param nft NFT collection address
     /// @param tokenID ID of the deposited NFT
@@ -102,6 +108,73 @@ contract MetaFactory is Ownable {
         poolEnumTemplate = new MSPoolNFTEnumerable();
 
         poolNotEnumTemplate = new MSPoolNFTBasic();
+
+    }
+
+    /*************************************************************************/
+    /***************************** SET FUNCTIONS *****************************/
+
+    // update ( make tests)
+
+    /// @notice Set a router approval
+    /// @param _router A new protocol Fee
+    function setRouterApproval( address _router, bool _approval ) external onlyOwner {
+
+        require( isMSRouter[_router] != _approval, "Can not set the same value than current");
+
+        isMSRouter[_router] = _approval;
+
+        emit RouterApproval( _router, _approval);
+
+    }
+
+    /// @notice Set a new protocol Fee
+    /// @param _newProtocolFee A new protocol Fee
+    function setProtocolFee( uint128 _newProtocolFee ) external onlyOwner {
+
+        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "new Fee exceeds limit" );
+
+        require( PROTOCOL_FEE != _newProtocolFee, "new fee cannot be the same as the previous one" );
+
+        PROTOCOL_FEE = _newProtocolFee;
+
+        emit NewProtocolFee( _newProtocolFee );
+
+    }
+
+    /// @notice Set a new protocol Recipient
+    /// @param _newRecipient A new protocol Fee
+    function setProtocolFeeRecipient( address _newRecipient ) external onlyOwner {
+
+        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "new fee cannot be the same as the previous one" );
+
+        PROTOCOL_FEE_RECIPIENT = _newRecipient;
+
+        emit NewFeeRecipient( _newRecipient );
+
+    }
+
+    /// @notice Set approval for a price Algorithm
+    /// @param _algorithm Algorithm to set approval
+    /// @param _approval Approval to set
+    function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
+
+        isMSAlgorithm[ _algorithm ] = _approval;
+
+        emit AlgorithmApproval( _algorithm, _approval);
+
+    }
+
+    /*************************************************************************/
+    /************************** GET FUNCTIONS ********************************/
+
+    /// @notice Get current pool info
+    /// @return MAX_FEE_PERCENTAGE The maximum percentage fee per swap
+    /// @return PROTOCOL_FEE Current protocol fee charged per swap
+    /// @return PROTOCOL_FEE_RECIPIENT The recipient of the fees
+    function getFactoryInfo() public view returns( uint128, uint128, address ) {
+
+        return ( MAX_FEE_PERCENTAGE, PROTOCOL_FEE, PROTOCOL_FEE_RECIPIENT );
 
     }
 
@@ -227,59 +300,8 @@ contract MetaFactory is Ownable {
 
     }
 
-    /// @notice Get current pool info
-    /// @return MAX_FEE_PERCENTAGE The maximum percentage fee per swap
-    /// @return PROTOCOL_FEE Current protocol fee charged per swap
-    /// @return PROTOCOL_FEE_RECIPIENT The recipient of the fees
-    function getFactoryInfo() public view returns( uint128, uint128, address ) {
-
-        return ( MAX_FEE_PERCENTAGE, PROTOCOL_FEE, PROTOCOL_FEE_RECIPIENT );
-
-    }
-
-    /// @notice Set a new protocol Fee
-    /// @param _newProtocolFee A new protocol Fee
-    function setProtocolFee( uint128 _newProtocolFee ) public onlyOwner {
-
-        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "new Fee exceeds limit" );
-
-        require( PROTOCOL_FEE != _newProtocolFee, "new fee cannot be the same as the previous one" );
-
-        PROTOCOL_FEE = _newProtocolFee;
-
-        emit NewProtocolFee( _newProtocolFee );
-
-    }
-
-    /// @notice Set a new protocol Recipient
-    /// @param _newRecipient A new protocol Fee
-    function setProtocolFeeRecipient( address _newRecipient ) public onlyOwner {
-
-        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "new fee cannot be the same as the previous one" );
-
-        PROTOCOL_FEE_RECIPIENT = _newRecipient;
-
-        emit NewFeeRecipient( _newRecipient );
-
-    }
-
-    /// @notice Set approval for a price Algorithm
-    /// @param _algorithm Algorithm to set approval
-    /// @param _approval Approval to set
-    function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
-
-        isMSAlgorithm[ _algorithm ] = _approval;
-
-        emit AlgorithmApproval( _algorithm, _approval);
-
-    }
-
-    /// @notice Allows the contract to receive ETH ( the swap fees )
-    receive() external payable  {
-
-        emit TokenDeposit( msg.value );
-
-    }
+    /*************************************************************************/
+    /********************** WITHDRAW FUNCTIONS FUNCTIONS *********************/
 
     /// @notice withdraw the ETH balance of the contract
     function withdrawETH() external onlyOwner {
@@ -308,6 +330,16 @@ contract MetaFactory is Ownable {
         }
 
         emit NFTWithdrawal( owner(), _nftIds.length );
+
+    }
+
+    /*************************************************************************/
+    /*************************** DEPOSIT FUNCTIONS ***************************/
+
+    /// @notice Allows the contract to receive ETH ( the swap fees )
+    receive() external payable  {
+
+        emit TokenDeposit( msg.value );
 
     }
 
