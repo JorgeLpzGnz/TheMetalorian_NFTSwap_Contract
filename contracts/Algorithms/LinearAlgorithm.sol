@@ -48,8 +48,6 @@ contract LinearAlgorithm is IMetaAlgorithm {
         inputValue = 
             _numItems * buyPrice + ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
 
-        // update ( Fees )
-
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 
         protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD);
@@ -89,8 +87,6 @@ contract LinearAlgorithm is IMetaAlgorithm {
         else newStartPrice = _startPrice - uint128( decrease );
 
         outputValue = _numItems * _startPrice - ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
-
-        // update ( Fees )
 
         uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 

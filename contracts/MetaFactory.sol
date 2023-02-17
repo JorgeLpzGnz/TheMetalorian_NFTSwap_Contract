@@ -46,10 +46,10 @@ contract MetaFactory is Ownable {
     MSPoolNFTBasic public poolNotEnumTemplate;
 
     /// @notice Algorithms allowed to calculate pool prices
-    mapping( address => bool ) isMSAlgorithm;
+    mapping( address => bool ) public isMSAlgorithm;
 
     /// @notice Routers allowed
-    mapping( address => bool ) isMSRouter;
+    mapping( address => bool ) public isMSRouter;
 
     /*************************************************************************/
     /******************************* EVENTS **********************************/
@@ -114,13 +114,12 @@ contract MetaFactory is Ownable {
     /*************************************************************************/
     /***************************** SET FUNCTIONS *****************************/
 
-    // update ( make tests)
 
     /// @notice Set a router approval
     /// @param _router A new protocol Fee
     function setRouterApproval( address _router, bool _approval ) external onlyOwner {
 
-        require( isMSRouter[_router] != _approval, "Can not set the same value than current");
+        require( isMSRouter[_router] != _approval, "Approval is the same than previous");
 
         isMSRouter[_router] = _approval;
 
@@ -158,6 +157,8 @@ contract MetaFactory is Ownable {
     /// @param _algorithm Algorithm to set approval
     /// @param _approval Approval to set
     function setAlgorithmApproval( address _algorithm, bool _approval) external onlyOwner {
+
+        require( isMSAlgorithm[ _algorithm ] != _approval, "Approval is the same than previous");
 
         isMSAlgorithm[ _algorithm ] = _approval;
 

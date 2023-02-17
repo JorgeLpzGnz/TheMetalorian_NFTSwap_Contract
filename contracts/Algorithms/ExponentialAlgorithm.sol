@@ -57,8 +57,6 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
                 _multiplier - FixedPointMathLib.WAD, FixedPointMathLib.WAD
             ), FixedPointMathLib.WAD);
 
-        // update ( Fees )
-
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
         protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
@@ -88,8 +86,6 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
 
         uint invMultiplierPow = invMultiplier.fpow( _numItems, FixedPointMathLib.WAD );
 
-        // update ( this is a percentage )
-
         newStartPrice = uint128(
             uint256( _startPrice ).fmul( invMultiplierPow, FixedPointMathLib.WAD )
         );
@@ -103,8 +99,6 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
             ),
             FixedPointMathLib.WAD
         );
-
-        // update ( Fees )
 
         uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 

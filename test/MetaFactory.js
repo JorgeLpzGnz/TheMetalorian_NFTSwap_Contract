@@ -229,6 +229,67 @@ describe("MetaFactory", function () {
 
     })
 
+    describe("set Router Approval", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if caller is nor the owner", async () => {
+
+                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.connect( otherAccount ).setRouterApproval( 
+                        otherAccount.address,
+                        true
+                    )
+                ).to.be.reverted
+
+            })
+
+            it("2. should fail when approval is the same than previous", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.setRouterApproval( 
+                        owner.address,
+                        false 
+                        )
+                ).to.be.revertedWith("Approval is the same than previous")
+
+            })
+
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should set a router approval", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+
+                const approvalBefore = await metaFactory.isMSRouter( owner.address )
+
+                // initial value must be false
+
+                expect( approvalBefore ).to.be.false
+
+                await metaFactory.setRouterApproval( 
+                    owner.address,
+                    true 
+                )
+
+                const approvalAfter = await await metaFactory.isMSRouter( owner.address )
+
+                // new value must be true
+
+                expect( approvalAfter ).to.be.true
+
+            })
+
+        })
+
+    })
+
     describe("set Protocol Fee", () => {
 
         describe(" - Errors", () => {
@@ -336,6 +397,67 @@ describe("MetaFactory", function () {
                 expect( recipientBefore ).to.be.equal( metaFactory.address )
 
                 expect( recipientAfter ).to.be.equal( owner.address )
+
+            })
+
+        })
+
+    })
+
+    describe("set Algorithm Approval", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if caller is nor the owner", async () => {
+
+                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.connect( otherAccount ).setAlgorithmApproval( 
+                        otherAccount.address,
+                        true
+                    )
+                ).to.be.reverted
+
+            })
+
+            it("2. should fail when approval is the same than previous", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.setAlgorithmApproval( 
+                        owner.address,
+                        false 
+                        )
+                ).to.be.revertedWith("Approval is the same than previous")
+
+            })
+
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should set a router approval", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+
+                const approvalBefore = await metaFactory.isMSAlgorithm( owner.address )
+
+                // initial value must be false
+
+                expect( approvalBefore ).to.be.false
+
+                await metaFactory.setAlgorithmApproval( 
+                    owner.address,
+                    true 
+                )
+
+                const approvalAfter = await await metaFactory.isMSAlgorithm( owner.address )
+
+                // new value must be true
+
+                expect( approvalAfter ).to.be.true
 
             })
 

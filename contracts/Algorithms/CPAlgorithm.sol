@@ -53,7 +53,6 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         inputValue = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
 
-        // update ( Fees )
 
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
@@ -89,8 +88,6 @@ contract CPAlgorithm is IMetaAlgorithm {
         if ( numItems >= nftBalance ) return (false, 0, 0, 0, 0);
 
         outputValue = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
-
-        // update ( Fees )
 
         uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
