@@ -8,16 +8,16 @@ import "./IMetaAlgorithm.sol";
 /// @dev Pools are a IEP-1167 implementation ( minimal proxies - clones )
 interface IMSPool {
     
-    /// @notice returns the the NFT IDs of the pool
-    /// @dev in the buy pools this will be empty because the NFTs are pull
+    /// @notice Returns the the NFT IDs of the pool
+    /// @dev In the buy pools this will be empty because the NFTs are push
     /// on the recipient indicated for the user
     function getNFTIds() external view returns ( uint[] memory nftIds);
 
-    /// @notice returns the current Buy info
+    /// @notice Returns the current Buy info
     /// @param _numNFTs Number of NFTs to buy
-    /// @return isValid true if trade is operable
-    /// @return newStartPrice new Start price that will be set 
-    /// @return newMultiplier new multiplier that will be set 
+    /// @return isValid True if trade is operable
+    /// @return newStartPrice New Start price that will be set 
+    /// @return newMultiplier New multiplier that will be set 
     /// @return inputValue Amount of tokens to send to the pool 
     /// @return protocolFee Amount charged for the trade
     function getPoolBuyInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee );
@@ -27,7 +27,7 @@ interface IMSPool {
     /// @return isValid true if trade is operable
     /// @return newStartPrice new Start price that will be set 
     /// @return newMultiplier new multiplier that will be set 
-    /// @return outputValue Amount that will be send to the user
+    /// @return outputValue Amount to be sent to the user
     /// @return protocolFee Amount charged for the trade
     function getPoolSellInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee );
 
@@ -37,7 +37,7 @@ interface IMSPool {
     /// @return algorithmName Name of the algorithm used to calculate trade prices
     function getAlgorithm() external view returns( string memory );
 
-    /// @notice returns the pool info
+    /// @notice Returns the pool info
     /// @return poolMultiplier Current multiplier
     /// @return poolStartPrice Current start price 
     /// @return poolTradeFee Trade fee multiplier 
@@ -57,11 +57,11 @@ interface IMSPool {
     /// @notice Function called when the pool is created
     /// @param _multiplier Multiplier to calculate the price
     /// @param _startPrice Start price to calculate the price 
-    /// @param _recipient Recipient od the input assets ( not available on trade pools )
+    /// @param _recipient Recipient of the input assets ( not available on trade pools )
     /// @param _owner Owner of the pool 
     /// @param _NFT NFT trade collection
     /// @param _fee Fee multiplier to calculate pool fees ( available on trade pool )
-    /// @param _Algorithm Address of the algorithm 
+    /// @param _Algorithm Address of the algorithm to calculate trade prices
     /// @param _poolType Type of the pool
     function init(
         uint128 _multiplier, 
@@ -80,16 +80,16 @@ interface IMSPool {
     /// @param _user Address to send the tokens
     function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external returns( uint256 outputAmount );
 
-    /// @notice Buy NFTs and deposit tokens
+    /// @notice Buy NFTs by depositing tokens
     /// @param _tokenIDs NFTs to trade
     /// @param _maxExpectedIn maximum expected cost to buy the NFTs
-    /// @param _user Address to send the tokens
+    /// @param _user Address to send the NFTs
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
-    /// @notice Buy NFTs and deposit tokens ( used when doesn't care NFTs to send to the user )
+    /// @notice Buy NFTs by depositing tokens (used when the NFTs to be sent to the user do not matter)
     /// @param _numNFTs Number of NFTs to buy
     /// @param _maxExpectedIn maximum expected cost to buy the NFTs
-    /// @param _user Address to send the tokens
+    /// @param _user Address to send the NFTs
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
 }
