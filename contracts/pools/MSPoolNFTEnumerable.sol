@@ -83,6 +83,8 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
         
             _nft.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
+        emit NFTWithdrawal( owner(), _nftIds.length );
+
     }
             
 

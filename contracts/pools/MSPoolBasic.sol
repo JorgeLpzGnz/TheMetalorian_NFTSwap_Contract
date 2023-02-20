@@ -528,7 +528,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return inputAmount amount of tokens that input of the pool
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on sell-type pool" );
 
         require( 
             IERC721( NFT ).balanceOf( address( this ) ) >= _numNFTs,

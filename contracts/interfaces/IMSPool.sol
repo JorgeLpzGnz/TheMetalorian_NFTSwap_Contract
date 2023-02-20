@@ -34,8 +34,10 @@ interface IMSPool {
     /// @return _recipient Recipient of the input assets
     function getAssetsRecipient() external view returns ( address _recipient );
 
-    /// @return algorithmName Name of the algorithm used to calculate trade prices
-    function getAlgorithm() external view returns( string memory );
+    /// @notice retruns the current algorithm info
+    /// @return algorithm Name of the algorithm used to calculate trade prices
+    /// @return name Name of the algorithm used to calculate trade prices
+    function getAlgorithmInfo() external view returns( IMetaAlgorithm algorithm, string memory name );
 
     /// @notice Returns the pool info
     /// @return poolMultiplier Current multiplier
