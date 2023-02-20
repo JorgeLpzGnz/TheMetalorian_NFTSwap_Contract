@@ -959,11 +959,9 @@ describe("MetaPools", function () {
 
                 const protocolFeeEspct = expectedInput * protocolFeeMult
 
-                const poolFee = expectedInput * protocolFeeMult
-
                 // input value should be equal to expected value plus fees
 
-                expect(inputValue).to.be.greaterThan(expectedInput + (protocolFeeEspct + poolFee))
+                expect( getNumber(inputValue) ).to.be.equal( expectedInput + protocolFeeEspct )
 
                 // raturnal protocol fee should be the same than expected
 

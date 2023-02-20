@@ -33,7 +33,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     uint128 public constant MAX_FEE_PERCENTAGE = 0.9e18;
 
     /// @notice The fee charged per swap in the protocol
-    uint128 public PROTOCOL_FEE = 0.01e18;
+    uint128 public PROTOCOL_FEE = 0.0005e18;
 
     /// @notice recipient that receives the fees
     address public PROTOCOL_FEE_RECIPIENT;
@@ -65,7 +65,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     /// @param algorithm algorithm to establish approval 
     /// @param approval algorithm approval 
-    event AlgorithmApproval( address algorithm, bool approval );
+    event AlgorithmApproval( address indexed algorithm, bool approval );
 
     /// @param newFee New fee charged per swap 
     event NewProtocolFee( uint128 newFee );
@@ -84,9 +84,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param amount Amount of ETH deposit
     event TokenDeposit( uint amount );
 
-    /// @param nft NFT collection address
+    /// @param collectionNFT NFT collection address
     /// @param tokenID ID of the deposited NFT
-    event NFTDeposit( address nft, uint tokenID );
+    event NFTDeposit( address indexed collectionNFT, uint tokenID );
 
     /*************************************************************************/
     /**************************** CONSTRUCTOR ********************************/
@@ -108,6 +108,70 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
         poolNotEnumTemplate = new MSPoolNFTBasic();
 
+    }
+
+    /*************************************************************************/
+    /*************************** CREATION UTILS ******************************/
+
+    /// @notice function used to create the new pools
+    /// @notice the NFT must be a ERC-721 or ERC-721 Enumerable
+    /// @param _nft the NFT to init the pool ( this can not be changed after init )
+    function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
+
+        bool isEnumerable =
+            IERC165( _nft )
+            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID);
+
+        bool isBasic =
+            IERC165( _nft )
+            .supportsInterface(ERC721_INTERFACE_ID);
+
+        require( isEnumerable || isBasic );
+
+        address implementation = isEnumerable
+            ? address( poolEnumTemplate )
+            : address( poolNotEnumTemplate );
+
+        _newPool = MSPoolBasic( payable( implementation.clone() ) );
+
+    }
+
+    /// @notice verifies that the initialization parameters are correct
+    /// @param _poolType The pool type of the new Pool
+    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
+    /// @param _poolType The pool type of the new Pool
+    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
+    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
+    /// @param _Algorithm algorithm that determines the prices
+    function checkInitParams( 
+        uint128 _multiplier, 
+        uint128 _startPrice,
+        address _recipient,  
+        uint128 _fee,
+        IMetaAlgorithm _Algorithm,
+        PoolTypes.PoolType _poolType
+        ) public pure 
+    {
+
+        if( _poolType == PoolTypes.PoolType.Sell || _poolType == PoolTypes.PoolType.Buy ) {
+
+            require( _fee == 0, "Fee available only on trade pools" );
+
+        } else {
+
+            require( _recipient == address(0), "Recipient not available on trade pool" );
+
+            require( _fee <= MAX_FEE_PERCENTAGE, "Pool Fee exceeds the maximum" );
+
+        }
+
+        require( 
+            _Algorithm.validateStartPrice( _startPrice ) &&
+            _Algorithm.validateMultiplier( _multiplier ),
+            "Invalid multiplier or start price"
+        );
+        
     }
 
     /*************************************************************************/
@@ -179,58 +243,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
     }
 
     /*************************************************************************/
-    /*************************** CREATION UTILS ******************************/
-
-    /// @notice function used to create the new pools
-    /// @notice the NFT must be a ERC-721 or ERC-721 Enumerable
-    /// @param _nft the NFT to init the pool ( this can not be changed after init )
-    function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
-
-        bool isEnumerable =
-            IERC165( _nft )
-            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID);
-
-        bool isBasic =
-            IERC165( _nft )
-            .supportsInterface(ERC721_INTERFACE_ID);
-
-        require( isEnumerable || isBasic );
-
-        address implementation = isEnumerable
-            ? address( poolEnumTemplate )
-            : address( poolNotEnumTemplate );
-
-        _newPool = MSPoolBasic( payable( implementation.clone() ) );
-
-    }
-
-    /// @notice verifies that the initialization parameters are correct
-    /// @param _poolType The pool type of the new Pool
-    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    /// @param _poolType The pool type of the new Pool
-    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
-    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
-    /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
-    /// @param _Algorithm algorithm that determines the prices
-    function checkInitParams( PoolTypes.PoolType _poolType, uint128 _fee, address _recipient, uint128 _startPrice, uint128 _multiplier, IMetaAlgorithm _Algorithm ) public pure returns( bool ) {
-
-        if( _poolType == PoolTypes.PoolType.Sell || _poolType == PoolTypes.PoolType.Buy ) {
-
-            if ( _fee != 0 ) return false;
-
-        } else {
-
-            if ( _recipient != address(0) || _fee > MAX_FEE_PERCENTAGE ) return false;
-
-        }
-
-        if ( !_Algorithm.validateStartPrice( _startPrice ) || !_Algorithm.validateMultiplier( _multiplier ) ) return false;
-
-        return true;
-        
-    }
-
-    /*************************************************************************/
     /*************************** CREATE FUNCTION *****************************/
 
 
@@ -243,6 +255,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
     /// @param _Algorithm algorithm that determines the prices
     /// @param _poolType The pool type of the new Pool
+    /// @return pool pool created
     function createPool( 
         address _nft, 
         uint[] calldata _nftIds,
@@ -257,9 +270,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
         )
     {
 
-        require( isMSAlgorithm[ address(_Algorithm) ], "invalid Algorithm");
+        require( isMSAlgorithm[ address(_Algorithm) ], "Algorithm is not Approved");
 
-        require( checkInitParams( _poolType, _fee, _recipient, _startPrice, _multiplier, _Algorithm ), "invalid init params" );
+        checkInitParams( _multiplier, _startPrice, _recipient, _fee,  _Algorithm, _poolType );
 
         pool = _creteContract( _nft );
 

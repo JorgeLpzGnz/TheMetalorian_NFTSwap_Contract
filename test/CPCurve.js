@@ -233,7 +233,7 @@ describe("Constant Product Algorithm", function () {
 
                 // input value should be equal to expected value plus fees
 
-                expect( inputValue ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
+                expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
                 // raturnal protocol fee should be the same than expected
 

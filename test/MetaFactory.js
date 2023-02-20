@@ -7,7 +7,8 @@ const {
     getEventLog, 
     mintNFT, 
     sendBulkNfts,
-    deployMetaFactory
+    deployMetaFactory,
+    getNumber
 } = require("../utils/tools" )
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
@@ -18,33 +19,47 @@ const provider = ethers.provider
 
 describe("MetaFactory", function () {
 
-    describe("Create pool", () => {
+    describe("check Init Params", () => {
 
-        describe(" - Errors", () => {
+        describe( " - functinalities", () => {
 
-            it("1. should fail if passed Algorithm isn't alowed", async () => {
+            it("1. should fail if in a non-commercial pool try to put a non-zero value", async () => {
 
-                const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
                 const startPrice = ethers.utils.parseEther("1")
+
+                // it should fail when try to set it on Sell or Buy pool
+
+                // Buy pool
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    0,
-                    owner.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid Algorithm" )
+                    metaFactory.checkInitParams(
+                    startPrice.div(2),       // multiplier
+                    startPrice,              // startPrice
+                    owner.address,           // recipient
+                    10000,                   // fee
+                    linearAlgorithm.address, // algorithm
+                    poolType.nft             // pool type
+                )).to.be.revertedWith( "Fee available only on trade pools" )
+
+                // Sell pool
+                
+                await expect( 
+                    metaFactory.checkInitParams(
+                    startPrice.div(2),       // multiplier
+                    startPrice,              // startPrice
+                    owner.address,           // recipient
+                    10000,                   // fee
+                    linearAlgorithm.address, // algorithm
+                    poolType.token           // pool type
+                )).to.be.revertedWith( "Fee available only on trade pools" )
 
             })
 
-            it("2. should fail if not trade fee pass a not cero fee", async () => {
+            it("2. should fail if in trade pool try to pass a recipient", async () => {
 
                 const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -53,32 +68,18 @@ describe("MetaFactory", function () {
                 const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    10000,
-                    linearAlgorithm.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid init params" )
-                
-                await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    10000,
-                    linearAlgorithm.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+                    metaFactory.checkInitParams(
+                    startPrice.div(2),        // multiplier
+                    startPrice,               // startPrice
+                    owner.address,            // recipient
+                    0,                        // fee
+                    linearAlgorithm.address,  // algorithm
+                    poolType.trade            // pool type
+                )).to.be.revertedWith( "Recipient not available on trade pool" )
 
             })
 
-            it("3. should fail if trade fee pass recipient and fee exceeds max", async () => {
+            it("3. should fail if trade fee is greater than limit", async () => {
 
                 const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -89,40 +90,14 @@ describe("MetaFactory", function () {
                 const fee = ethers.utils.parseEther("1")
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    ethers.constants.AddressZero,
-                    fee,
-                    linearAlgorithm.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
-                
-                await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    100000,
-                    linearAlgorithm.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
-                
-                await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    fee,
-                    linearAlgorithm.address,
-                    poolType.trade
-                )).to.be.revertedWith( "invalid init params" )
+                    metaFactory.checkInitParams(
+                    startPrice.div(2),           // multiplier
+                    startPrice,                  // startPrice
+                    ethers.constants.AddressZero,// recipientZero
+                    fee,                         // fee
+                    linearAlgorithm.address,     // algorithm
+                    poolType.trade               // pool type
+                )).to.be.revertedWith( "Pool Fee exceeds the maximum" )
 
             })
 
@@ -133,107 +108,58 @@ describe("MetaFactory", function () {
                 const nftIds = await mintNFT(nft, 10, metaFactory)
 
                 const startPrice = ethers.utils.parseEther("1")
+
+                /*
+                  At the moment to create this protocol the only algorithm that needs to validate the multiplier and the start price is the 
+                  exponential, in the anotherones all values are valid 
+                */
+
+                // test multiplier
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    0,
-                    startPrice,
-                    owner.address,
-                    10000,
-                    exponentialAlgorithm.address,
-                    poolType.nft
-                )).to.be.revertedWith( "invalid init params" )
+                    metaFactory.checkInitParams(
+                    0,                            // multiplier
+                    startPrice,                   // startPrice
+                    owner.address,                // recipient
+                    0,                            // fee
+                    exponentialAlgorithm.address, // algorithm
+                    poolType.nft                  // pool type
+                )).to.be.revertedWith( "Invalid multiplier or start price" )
+
+                // test start price
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    0,
-                    owner.address,
-                    10000,
-                    exponentialAlgorithm.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+                    metaFactory.checkInitParams(
+                    startPrice.div(2),            // multiplier
+                    0,                            // startPrice
+                    owner.address,                // recipient
+                    0,                            // fee
+                    exponentialAlgorithm.address, // algorithm
+                    poolType.token                // pool type
+                )).to.be.revertedWith( "Invalid multiplier or start price" )
+
+                // test both
                 
                 await expect( 
-                    metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    0,
-                    0,
-                    owner.address,
-                    10000,
-                    exponentialAlgorithm.address,
-                    poolType.token
-                )).to.be.revertedWith( "invalid init params" )
+                    metaFactory.checkInitParams(
+                    0,                              // multiplier
+                    0,                              // startPrice
+                    ethers.constants.AddressZero,   // recipient
+                    10000,                          // fee
+                    exponentialAlgorithm.address,   // algorithm
+                    poolType.trade                  // pool type
+                )).to.be.revertedWith( "Invalid multiplier or start price" )
 
             })
-
         })
-
-        describe(" - Functionalities", () => {
-
-            it("1. factory should create a new pool type NFT", async () => {
-
-                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
-
-                const nftIds = await mintNFT(nft, 10, metaFactory)
-
-                const startPrice = ethers.utils.parseEther("1")
-
-                const tx = await metaFactory.createPool(
-                    nft.address,
-                    nftIds,
-                    startPrice.div(2),
-                    startPrice,
-                    owner.address,
-                    0,
-                    linearAlgorithm.address,
-                    poolType.nft
-                )
-
-
-                const newPoolInfo = await getEventLog( tx, "NewPool" )
-
-                expect( ethers.utils.isAddress( newPoolInfo.pool ) ).to.be.true
-                expect( newPoolInfo.owner ).to.be.equal( owner.address )
-
-            })
-
-        })
-
-    })
-
-    describe("get factory info", () => {
-
-        describe(" - Functionalities", () => {
-
-            it("1. should set a new protocol fee", async () => {
-
-                const { metaFactory } = await loadFixture(deployMetaFactory)
-
-                const [ maxfee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
-
-                expect( maxfee ).to.be.any
-
-                expect( fee ).to.be.any
-
-                expect( feeRecipient ).to.be.any
-
-            })
-
-        })
-
+        
     })
 
     describe("set Router Approval", () => {
 
         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+            it("1. should fail if caller is not the owner", async () => {
 
                 const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
                 
@@ -290,6 +216,67 @@ describe("MetaFactory", function () {
 
     })
 
+    describe("set Algorithm Approval", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if caller is nor the owner", async () => {
+
+                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.connect( otherAccount ).setAlgorithmApproval( 
+                        otherAccount.address,
+                        true
+                    )
+                ).to.be.reverted
+
+            })
+
+            it("2. should fail when approval is the same than previous", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+                
+                await expect( 
+                    metaFactory.setAlgorithmApproval( 
+                        owner.address,
+                        false 
+                        )
+                ).to.be.revertedWith("Approval is the same than previous")
+
+            })
+
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should set a router approval", async () => {
+
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+
+                const approvalBefore = await metaFactory.isMSAlgorithm( owner.address )
+
+                // initial value must be false
+
+                expect( approvalBefore ).to.be.false
+
+                await metaFactory.setAlgorithmApproval( 
+                    owner.address,
+                    true 
+                )
+
+                const approvalAfter = await await metaFactory.isMSAlgorithm( owner.address )
+
+                // new value must be true
+
+                expect( approvalAfter ).to.be.true
+
+            })
+
+        })
+
+    })
+
     describe("set Protocol Fee", () => {
 
         describe(" - Errors", () => {
@@ -310,6 +297,9 @@ describe("MetaFactory", function () {
 
                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
+                // max is the 90% of the amounts 90 % = 0.9
+                // so set new fee to 1 to generate the error 
+
                 const newFee = ethers.utils.parseEther("1")
                 
                 await expect( 
@@ -322,7 +312,9 @@ describe("MetaFactory", function () {
 
                 const { metaFactory } = await loadFixture(deployMetaFactory)
 
-                const newFee = ethers.utils.parseEther("0.01")
+                // 0.01 is the default fee
+
+                const newFee = ethers.utils.parseEther("0.0005")
                 
                 await expect( 
                     metaFactory.setProtocolFee( newFee )
@@ -394,6 +386,8 @@ describe("MetaFactory", function () {
 
                 const recipientAfter = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
+                // defaul recipient must be the address of the factory
+
                 expect( recipientBefore ).to.be.equal( metaFactory.address )
 
                 expect( recipientAfter ).to.be.equal( owner.address )
@@ -404,33 +398,102 @@ describe("MetaFactory", function () {
 
     })
 
-    describe("set Algorithm Approval", () => {
+    describe("get factory info", () => {
 
-        describe(" - Errors", () => {
+        describe(" - Functionalities", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+            it("1. should set a new protocol fee", async () => {
 
-                const { metaFactory, otherAccount } = await loadFixture(deployMetaFactory)
-                
-                await expect( 
-                    metaFactory.connect( otherAccount ).setAlgorithmApproval( 
-                        otherAccount.address,
-                        true
-                    )
-                ).to.be.reverted
+                const { metaFactory } = await loadFixture(deployMetaFactory)
+
+                const currentMaxFee = await metaFactory.MAX_FEE_PERCENTAGE()
+
+                const currentFee = await metaFactory.PROTOCOL_FEE()
+
+                const currentFeeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const [ maxfee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
+
+                // compare with the respective storage variable
+
+                expect( maxfee ).to.be.equal( currentMaxFee )
+
+                expect( fee ).to.be.equal( currentFee )
+
+                expect( feeRecipient ).to.be.equal( currentFeeRecipient )
 
             })
 
-            it("2. should fail when approval is the same than previous", async () => {
+        })
 
-                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+    })
+    
+    describe("Create pool", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if passed Algorithm isn't alowed", async () => {
+
+                const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
+
+                const nftIds = await mintNFT(nft, 10, metaFactory)
+
+                const startPrice = ethers.utils.parseEther("1")
+
+                // passing a no allowded address in the algorithm to genarate the error
                 
                 await expect( 
-                    metaFactory.setAlgorithmApproval( 
-                        owner.address,
-                        false 
+                    metaFactory.createPool(
+                        nft.address,       // colection
+                        nftIds,            // initial NFTs
+                        startPrice.div(2), // multiplier
+                        startPrice,        // startPrice
+                        owner.address,     // recipient
+                        0,                 // fee
+                        owner.address,     // algorithm 
+                        poolType.nft       // pool type
                         )
-                ).to.be.revertedWith("Approval is the same than previous")
+                ).to.be.revertedWith( "Algorithm is not Approved" )
+
+            })
+
+            it("2. should fail if initial params are not valid", async () => {
+
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
+
+                const nftIds = await mintNFT(nft, 10, metaFactory)
+
+                const startPrice = ethers.utils.parseEther("1")
+
+                // it should fail when try to set a fee on Sell or Buy pool
+
+                // Buy pool
+                
+                await expect( 
+                    metaFactory.createPool(
+                    nft.address,             // collection
+                    nftIds,                  // initial NFTs
+                    startPrice.div(2),       // multiplier
+                    startPrice,              // startPrice
+                    owner.address,           // recipient
+                    10000,                   // fee
+                    linearAlgorithm.address, // algorithm
+                    poolType.nft             // pool type
+                )).to.be.revertedWith( "Fee available only on trade pools" )
+
+                // Sell pool
+                
+                await expect( 
+                    metaFactory.createPool(
+                    nft.address,             // collection
+                    nftIds,                  // initial NFTs
+                    startPrice.div(2),       // multiplier
+                    startPrice,              // startPrice
+                    owner.address,           // recipient
+                    10000,                   // fee
+                    linearAlgorithm.address, // algorithm
+                    poolType.token           // pool type
+                )).to.be.revertedWith( "Fee available only on trade pools" )
 
             })
 
@@ -438,26 +501,30 @@ describe("MetaFactory", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should set a router approval", async () => {
+            it("1. factory should create a new pool type NFT", async () => {
 
-                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                const approvalBefore = await metaFactory.isMSAlgorithm( owner.address )
+                const nftIds = await mintNFT(nft, 10, metaFactory)
 
-                // initial value must be false
+                const startPrice = ethers.utils.parseEther("1")
 
-                expect( approvalBefore ).to.be.false
-
-                await metaFactory.setAlgorithmApproval( 
+                const tx = await metaFactory.createPool(
+                    nft.address,
+                    nftIds,
+                    startPrice.div(2),
+                    startPrice,
                     owner.address,
-                    true 
+                    0,
+                    linearAlgorithm.address,
+                    poolType.nft
                 )
 
-                const approvalAfter = await await metaFactory.isMSAlgorithm( owner.address )
 
-                // new value must be true
+                const newPoolInfo = await getEventLog( tx, "NewPool" )
 
-                expect( approvalAfter ).to.be.true
+                expect( ethers.utils.isAddress( newPoolInfo.pool ) ).to.be.true
+                expect( newPoolInfo.owner ).to.be.equal( owner.address )
 
             })
 
@@ -497,7 +564,9 @@ describe("MetaFactory", function () {
 
                 const { metaFactory, owner, otherAccount } = await loadFixture( deployMetaFactory )
 
-                const sendAmount = ethers.utils.parseEther("10")
+                const sendAmount = parseEther("10")
+
+                // send ETH to the factory
 
                 await otherAccount.sendTransaction({
                     to: metaFactory.address,
@@ -506,28 +575,31 @@ describe("MetaFactory", function () {
 
                 const ownerBalanceBefore = await owner.getBalance()
 
-                const balanceBefore = await ethers.provider.getBalance( metaFactory.address )
+                const balanceBefore = await provider.getBalance( metaFactory.address )
+
+                // check balances before withdrawal
 
                 expect( balanceBefore ).to.be.equal( sendAmount )
 
-                await metaFactory.withdrawETH()
+                const tx = await metaFactory.withdrawETH()
+
+                const receipt = await tx.wait()
+
+                const gasUsed = receipt.gasUsed.mul( receipt.effectiveGasPrice )
 
                 const ownerBalanceAfter = await owner.getBalance()
 
-                const balanceAfter = await ethers.provider.getBalance( metaFactory.address )
+                const balanceAfter = await provider.getBalance( metaFactory.address )
 
                 expect( balanceAfter ).to.be.equal( 0 )
 
-                // rauded to handle withdraw gas cost
+                // adding the gas used for more precition
 
                 expect( 
-                    Math.floor(Number(ethers.utils.formatEther(
-                        ownerBalanceBefore.add( sendAmount )
-                        )))
-                    ).to.be.equal( 
-                        Math.floor(Number(
-                            ethers.utils.formatEther(ownerBalanceAfter )
-                        )))
+                    ownerBalanceBefore.add( sendAmount )
+                ).to.be.equal( 
+                    ownerBalanceAfter.add( gasUsed )
+                )
 
             })
 
@@ -539,7 +611,7 @@ describe("MetaFactory", function () {
 
         describe(" - Errors", () => {
 
-            it("1. should fail if caller is nor the owner", async () => {
+            it("1. should fail if caller is not the owner", async () => {
 
                 const { metaFactory, otherAccount, nft } = await loadFixture(deployMetaFactory)
                 
@@ -567,9 +639,13 @@ describe("MetaFactory", function () {
 
                 const { metaFactory, owner, nft } = await loadFixture( deployMetaFactory )
 
+                // mint and send the NFTs to the factory
+
                 const nftIds = await mintNFT( nft, 10, metaFactory )
 
                 await sendBulkNfts( nft, nftIds, metaFactory.address )
+
+                // chacking balances 
 
                 const ownerBalanceBefore = await nft.balanceOf( owner.address )
 
@@ -579,6 +655,8 @@ describe("MetaFactory", function () {
 
                 expect( ownerBalanceBefore ).to.be.equal( 0 )
 
+                // withdraw and check balances
+
                 await metaFactory.withdrawNFTs( nft.address, nftIds)
 
                 const ownerBalanceAfter = await nft.balanceOf( owner.address )
@@ -586,8 +664,6 @@ describe("MetaFactory", function () {
                 const balanceAfter = await nft.balanceOf( metaFactory.address )
 
                 expect( balanceAfter ).to.be.equal( 0 )
-
-                // rauded to handle withdraw gas cost
 
                 expect( ownerBalanceAfter ).to.be.equal( nftIds.length )
 
@@ -636,7 +712,7 @@ describe("MetaFactory", function () {
 
             it( "AlgorithmApproval", async () => {
 
-                const { metaFactory, owner, cPAlgorithm } = await loadFixture( deployMetaFactory )
+                const { metaFactory, cPAlgorithm } = await loadFixture( deployMetaFactory )
 
 				await expect( 
                     metaFactory.setAlgorithmApproval( 
