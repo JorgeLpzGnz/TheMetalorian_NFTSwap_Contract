@@ -6,6 +6,7 @@ import "../pools/PoolTypes.sol";
 import "./IMetaAlgorithm.sol";
 
 /// @title IMetaFactory a interface to call pool factory
+/// @author JorgeLpzGnz & CarlosMario714
 /// @dev this factory creates pair based on the minimal proxy standard IEP-1167
 interface IMetaFactory {
 

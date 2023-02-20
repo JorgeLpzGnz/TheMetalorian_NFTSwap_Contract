@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 /// @title IMetaAlgorithm a interface to call algorithms contracts
+/// @author JorgeLpzGnz & CarlosMario714
 /// @dev the algorithm is responsible for calculating the prices see
 interface IMetaAlgorithm {
 

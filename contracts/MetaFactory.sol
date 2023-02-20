@@ -14,6 +14,7 @@ import "./pools/PoolTypes.sol";
 
 
 /// @title MetaFactory a contract factory for NFT / ETH liquidity Pools
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice Factory that creates minimal proxies based on the IEP-1167
 /// @dev All the used in this protocol is on base 18 ( 1e18 )
 contract MetaFactory is Ownable, IERC721Receiver {

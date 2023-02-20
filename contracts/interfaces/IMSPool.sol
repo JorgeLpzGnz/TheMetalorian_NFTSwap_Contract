@@ -5,6 +5,7 @@ import "../pools/PoolTypes.sol";
 import "./IMetaAlgorithm.sol";
 
 /// @title IMSPool a interface to call pool functions
+/// @author JorgeLpzGnz & CarlosMario714
 /// @dev Pools are a IEP-1167 implementation ( minimal proxies - clones )
 interface IMSPool {
     

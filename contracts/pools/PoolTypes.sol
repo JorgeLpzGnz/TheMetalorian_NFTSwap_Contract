@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 /// @title PoolTypes Are the type of pool available in this NFT swap
+/// @author JorgeLpzGnz & CarlosMario714
 contract PoolTypes {
 
     /// @notice available pool types

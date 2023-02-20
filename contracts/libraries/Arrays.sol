@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 /// @title Arrays a library for uint256 arrays
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice a library to add array methods
 library Arrays {
 

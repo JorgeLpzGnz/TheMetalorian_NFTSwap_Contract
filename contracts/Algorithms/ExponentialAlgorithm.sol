@@ -5,6 +5,7 @@ import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 
 /// @title ExponentialAlgorithm Algorithm to calculate trade prices
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice Algorithm to calculate the price exponentially
 contract ExponentialAlgorithm is IMetaAlgorithm {
 

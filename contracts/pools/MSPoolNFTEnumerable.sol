@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "./MSPoolBasic.sol";
 
 /// @title MSPoolNFTEnumerable ERC-721 Enumerable pool template implementation
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice implementation based on IEP-1167
 contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 

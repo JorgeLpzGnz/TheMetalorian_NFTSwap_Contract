@@ -5,6 +5,7 @@ import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 
 /// @title CPAlgorithm Algorithm to calculate trade prices
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice This Algorithm a Constant product Based on ( XY = K )
 contract CPAlgorithm is IMetaAlgorithm {
 

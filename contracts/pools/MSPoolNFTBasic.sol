@@ -6,6 +6,7 @@ import "../libraries/Arrays.sol";
 import "./MSPoolBasic.sol";
 
 /// @title MSPoolNFTBasic A basic ERC-721 pool template implementation
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice implementation based on IEP-1167
 contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 

@@ -10,6 +10,7 @@ import "../interfaces/IMetaFactory.sol";
 import "../interfaces/IMSPool.sol";
 
 /// @title MSPoolBasic a basic pool template implementations
+/// @author JorgeLpzGnz & CarlosMario714
 /// @notice Basic implementation based on IEP-1167
 abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
