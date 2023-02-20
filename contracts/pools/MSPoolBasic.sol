@@ -33,7 +33,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     address public NFT;
 
     /// @notice the address of the factory that creates this pool
-    address public factory;
+    IMetaFactory public factory;
 
     /// @notice the type of the pool ( Sell, Buy, Trade )
     /// @dev See [ PoolTypes.sol ] for more info
@@ -113,7 +113,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             multiplier, 
             startPrice, 
             _numNFTs,
-            IMetaFactory( factory ).PROTOCOL_FEE(),
+            factory.PROTOCOL_FEE(),
             tradeFee
             );
 
@@ -166,7 +166,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             multiplier, 
             startPrice, 
             _numNFTs, 
-            IMetaFactory( factory ).PROTOCOL_FEE(),
+            factory.PROTOCOL_FEE(),
             tradeFee
             );
 
@@ -198,7 +198,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _to the address to send the tokens
     function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
 
-        address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
+        address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
 
         ( bool isFeeSended, ) = payable( feeRecipient ).call{value: _protocolFee}("");
 
@@ -225,7 +225,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         }
 
-        address feeRecipient = IMetaFactory( factory ).PROTOCOL_FEE_RECIPIENT();
+        address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
 
         ( bool isFeeSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
 
@@ -265,7 +265,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _newFee the new trade fee 
     function setTradeFee( uint128 _newFee ) external onlyOwner {
 
-        require( currentPoolType == PoolTypes.PoolType.Trade, "fee supported only on trade pools");
+        require( currentPoolType == PoolTypes.PoolType.Trade, "fee available only on trade pools");
 
         require( tradeFee != _newFee, "New fee is equal than current" );
 
@@ -305,9 +305,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /*************************************************************************/
     /************************** GET FUNCTIONS ********************************/
-
-    /// @notice it returns the NFTs hold by the pool 
-    function getNFTIds() public virtual view returns ( uint[] memory nftIds );
  
     /// @notice it return the pool sell info
     /// @param _numNFTs number of NFTs to buy
@@ -328,7 +325,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             multiplier, 
             startPrice, 
             _numNFTs, 
-            IMetaFactory( factory ).PROTOCOL_FEE(),
+            factory.PROTOCOL_FEE(),
             tradeFee
             );
     
@@ -353,11 +350,14 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             multiplier, 
             startPrice, 
             _numNFTs, 
-            IMetaFactory( factory ).PROTOCOL_FEE(),
+            factory.PROTOCOL_FEE(),
             tradeFee
             );
     
     }
+
+    /// @notice it returns the NFTs hold by the pool 
+    function getNFTIds() public virtual view returns ( uint[] memory nftIds );
 
     /// @notice returns the recipient of the input assets
     function getAssetsRecipient() public view returns ( address _recipient ) {
@@ -369,30 +369,32 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     }
 
     /// @notice returns the name of the price algorithm used
-    function getAlgorithm() public view returns( string memory ) {
+    function getAlgorithmInfo() public view returns( IMetaAlgorithm algorithm, string memory name ) {
 
-        // update ( return address of the algorithm ? )
+        algorithm = Algorithm;
 
-        return Algorithm.name();
+        name = Algorithm.name();
         
     }
 
-    /// @notice it return the pool sell info
+    /// @notice Returns the pool info
     /// @return poolMultiplier Current multiplier
-    /// @return poolStartPrice Current Star Price
-    /// @return poolTradeFee Current trade Fee ( 0 in not trade pool )
-    /// @return poolNft address of the NFT collection
-    /// @return poolPoolType Current pool type
-    /// @return poolAlgorithm Current name
-    /// @return poolNFTs collection NFTs hold
+    /// @return poolStartPrice Current start price 
+    /// @return poolTradeFee Trade fee multiplier 
+    /// @return poolNft NFT trade collection
+    /// @return poolNFTs NFTs of the pool
+    /// @return poolAlgorithm Address of the algorithm
+    /// @return poolAlgorithmName Name of the algorithm
+    /// @return poolPoolType The type of the pool
     function getPoolInfo() public view returns( 
         uint128 poolMultiplier,
         uint128 poolStartPrice,
         uint128 poolTradeFee,
         address poolNft,
-        PoolTypes.PoolType poolPoolType,
-        string memory poolAlgorithm,
-        uint[] memory poolNFTs
+        uint[] memory poolNFTs,
+        IMetaAlgorithm poolAlgorithm,
+        string memory poolAlgorithmName,
+        PoolTypes.PoolType poolPoolType
     ){
         poolMultiplier = multiplier;
 
@@ -402,13 +404,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         poolNft = NFT;
 
-        poolPoolType = currentPoolType;
-
-        poolAlgorithm = getAlgorithm();
-
         poolNFTs = getNFTIds();
 
-        // update ( return the address of the algorithm )
+        ( poolAlgorithm, poolAlgorithmName ) = getAlgorithmInfo();
+
+        poolPoolType = currentPoolType;
 
     }
     
@@ -437,7 +437,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         ) public payable 
     {
 
-        require( owner() == address(0), "it is already initialized");
+        require( owner() == address(0), "Pool it's already initialized");
 
         _transferOwnership( _owner );
 
@@ -455,9 +455,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         currentPoolType = _poolType;
 
-        // update ( use IFactory interface )
-
-        factory = msg.sender;
+        factory = IMetaFactory( msg.sender );
 
     }
 
@@ -471,7 +469,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return outputAmount the amount of tokens that output of the pool
     function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant returns( uint256 outputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on buy-type pool" );
 
         require( address( this ).balance >= _minExpected, "insufficient token balance");
 
@@ -496,7 +494,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return inputAmount amount of tokens that input of the pool
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
 
-        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "invalid pool Type" );
+        require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on sell-type pool" );
 
         require( 
             IERC721( NFT ).balanceOf( address( this ) ) >= _tokenIDs.length,

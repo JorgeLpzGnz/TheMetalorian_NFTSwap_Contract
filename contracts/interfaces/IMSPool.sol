@@ -42,17 +42,19 @@ interface IMSPool {
     /// @return poolStartPrice Current start price 
     /// @return poolTradeFee Trade fee multiplier 
     /// @return poolNft NFT trade collection
-    /// @return poolPoolType The type of the pool
-    /// @return poolAlgorithm Name of the algorithm
     /// @return poolNFTs NFTs of the pool
+    /// @return poolAlgorithm Address of the algorithm
+    /// @return poolAlgorithmName Name of the algorithm
+    /// @return poolPoolType The type of the pool
     function getPoolInfo() external view returns( 
         uint128 poolMultiplier,
         uint128 poolStartPrice,
         uint128 poolTradeFee,
         address poolNft,
-        PoolTypes.PoolType poolPoolType,
-        string memory poolAlgorithm,
-        uint[] memory poolNFTs);
+        uint[] memory poolNFTs,
+        IMetaAlgorithm poolAlgorithm,
+        string memory poolAlgorithmName,
+        PoolTypes.PoolType poolPoolType);
 
     /// @notice Function called when the pool is created
     /// @param _multiplier Multiplier to calculate the price
