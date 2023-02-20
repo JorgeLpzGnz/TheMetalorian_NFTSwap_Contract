@@ -39,6 +39,8 @@ describe("Constant Product Algorithm", function () {
 
                 const { cPAlgorithm } = await loadFixture(deployMetaFactory)
 
+                // all values are valid
+
                 expect( await cPAlgorithm.validateStartPrice(
                     parseEther(
                         `${Math.round( Math.random() * 1000 )}`
@@ -58,6 +60,8 @@ describe("Constant Product Algorithm", function () {
             it("1. should always return true", async () => {
 
                 const { cPAlgorithm } = await loadFixture(deployMetaFactory)
+
+                // all values are valid
 
                 expect( await cPAlgorithm.validateMultiplier(
                     parseEther(
@@ -375,7 +379,7 @@ describe("Constant Product Algorithm", function () {
                     poolFee0
                 )
 
-                // check that input value is greater than 0
+                // check that output value is greater than 0
 
                 expect( outputValue ).to.be.greaterThan( 0 )
 
@@ -411,7 +415,7 @@ describe("Constant Product Algorithm", function () {
 
                 const expectedOutput = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to expected value
+                // check that output value is equals to expected value
 
                 expect( getNumber(outputValue) ).to.be.equal( expectedOutput )
 
@@ -447,7 +451,7 @@ describe("Constant Product Algorithm", function () {
 
                 const poolFee = expectedOutput * poolFeeMul
 
-                // input value should be equal to expected value plus fees
+                // output value should be equal to expected value plus fees
 
                 expect( getNumber(outputValue) ).to.be.equal( expectedOutput - ( protocolFeeEspct + poolFee ) )
 
@@ -489,11 +493,11 @@ describe("Constant Product Algorithm", function () {
 
                 const expectedOutput = expectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
 
-                // input value should be equal to expected value plus fees
+                // tokenBalance ( startPrice ) must be current balance - input
 
                 expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutput )
 
-                // raturnal protocol fee should be the same than expected
+                // NFTBalance ( multiplier ) must be current balance + number Of Items
 
                 expect( getNumber( newMultiplier )  ).to.be.equal( multiplier + numItems )
 

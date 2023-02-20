@@ -42,7 +42,7 @@ describe("MetaFactory", function () {
                     owner.address,           // recipient
                     10000,                   // fee
                     linearAlgorithm.address, // algorithm
-                    poolType.nft             // pool type
+                    poolType.buy             // pool type
                 )).to.be.revertedWith( "Fee available only on trade pools" )
 
                 // Sell pool
@@ -54,7 +54,7 @@ describe("MetaFactory", function () {
                     owner.address,           // recipient
                     10000,                   // fee
                     linearAlgorithm.address, // algorithm
-                    poolType.token           // pool type
+                    poolType.sell           // pool type
                 )).to.be.revertedWith( "Fee available only on trade pools" )
 
             })
@@ -123,7 +123,7 @@ describe("MetaFactory", function () {
                     owner.address,                // recipient
                     0,                            // fee
                     exponentialAlgorithm.address, // algorithm
-                    poolType.nft                  // pool type
+                    poolType.buy                  // pool type
                 )).to.be.revertedWith( "Invalid multiplier or start price" )
 
                 // test start price
@@ -135,7 +135,7 @@ describe("MetaFactory", function () {
                     owner.address,                // recipient
                     0,                            // fee
                     exponentialAlgorithm.address, // algorithm
-                    poolType.token                // pool type
+                    poolType.sell                // pool type
                 )).to.be.revertedWith( "Invalid multiplier or start price" )
 
                 // test both
@@ -451,7 +451,7 @@ describe("MetaFactory", function () {
                         owner.address,     // recipient
                         0,                 // fee
                         owner.address,     // algorithm 
-                        poolType.nft       // pool type
+                        poolType.buy       // pool type
                         )
                 ).to.be.revertedWith( "Algorithm is not Approved" )
 
@@ -478,7 +478,7 @@ describe("MetaFactory", function () {
                     owner.address,           // recipient
                     10000,                   // fee
                     linearAlgorithm.address, // algorithm
-                    poolType.nft             // pool type
+                    poolType.buy             // pool type
                 )).to.be.revertedWith( "Fee available only on trade pools" )
 
                 // Sell pool
@@ -492,7 +492,7 @@ describe("MetaFactory", function () {
                     owner.address,           // recipient
                     10000,                   // fee
                     linearAlgorithm.address, // algorithm
-                    poolType.token           // pool type
+                    poolType.sell           // pool type
                 )).to.be.revertedWith( "Fee available only on trade pools" )
 
             })
@@ -517,7 +517,7 @@ describe("MetaFactory", function () {
                     owner.address,
                     0,
                     linearAlgorithm.address,
-                    poolType.nft
+                    poolType.buy
                 )
 
 
@@ -690,7 +690,7 @@ describe("MetaFactory", function () {
                         owner.address,
                         0,
                         linearAlgorithm.address,
-                        poolType.token
+                        poolType.sell
                     )
 				).to.emit( metaFactory, "NewPool" )
 

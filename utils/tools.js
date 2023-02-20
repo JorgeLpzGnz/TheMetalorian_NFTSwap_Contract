@@ -6,8 +6,8 @@ const { utils } = ethers
 const { parseEther, formatEther } = utils
 
 const poolType = {
-    token: 0,
-    nft: 1,
+    sell: 0,
+    buy: 1,
     trade: 2
 }
 
