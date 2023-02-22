@@ -1,16 +1,16 @@
 const hre = require("hardhat");
 
-const linearAlgorithm = "0x78fbefCcce23Bd65fb8e89c65a475C64B027C7E3"
+const linearAlgorithm = "0x92D12B58ba934304bf718DCB06665E10cB2ae080"
 
-const exponentialAlgorithm = "0x9E0eF38Fc467325441C42b96f3602B968DC0E34E"
+const exponentialAlgorithm = "0x5EA20B72F74425D0b2E2fC14D087515650f6F3c0"
 
-const constantPAlgorithm = "0x72Ac8eE7eb63a0a2d6867C66907a7542042E5Ab3"
+const constantPAlgorithm = "0x0F8765Bb98142410BB08881064a9a92baEFefF3A"
 
-const metaFactory = "0x1bc0178529c8e1810F124565F0d7d27000195999"
+const metaFactory = "0x02eD126e05D9b18f96C23Ef489EBb45b03fCC226"
 
-const enumerableImplementation = "0x5a645EFC84858B60AeCa9dcB881b69f51e1bBFfb"
+const enumerableImplementation = "0xa254c42b25B8cAa7a542c962B153B3dAb5e9b1A7"
 
-const notEnumerableImplementation = "0xCCCeF34e40413798B0CeD76d83FE92FaB88F9dA6"
+const notEnumerableImplementation = "0x1Aa29aA48a22Af442dECc3Cd10374625A4dB99C8"
 
 async function verifyContracts() {
 
