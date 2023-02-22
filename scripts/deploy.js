@@ -6,6 +6,8 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 
+const feeRecipient = "0xeD41c898a7b7837aFd421cF081F6a558decbcE5f"
+
 async function main() {
 
     // linear Market Algorithm
@@ -44,7 +46,8 @@ async function main() {
     const metaFactory = await MetaFactory.deploy(
         linearAlgorithm.address,
         exponentialAlgorithm.address,
-        cPAlgorithm.address
+        cPAlgorithm.address,
+        feeRecipient
     );
 
     await metaFactory.deployed();
