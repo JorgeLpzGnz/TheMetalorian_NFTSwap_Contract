@@ -41,7 +41,8 @@ async function verifyContracts() {
         constructorArguments: [
             linearAlgorithm,
             exponentialAlgorithm,
-            constantPAlgorithm
+            constantPAlgorithm,
+            feeRecipient
         ]
     } ).catch((error) => console.error( error ) )
 
