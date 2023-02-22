@@ -205,7 +205,7 @@ describe("Constant Product Algorithm", function () {
 
             })
 
-            it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("3. test input Value with fees and the protocol Fee Amount", async () => {
 
                 const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -239,7 +239,7 @@ describe("Constant Product Algorithm", function () {
 
                 expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
@@ -269,13 +269,13 @@ describe("Constant Product Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                const expectedInputWithoufee = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
+                const expectedInputWithoutFee = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedInputWithoufee *  protocolFeeMult
+                const protocolFeeEspct = expectedInputWithoutFee *  protocolFeeMult
 
-                const poolFee = expectedInputWithoufee * poolFeeMul
+                const poolFee = expectedInputWithoutFee * poolFeeMul
 
-                const expectedInput = expectedInputWithoufee + protocolFeeEspct + poolFee
+                const expectedInput = expectedInputWithoutFee + protocolFeeEspct + poolFee
 
                 // tokenBalance ( startPrice ) must be current balance + input
 
@@ -421,7 +421,7 @@ describe("Constant Product Algorithm", function () {
 
             })
 
-            it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("3. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -455,7 +455,7 @@ describe("Constant Product Algorithm", function () {
 
                 expect( getNumber(outputValue) ).to.be.equal( expectedOutput - ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 

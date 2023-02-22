@@ -206,7 +206,7 @@ describe("Exponential Algorithm", function () {
 
             })
 
-            it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("3. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -238,7 +238,7 @@ describe("Exponential Algorithm", function () {
 
                 expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
@@ -380,7 +380,7 @@ describe("Exponential Algorithm", function () {
 
             })
 
-            it("3. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("3. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -416,7 +416,7 @@ describe("Exponential Algorithm", function () {
                     roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
                 )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 

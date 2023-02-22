@@ -34,7 +34,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     uint128 public constant MAX_FEE_PERCENTAGE = 0.9e18;
 
     /// @notice The fee charged per swap in the protocol
-    uint128 public PROTOCOL_FEE = 0.0005e18;
+    uint128 public PROTOCOL_FEE = 0.0025e18;
 
     /// @notice recipient that receives the fees
     address public PROTOCOL_FEE_RECIPIENT;
@@ -93,7 +93,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /**************************** CONSTRUCTOR ********************************/
 
     /// @notice Params are the initial allowed price Algorithms
-    constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm ) {
+    constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm, address _feeRecipient ) {
 
         isMSAlgorithm[_LinearAlgorithm] = true;
 
@@ -101,7 +101,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
         isMSAlgorithm[_CPAlgorithm] = true;
 
-        PROTOCOL_FEE_RECIPIENT = address( this );
+        PROTOCOL_FEE_RECIPIENT = _feeRecipient;
 
         /// deploy Clone Templates
 

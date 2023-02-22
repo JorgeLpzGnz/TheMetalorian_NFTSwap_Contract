@@ -454,9 +454,9 @@ describe("Linear Algorithm", function () {
 
             })
 
-            // in liniar Algorithm the new spot price for sell is spot price - decrease
-            // so when the drease is grater than spot price this will throw an 
-            // UnderFlow erro so to handle this theres a limit in the items
+            // in linear Algorithm the new spot price for sell is spot price - decrease
+            // so when the decrease is grater than spot price this will throw an 
+            // UnderFlow error so to handle this theres a limit in the items
             // that pool can sell
 
             it("4. test when decrease is greater then start Price", async () => {
@@ -484,7 +484,7 @@ describe("Linear Algorithm", function () {
                 )
 
                 // in this spot price and multiplier the max of items that the pool
-                // can sell is 2 becouse 0.5 * 2 is 1 ( the current spot price )
+                // can sell is 2 because 0.5 * 2 is 1 ( the current spot price )
 
                 const expectedOutput = getTokenOutput("linearAlgorithm", startPrice, multiplier, 2)
 

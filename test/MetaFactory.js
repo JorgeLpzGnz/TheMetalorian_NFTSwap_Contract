@@ -314,7 +314,7 @@ describe("MetaFactory", function () {
 
                 // 0.01 is the default fee
 
-                const newFee = ethers.utils.parseEther("0.0005")
+                const newFee = ethers.utils.parseEther("0.0025")
                 
                 await expect( 
                     metaFactory.setProtocolFee( newFee )
@@ -364,10 +364,10 @@ describe("MetaFactory", function () {
 
             it("2. should fail if new recipient is the same than current", async () => {
 
-                const { metaFactory } = await loadFixture(deployMetaFactory)
+                const { metaFactory, owner } = await loadFixture(deployMetaFactory)
                 
                 await expect( 
-                    metaFactory.setProtocolFeeRecipient( metaFactory.address )
+                    metaFactory.setProtocolFeeRecipient( owner.address )
                     ).to.be.revertedWith("new fee cannot be the same as the previous one")
 
             })
@@ -378,19 +378,19 @@ describe("MetaFactory", function () {
 
             it("1. should set a new protocol fee recipient", async () => {
 
-                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+                const { metaFactory, owner, otherAccount } = await loadFixture( deployMetaFactory )
 
                 const recipientBefore = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
-                await metaFactory.setProtocolFeeRecipient( owner.address )
+                await metaFactory.setProtocolFeeRecipient( otherAccount.address )
 
                 const recipientAfter = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
-                // defaul recipient must be the address of the factory
+                // default recipient must be the address of the factory
 
-                expect( recipientBefore ).to.be.equal( metaFactory.address )
+                expect( recipientBefore ).to.be.equal( owner.address )
 
-                expect( recipientAfter ).to.be.equal( owner.address )
+                expect( recipientAfter ).to.be.equal( otherAccount.address )
 
             })
 
@@ -412,11 +412,11 @@ describe("MetaFactory", function () {
 
                 const currentFeeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
 
-                const [ maxfee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
+                const [ maxFee, fee, feeRecipient ] = await metaFactory.getFactoryInfo()
 
                 // compare with the respective storage variable
 
-                expect( maxfee ).to.be.equal( currentMaxFee )
+                expect( maxFee ).to.be.equal( currentMaxFee )
 
                 expect( fee ).to.be.equal( currentFee )
 
@@ -432,7 +432,7 @@ describe("MetaFactory", function () {
 
         describe(" - Errors", () => {
 
-            it("1. should fail if passed Algorithm isn't alowed", async () => {
+            it("1. should fail if passed Algorithm isn't allowed", async () => {
 
                 const { metaFactory, nft, owner } = await loadFixture(deployMetaFactory)
 
@@ -440,11 +440,11 @@ describe("MetaFactory", function () {
 
                 const startPrice = ethers.utils.parseEther("1")
 
-                // passing a no allowded address in the algorithm to genarate the error
+                // passing a no allowed address in the algorithm to generate the error
                 
                 await expect( 
                     metaFactory.createPool(
-                        nft.address,       // colection
+                        nft.address,       // collection
                         nftIds,            // initial NFTs
                         startPrice.div(2), // multiplier
                         startPrice,        // startPrice
@@ -593,7 +593,7 @@ describe("MetaFactory", function () {
 
                 expect( balanceAfter ).to.be.equal( 0 )
 
-                // adding the gas used for more precition
+                // adding the gas used for more precision
 
                 expect( 
                     ownerBalanceBefore.add( sendAmount )
@@ -645,7 +645,7 @@ describe("MetaFactory", function () {
 
                 await sendBulkNfts( nft, nftIds, metaFactory.address )
 
-                // chacking balances 
+                // checking balances 
 
                 const ownerBalanceBefore = await nft.balanceOf( owner.address )
 
@@ -738,12 +738,12 @@ describe("MetaFactory", function () {
 
             it( "NewFeeRecipient", async () => {
 
-                const { metaFactory, owner } = await loadFixture( deployMetaFactory )
+                const { metaFactory, otherAccount } = await loadFixture( deployMetaFactory )
 
 				await expect( 
-                    metaFactory.setProtocolFeeRecipient( owner.address ) 
+                    metaFactory.setProtocolFeeRecipient( otherAccount.address ) 
                 ).to.emit( metaFactory, "NewFeeRecipient" )
-                .withArgs( owner.address )
+                .withArgs( otherAccount.address )
 
             })
 

@@ -37,7 +37,8 @@ async function deployMetaFactory() {
     const metaFactory = await MetaFactory.deploy(
         linearAlgorithm.address,
         exponentialAlgorithm.address,
-        cPAlgorithm.address
+        cPAlgorithm.address,
+        owner.address
     );
 
     return { metaFactory, owner, otherAccount, nft, cPAlgorithm, exponentialAlgorithm, linearAlgorithm, NFTEnumerable };
@@ -122,21 +123,19 @@ async function mintNFT(NFT, amount, contractToApprove, _account ) {
 
     const tokenIds = []
 
-    NFT.connect( account )
-
     const mintCost = await NFT.mintCost()
 
     const firsSell = (await NFT.tokenIdCounter()).toNumber()
 
     if( NFT.address == "0x5b8d95Bc5c45569216174b27f45DDf05A443Fd18" ) 
-        await NFT.mintTheMetalorianDAOSilver(
+        await NFT.connect( account ).mintTheMetalorianDAOSilver(
             amount,
             { value: mintCost.mul(amount) }
         )
 
-    else await NFT.safeMint( amount )
+    else await NFT.connect( account ).safeMint( amount )
 
-    await NFT.setApprovalForAll( contractToApprove.address, true )
+    await NFT.connect( account ).setApprovalForAll( contractToApprove.address, true )
 
     for (let i = firsSell; i < firsSell + amount; i++)
         tokenIds.push( i )
@@ -153,9 +152,9 @@ async function sendBulkNfts( nft, tokenIds, to ) {
         
 }
 
-function getNumber( bignumber ) {
+function getNumber( bigNumber ) {
 
-    return Number( formatEther( bignumber ))
+    return Number( formatEther( bigNumber ))
 
 }
 

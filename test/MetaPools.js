@@ -85,7 +85,7 @@ describe("MetaPools", function () {
 
                 // verify that it sets the new recipient
 
-                expect( 
+                expect(
                     await pool.getAssetsRecipient()
                 ).to.be.equal(
                     otherAccount.address
@@ -163,7 +163,7 @@ describe("MetaPools", function () {
 
                 const newFee = parseEther("0.05")
 
-                // check that the fee is equal to the inital
+                // check that the fee is equal to the initial
 
                 expect(await pool.tradeFee()).to.be.equal(parseEther( `${initialFee}` ))
 
@@ -315,7 +315,7 @@ describe("MetaPools", function () {
 
     })
 
-    // get Tradde Info in CP Algorithm
+    // get Trade Info in CP Algorithm
 
     describe("get Buy Info CP algorithm", () => {
 
@@ -393,7 +393,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("2. test the input amount and the protocol fees", async () => {
 
                 const { cPAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -419,7 +419,7 @@ describe("MetaPools", function () {
 
                 expect( getNumber(inputValue) ).to.be.equal( expectedInput + protocolFeeEspct )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect(getNumber(protocolFee)).to.be.equal(protocolFeeEspct)
 
@@ -445,13 +445,13 @@ describe("MetaPools", function () {
 
                 const [, newStartPrice, newMultiplier ] = await pool.getPoolBuyInfo( numItems )
 
-                const expectedInputWithoufee = getTokenInput("cPAlgorithm", startPrice, multiplier, numItems)
+                const expectedInputWithoutFee = getTokenInput("cPAlgorithm", startPrice, multiplier, numItems)
 
-                const protocolFeeEspct = expectedInputWithoufee * protocolFeeMult
+                const protocolFeeEspct = expectedInputWithoutFee * protocolFeeMult
 
-                const poolFee = expectedInputWithoufee * poolFeeMul
+                const poolFee = expectedInputWithoutFee * poolFeeMul
 
-                const expectedInput = expectedInputWithoufee + protocolFeeEspct + poolFee
+                const expectedInput = expectedInputWithoutFee + protocolFeeEspct + poolFee
 
                 // tokenBalance ( startPrice ) must be current balance + input
 
@@ -563,7 +563,7 @@ describe("MetaPools", function () {
 
                 const expectedOutput = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutput * protocolFeeMult 
+                const protocolFeeEspct = expectedOutput * protocolFeeMult
 
                 const poolFee = expectedOutput * poolFeeMul
 
@@ -571,7 +571,7 @@ describe("MetaPools", function () {
 
                 expect( getNumber(outputValue) ).to.be.equal( expectedOutput - ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 
@@ -599,7 +599,7 @@ describe("MetaPools", function () {
 
                 const expectedOutputWithoutFee = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult 
+                const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult
 
                 const poolFee = expectedOutputWithoutFee * poolFeeMul
 
@@ -609,7 +609,7 @@ describe("MetaPools", function () {
 
                 expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutput )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( getNumber( newMultiplier )  ).to.be.equal( multiplier + numItems )
 
@@ -689,7 +689,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("2. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { exponentialAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -709,7 +709,7 @@ describe("MetaPools", function () {
 
                 const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedInput *  protocolFeeMult 
+                const protocolFeeEspct = expectedInput *  protocolFeeMult
 
                 const poolFee = expectedInput * protocolFeeMult
 
@@ -717,7 +717,7 @@ describe("MetaPools", function () {
 
                 expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
@@ -747,7 +747,7 @@ describe("MetaPools", function () {
 
                 expect( roundNumber( getNumber( newStartPrice ), 1000 ) ).to.be.equal( roundNumber( newExpectedStartPrice, 1000 ) )
 
-                // raturnal protocol fee should be the same than expected
+                // protocol fee should be the same than expected
 
                 expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
@@ -807,7 +807,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("2. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { exponentialAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -820,23 +820,23 @@ describe("MetaPools", function () {
                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
                 const poolFeeMul = 0.1
-                
+
                 const { pool } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, exponentialAlgorithm, poolType.trade, poolFeeMul, 100)
 
                 const [ , , , outputValue, protocolFee ] = await pool.getPoolSellInfo( numItems )
 
                 const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutput * protocolFeeMult 
+                const protocolFeeEspct = expectedOutput * protocolFeeMult
 
                 const poolFee = expectedOutput * poolFeeMul
 
                 // input value should be equal to expected value plus fees
 
-                expect( 
-                    roundNumber( getNumber(outputValue), 1000 ) 
-                ).to.be.equal( 
-                    roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
+                expect(
+                    roundNumber( getNumber(outputValue), 1000 )
+                ).to.be.equal(
+                    roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000)
                 )
 
                 // raturnal protocol fee should be the same than expected
@@ -856,7 +856,7 @@ describe("MetaPools", function () {
                 const multiplier = 1.4
 
                 const poolFeeMul = 0.1
-                
+
                 const { pool } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, exponentialAlgorithm, poolType.trade, poolFeeMul, 100)
 
                 const [ , newStartPrice, newMultiplier, ,  ] = await pool.getPoolSellInfo( numItems )
@@ -869,9 +869,9 @@ describe("MetaPools", function () {
 
                 // input value should be equal to expected value plus fees
 
-                expect( 
-                    roundNumber( getNumber( newStartPrice ), 1000 ) 
-                ).to.be.equal( 
+                expect(
+                    roundNumber( getNumber( newStartPrice ), 1000 )
+                ).to.be.equal(
                     roundNumber( expectedNewStartPrice, 1000 )
                 )
 
@@ -885,7 +885,7 @@ describe("MetaPools", function () {
 
     })
 
-    // get Tradde Info in Linear Algorithm
+    // get Trade Info in Linear Algorithm
 
     describe("get Buy Info Linear algorithm", () => {
 
@@ -937,7 +937,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. test input Value with fees and returnal protocol Fee Amount", async () => {
+            it("2. test input Value with fees and protocol Fee Amount", async () => {
 
                 const { linearAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -989,7 +989,7 @@ describe("MetaPools", function () {
 
                 // input value should be equal to expected value plus fees
 
-                expect( 
+                expect(
                     getNumber( newStartPrice ),
                 ).to.be.equal(
                     startPrice + ( multiplier * numItems ),
@@ -1030,7 +1030,7 @@ describe("MetaPools", function () {
         })
 
         // in all this tests the num of items could substract by any number
-        // becouse there are a limit of items that can be sell depending of
+        // because there are a limit of items that can be sell depending of
         // multiplier and spot price
 
         describe(" - Functionalities", () => {
@@ -1130,7 +1130,7 @@ describe("MetaPools", function () {
             })
 
             // in liniar Algorithm the new spot price for sell is spot price - decrease
-            // so when the drease is grater than spot price this will throw an 
+            // so when the drease is grater than spot price this will throw an
             // UnderFlow erro so to handle this theres a limit in the items
             // that pool can sell
 
@@ -1204,12 +1204,12 @@ describe("MetaPools", function () {
                 const { pool, tokenIds } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, linearAlgorithm, poolType.trade, 0.1, tokenAmount)
 
                 const ownerNFTs = await mintNFT(nft, 5, pool)
-                
-                
+
+
                 // update ( use getNumberForBNArray ? for BN Array )
 
                 // the pool must have the initial NFTs
-                
+
                 expect(
                     await pool.getNFTIds()
                 ).to.deep.equal(
@@ -1393,7 +1393,7 @@ describe("MetaPools", function () {
 
                 const ownerNFTs = await mintNFT(NFTEnumerable, 5, pool)
 
-                // pool must have 
+                // pool must have
 
                 expect(
                     getNumberForBNArray(await pool.getNFTIds())
@@ -1489,7 +1489,7 @@ describe("MetaPools", function () {
                 expect( algorithm ).to.be.equal( cPAlgorithm.address )
 
                 expect( algorithmName ).to.be.equal( "Constant Product" )
-                
+
             })
 
             it("2. should return 'Exponential' info, in a pool with this algorithm", async () => {
@@ -1509,7 +1509,7 @@ describe("MetaPools", function () {
                 expect( algorithm ).to.be.equal( exponentialAlgorithm.address )
 
                 expect( algorithmName ).to.be.equal( "Exponential" )
-                
+
             })
 
             it("3. should return 'Linear' info, in a pool with this algorithm", async () => {
@@ -1529,10 +1529,10 @@ describe("MetaPools", function () {
                 expect( algorithm ).to.be.equal( linearAlgorithm.address )
 
                 expect( algorithmName ).to.be.equal( "Linear" )
-                
+
             })
         })
-        
+
     })
 
     describe("get Pool Info", () => {
@@ -1583,7 +1583,7 @@ describe("MetaPools", function () {
             })
 
         })
-    
+
     })
 
     describe("init", () => {
@@ -1655,11 +1655,11 @@ describe("MetaPools", function () {
 
                 expect(nftBalance).to.be.equal( initialNFTs )
 
-                // check multiplier 
+                // check multiplier
 
                 expect(await pool.multiplier()).to.be.equal(ethers.utils.parseEther("0.5"))
 
-                // check startPrice 
+                // check startPrice
 
                 expect(await pool.startPrice()).to.be.equal(ethers.utils.parseEther("1"))
 
@@ -1699,11 +1699,11 @@ describe("MetaPools", function () {
 
                 expect(tokenBalance).to.be.equal(ethers.utils.parseEther("10"))
 
-                // check multiplier 
+                // check multiplier
 
                 expect(await pool.multiplier()).to.be.equal(ethers.utils.parseEther("1.5"))
 
-                // check startPrice 
+                // check startPrice
 
                 expect(await pool.startPrice()).to.be.equal(ethers.utils.parseEther("1"))
 
@@ -1748,11 +1748,11 @@ describe("MetaPools", function () {
 
                 expect(nftBalance).to.be.equal(10)
 
-                // check multiplier 
+                // check multiplier
 
                 expect(await pool.multiplier()).to.be.equal(ethers.utils.parseEther("0.5"))
 
-                // check startPrice 
+                // check startPrice
 
                 expect(await pool.startPrice()).to.be.equal(ethers.utils.parseEther("1"))
 
@@ -1918,9 +1918,9 @@ describe("MetaPools", function () {
                 const expectedOutput = getTokenOutput( "linearAlgorithm", 1, 0.5, 1 )
 
                 const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
-                
+
                 const feeCharged = parseEther( `${ expectedOutput * protocolFee }`)
-                
+
                 // in not trade pools all input assets will be sent to pool owner
 
                 expect(recipient).to.be.equal(owner.address)
@@ -1931,9 +1931,9 @@ describe("MetaPools", function () {
 
                 const tx = await pool.swapNFTsForToken([tokenIds[0]], minExpected, owner.address)
 
-                const reciept = await tx.wait()
+                const receipt = await tx.wait()
 
-                const gasUsed = reciept.gasUsed.mul( reciept.effectiveGasPrice )
+                const gasUsed = receipt.gasUsed.mul( receipt.effectiveGasPrice )
 
                 const ownerBalanceAfter = await owner.getBalance()
 
@@ -1942,13 +1942,13 @@ describe("MetaPools", function () {
                 const nftOwner = await nft.ownerOf(tokenIds[0])
 
                 // the balance after should be the amount out ( the amount out generated by de event
-                // is the amount out + protocol fee ) so we subtract it 
-                // also in the balance before we add the gas used in tx for more precition
+                // is the amount out + protocol fee ) so we subtract it
+                // also in the balance before we add the gas used in tx for more precision
 
                 expect(
                     ownerBalanceAfter.add(gasUsed)
                 ).to.be.equal(
-                    ownerBalanceBefore.add(amountOut.sub( feeCharged ))
+                    ownerBalanceBefore.add(amountOut)
                 )
 
                 expect(nftOwner).to.be.equal(recipient)
@@ -1959,40 +1959,42 @@ describe("MetaPools", function () {
 
             it("2. should pay the protocol fee", async () => {
 
-                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const minExpected = ethers.utils.parseEther("0.9")
 
-                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+                const { pool } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+
+                const NFTs = await mintNFT( nft, 1, pool, otherAccount)
 
                 const expectedOutput = getTokenOutput( "linearAlgorithm", 1, 0.5, 1 )
 
                 const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
-                
+
                 const feeCharged = parseEther( `${ expectedOutput * protocolFee }`)
-                
+
                 // in not trade pools all input assets will be sent to pool owner
 
                 const idsBefore = await pool.getNFTIds()
 
                 expect(idsBefore.length).to.be.equal(0)
 
-                const facotryBalanceBefore = await provider.getBalance( 
-                    await metaFactory.PROTOCOL_FEE_RECIPIENT() 
+                const factoryBalanceBefore = await provider.getBalance(
+                    await metaFactory.PROTOCOL_FEE_RECIPIENT()
                     )
 
-                await pool.swapNFTsForToken([tokenIds[0]], minExpected, owner.address)
+                await pool.connect(otherAccount).swapNFTsForToken([NFTs[0]], minExpected, otherAccount.address)
 
-                const facotryBalanceAfter = await provider.getBalance( 
-                    await metaFactory.PROTOCOL_FEE_RECIPIENT() 
+                const factoryBalanceAfter = await provider.getBalance(
+                    await metaFactory.PROTOCOL_FEE_RECIPIENT()
                     )
 
                 // check if the fee was sended to the protocol recipient
 
-                expect( 
-                    facotryBalanceBefore.add( feeCharged ) 
+                expect(
+                    factoryBalanceBefore.add( feeCharged )
                 ).to.be.equal(
-                    facotryBalanceAfter
+                    factoryBalanceAfter
                 )
 
             })
@@ -2134,7 +2136,7 @@ describe("MetaPools", function () {
                     { value: maxExpected }
                 )
 
-                const ownerBalanceAfer = await owner.getBalance()
+                const ownerBalanceAfter = await owner.getBalance()
 
                 const poolBalanceAfter = await provider.getBalance(pool.address)
 
@@ -2150,19 +2152,19 @@ describe("MetaPools", function () {
 
                 expect(getNumber(amountIn)).to.be.equal(expectedInput + (expectedInput * poolFee))
 
-                // verify if assets were send to the owne
+                // verify if assets were send to the owner
 
                 expect(
-                    ownerBalanceBefore.add(amountIn.sub( feeCharged ))
+                    ownerBalanceBefore.add(amountIn)
                 ).to.be.equal(
-                    ownerBalanceAfer
+                    ownerBalanceAfter
                 )
 
             })
 
             it("2. should should pay a fee", async () => {
 
-                const { metaFactory, nft, owner, cPAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const maxExpected = ethers.utils.parseEther("3")
 
@@ -2172,7 +2174,7 @@ describe("MetaPools", function () {
 
                 const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
 
-                const { pool, tokenIds } = await createPool(metaFactory, nft, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.buy, 0, 0)
+                const { pool, tokenIds } = await createPool(metaFactory, nft, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0, 0)
 
                 const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
 
@@ -2182,16 +2184,23 @@ describe("MetaPools", function () {
 
                 const recipientBalanceBefore = getNumber(await provider.getBalance(feeRecipient))
 
-                await pool.swapTokenForNFT(
+                await pool.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0], tokenIds[1]],
                     maxExpected,
-                    owner.address,
+                    otherAccount.address,
                     { value: maxExpected }
                 )
 
                 const recipientBalanceAfter = getNumber(await provider.getBalance(feeRecipient))
 
-                expect(expectedInput * fee).to.be.equal(recipientBalanceAfter - recipientBalanceBefore)
+                // the balance of the recipient must be the fee charged
+                // is rounded to handle possible precision errors
+
+                expect(
+                    roundNumber(recipientBalanceAfter - recipientBalanceBefore, 10000 )
+                ).to.be.equal(
+                    roundNumber(expectedInput * fee, 10000 )
+                )
 
             })
 
@@ -2336,7 +2345,7 @@ describe("MetaPools", function () {
 
                 const assetRecipiet = await pool.getAssetsRecipient()
 
-                const recipientBalanceBefore = getNumber(await provider.getBalance(assetRecipiet))
+                const recipientBalanceBefore = await provider.getBalance(assetRecipiet)
 
                 // check than pool have balance 0
 
@@ -2353,21 +2362,19 @@ describe("MetaPools", function () {
 
                 expect(await provider.getBalance(pool.address)).to.be.equal(0)
 
-                const ownerBalanceAfer = await owner.getBalance()
+                const ownerBalanceAfter = await owner.getBalance()
 
-                const recipientBalanceAfter = getNumber(await provider.getBalance(assetRecipiet))
+                const recipientBalanceAfter = await provider.getBalance(assetRecipiet)
 
                 const { amountIn } = await getEventLog(tx, "BuyLog")
 
                 const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
 
-                const feeCharged = parseEther( `${ expectedInput * protocolFee }`)
+                // check if input amount was sended to assets recipient ( only in not trade pools )
 
-                // check if input amount was sended to assets repient ( only in not trade pools )
+                expect( recipientBalanceAfter ).to.be.equal(  recipientBalanceBefore.add( amountIn ) )
 
-                expect(expectedInput).to.be.equal(recipientBalanceAfter - recipientBalanceBefore)
-
-                // check if the amount that came out is equal to what was expected
+                // check if the input amount is equal to what was expected
 
                 expect(getNumber(amountIn)).to.be.equal(expectedInput + (expectedInput * protocolFee))
 
@@ -2375,17 +2382,13 @@ describe("MetaPools", function () {
 
                 // in the amount in rest the protocol fee
 
-                expect(
-                    ownerBalanceBefore.add(amountIn.sub( feeCharged ))
-                ).to.be.equal(
-                    ownerBalanceAfer
-                )
+                expect( ownerBalanceBefore.add(amountIn) ).to.be.equal( ownerBalanceAfter )
 
             })
 
             it("2. should pay a protocol fee", async () => {
 
-                const { metaFactory, nft, owner, cPAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, owner, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const maxExpected = ethers.utils.parseEther("3")
 
@@ -2395,7 +2398,7 @@ describe("MetaPools", function () {
 
                 const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
 
-                const { pool } = await createPool(metaFactory, nft, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.buy, 0, 0)
+                const { pool } = await createPool(metaFactory, nft, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0, 10)
 
                 const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
 
@@ -2406,10 +2409,10 @@ describe("MetaPools", function () {
                 const recipientBalanceBefore = getNumber(await provider.getBalance(feeRecipient))
 
 
-                await pool.swapTokenForAnyNFT(
+                await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     2,
                     maxExpected,
-                    owner.address,
+                    otherAccount.address,
                     { value: maxExpected }
                 )
 
@@ -2417,7 +2420,11 @@ describe("MetaPools", function () {
 
                 // check if was sended to pool owner
 
-                expect(recipientBalanceAfter - recipientBalanceBefore).to.be.equal(expectedInput * fee)
+                expect(
+                    roundNumber(recipientBalanceAfter - recipientBalanceBefore, 1000000 )
+                ).to.be.equal(
+                    roundNumber(expectedInput * fee, 1000000 )
+                )
 
             })
 
