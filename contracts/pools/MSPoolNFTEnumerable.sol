@@ -11,18 +11,26 @@ import "./MSPoolBasic.sol";
 contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
     /// @notice send NFTs to the given address
-    /// @param _from NFTs owner address
     /// @param _to address to send the NFTs
     /// @param _tokenIDs NFTs to send
-    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal override {
+    function _sendOutputNFTs( address _to, uint[] memory _tokenIDs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 
+        uint balanceBefore = _NFT.balanceOf( _to );
+
         for (uint256 i = 0; i < _tokenIDs.length; i++) {
 
-            _NFT.safeTransferFrom(_from, _to, _tokenIDs[i]);
+            _NFT.safeTransferFrom(address( this ), _to, _tokenIDs[i]);
 
         }
+
+        uint balanceAfter = _NFT.balanceOf( _to );
+
+        require(
+            balanceBefore + _tokenIDs.length == balanceAfter,
+            "NFTs not sended"
+        );
 
     }
 
@@ -35,11 +43,20 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
         uint[] memory _tokenIds = getNFTIds();
 
+        uint balanceBefore = _NFT.balanceOf( _to );
+
         for (uint256 i = 0; i < _numNFTs; i++) {
 
             _NFT.safeTransferFrom( address( this ), _to, _tokenIds[i]);
 
         }
+
+        uint balanceAfter = _NFT.balanceOf( _to );
+
+        require(
+            balanceBefore + _numNFTs == balanceAfter,
+            "NFTs not sended"
+        );
 
     }
 

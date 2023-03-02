@@ -8,6 +8,7 @@ import "./PoolTypes.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 import "../interfaces/IMetaFactory.sol";
 import "../interfaces/IMSPool.sol";
+import "hardhat/console.sol";
 
 /// @title MSPoolBasic a basic pool template implementations
 /// @author JorgeLpzGnz & CarlosMario714
@@ -94,15 +95,17 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return protocolFee Fee charged in a trade
     function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) internal virtual returns ( 
             uint256 outputValue, 
-            uint256 protocolFee 
+            uint256 protocolFee,
+            uint128 newStartPrice,
+            uint128 newMultiplier
         ) 
     {
 
         bool isValid;
 
-        uint128 newStartPrice;
+        newStartPrice;
 
-        uint128 newMultiplier;
+        newMultiplier;
 
         (
             isValid, 
@@ -122,22 +125,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( outputValue >= _minExpected, "output amount is les than min expected" );
 
-        if( startPrice != newStartPrice ) {
-            
-            startPrice = newStartPrice;
-
-            emit NewStartPrice( newStartPrice );
-            
-        }
-
-        if( multiplier != newMultiplier ) { 
-            
-            multiplier = newMultiplier;
-
-            emit NewMultiplier( newMultiplier );
-            
-        }
-
     }
 
     /// @notice Returns the info to buy NFTs and updates the params
@@ -147,15 +134,13 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return protocolFee Fee charged in a trade
     function _getBuyNFTInfo( uint _numNFTs, uint _maxExpectedIn ) internal virtual returns ( 
             uint256 inputValue, 
-            uint256 protocolFee 
+            uint256 protocolFee,
+            uint128 newStartPrice,
+            uint128 newMultiplier
         ) 
     {
 
         bool isValid;
-
-        uint128 newStartPrice;
-
-        uint128 newMultiplier;
 
         (
             isValid, 
@@ -175,22 +160,50 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( inputValue <= _maxExpectedIn, "input amount is greater than max expected" );
 
-        if( startPrice != newStartPrice ) {
-            
-            startPrice = newStartPrice;
+    }
 
-            emit NewStartPrice( newStartPrice );
-            
-        }
+    function _updatePoolPriceParams( uint128 _newStartPrice, uint128 _newMultiplier ) private {
 
-        if( multiplier != newMultiplier ) {
+        if( startPrice != _newStartPrice ) {
             
-            multiplier = newMultiplier;
+            startPrice = _newStartPrice;
 
-            emit NewMultiplier( newMultiplier );
+            emit NewStartPrice( _newStartPrice );
             
         }
 
+        if( multiplier != _newMultiplier ) { 
+            
+            multiplier = _newMultiplier;
+
+            emit NewMultiplier( _newMultiplier );
+            
+        }
+
+    }
+
+    function _payProtocolFee( uint _protocolFee ) private {
+
+        if( _protocolFee > 0 ) {
+                
+            address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
+
+            if( _protocolFee > address( this ).balance ) {
+
+                _protocolFee = address( this ).balance;
+
+            }
+
+            if( _protocolFee > 0 ) {
+
+                ( bool isSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
+                
+                require( isSended, "tx error" );
+
+            }
+
+        }
+        
     }
 
     /// @notice send tokens to the given address and pay protocol fee
@@ -199,13 +212,22 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _to the address to send the tokens
     function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
 
-        address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
+        uint amountToSend = _amount - _protocolFee;
 
-        ( bool isFeeSended, ) = payable( feeRecipient ).call{value: _protocolFee}("");
+        uint balanceBefore = _to.balance;
 
-        ( bool isAmountSended, ) = payable( _to ).call{ value: _amount - _protocolFee }( "" );
+        ( bool isSended, ) = payable( _to ).call{ value: amountToSend }( "" );
 
-        require( isAmountSended && isFeeSended, "tx error" );
+        uint balanceAfter = _to.balance;
+
+        _payProtocolFee( _protocolFee );
+
+        require( isSended, "tx error" );
+
+        require( 
+            balanceBefore + amountToSend == balanceAfter,
+            "Tokens not Sended"
+        );
 
     }
 
@@ -215,6 +237,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
 
         require( msg.value >= _inputAmount, "insufficient amount of ETH" );
+
+        // receive the tokens
 
         address _recipient = getAssetsRecipient();
 
@@ -226,19 +250,58 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         }
 
-        address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
+        // send the protocol fee to protocol fee recipient
 
-        ( bool isFeeSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
+        _payProtocolFee( _protocolFee );
 
-        require( isFeeSended, "tx error");
+    }
+
+    /// @notice Return Remaining value to user
+    /// @param _inputAmount Amount of tokens that input to the pool
+    function _returnRemainigValue( uint _inputAmount ) private {
+        
+        // If the user sent more tokens than necessary, they are returned
+
+        if ( msg.value > _inputAmount ) {
+
+            ( bool isSended, ) = payable( msg.sender ).call{ value: msg.value - _inputAmount }("");
+            
+            require( isSended, "tx error" );
+            
+        }
+
+    }
+
+    /// @notice Transfer NFTs from user to assets recipient
+    /// @param _from NFTs owner address
+    /// @param _tokenIDs NFTs to send
+    function _receiveNFTs( address _from, uint[] memory _tokenIDs ) private {
+
+        IERC721 _NFT = IERC721( NFT );
+
+        address _recipient = getAssetsRecipient();
+
+        uint balanceBefore = _NFT.balanceOf( _recipient );
+
+        for (uint256 i = 0; i < _tokenIDs.length; i++) {
+
+            _NFT.safeTransferFrom(_from, _recipient, _tokenIDs[i]);
+
+        }
+
+        uint balanceAfter = _NFT.balanceOf( _recipient );
+
+        require( 
+            balanceBefore + _tokenIDs.length == balanceAfter,
+            "NFTs not received"
+        );
 
     }
 
     /// @notice send NFTs to the given address
-    /// @param _from NFTs owner address
     /// @param _to address to send the NFTs
     /// @param _tokenIDs NFTs to send
-    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal virtual;
+    function _sendOutputNFTs( address _to, uint[] memory _tokenIDs ) internal virtual;
 
     /// @notice send NFTs from the pool to the given address
     /// @param _to address to send the NFTs
@@ -474,15 +537,30 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( address( this ).balance >= _minExpected, "insufficient token balance");
 
+        // update ( is this require needed )
+
+        require( _user != address( this ), "The pool cannot sell itself" );
+
         uint256 protocolFee;
 
-        ( outputAmount, protocolFee ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
+        uint128 newStartPrice;
 
-        address _recipient = getAssetsRecipient();
+        uint128 newMultiplier;
 
-        _sendNFTsTo( _user, _recipient, _tokenIDs );
+        ( 
+            outputAmount, 
+            protocolFee, 
+            newStartPrice,
+            newMultiplier
+        ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
+
+        // receive NFTs and send Tokens
+
+        _receiveNFTs( _user, _tokenIDs );
 
         _sendTokensAndPayFee( protocolFee, outputAmount, _user );
+
+        _updatePoolPriceParams( newStartPrice, newMultiplier );
 
         emit SellLog( _user, _tokenIDs.length, outputAmount );
 
@@ -502,21 +580,31 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             "Insufficient NFT balance" 
         );
 
+        require( _user != address( this ), "The pool cannot buy itself" );
+
+
         uint protocolFee;
 
-        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _tokenIDs.length, _maxExpectedIn );
+        uint128 newStartPrice;
+
+        uint128 newMultiplier;
+
+        ( 
+            inputAmount, 
+            protocolFee,
+            newStartPrice,
+            newMultiplier
+        ) = _getBuyNFTInfo( _tokenIDs.length, _maxExpectedIn );
+
+        // recieve tokens and send NFTs
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
-        _sendNFTsTo( address( this ), _user, _tokenIDs );
+        _sendOutputNFTs( _user, _tokenIDs );
 
-        if ( msg.value > inputAmount ) {
+        _updatePoolPriceParams( newStartPrice, newMultiplier );
 
-            ( bool isSended , ) = payable( _user ).call{ value: msg.value - inputAmount }("");
-            
-            require( isSended, "tx error" );
-            
-        }
+        _returnRemainigValue( inputAmount );
 
         emit BuyLog( _user, inputAmount, _tokenIDs.length);
         
@@ -536,21 +624,30 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             "Insufficient NFT balance" 
         );
 
+        require( _user != address( this ), "The pool cannot buy itself" );
+
         uint protocolFee;
 
-        ( inputAmount, protocolFee ) = _getBuyNFTInfo( _numNFTs, _maxExpectedIn );
+        uint128 newStartPrice;
+
+        uint128 newMultiplier;
+
+        ( 
+            inputAmount, 
+            protocolFee,
+            newStartPrice,
+            newMultiplier
+        ) = _getBuyNFTInfo( _numNFTs, _maxExpectedIn );
+
+        // recieve tokens and send NFTs
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
         _sendAnyOutNFTs( _user, _numNFTs );
 
-        if ( msg.value > inputAmount ) {
+        _updatePoolPriceParams( newStartPrice, newMultiplier );
 
-            ( bool isSended , ) = payable( _user ).call{ value: msg.value - inputAmount }("");
-            
-            require( isSended, "tx error" );
-            
-        }
+        _returnRemainigValue( inputAmount );
 
         emit BuyLog( _user, inputAmount, _numNFTs);
         

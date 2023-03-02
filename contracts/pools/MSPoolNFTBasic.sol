@@ -17,26 +17,30 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
     uint[] private _TOKEN_IDS;
 
     /// @notice send NFTs to the given address
-    /// @param _from NFTs owner address
     /// @param _to address to send the NFTs
     /// @param _tokenIDs NFTs to send
-    function _sendNFTsTo( address _from, address _to, uint[] memory _tokenIDs ) internal override {
+    function _sendOutputNFTs( address _to, uint[] memory _tokenIDs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 
+        uint balanceBefore = _NFT.balanceOf( _to );
+
         for (uint256 i = 0; i < _tokenIDs.length; i++) {
 
-            _NFT.safeTransferFrom(_from, _to, _tokenIDs[i]);
+            _NFT.safeTransferFrom( address( this ), _to, _tokenIDs[i]);
 
-            if( _from == address( this ) && _TOKEN_IDS.includes( _tokenIDs[i] ) ) {
+            uint tokenIndex = _TOKEN_IDS.indexOf( _tokenIDs[i] );
 
-                uint tokenIndex = _TOKEN_IDS.indexOf( _tokenIDs[i] );
-
-                require(_TOKEN_IDS.remove( tokenIndex ), "Unknown tokenID" );
-
-            }
+            _TOKEN_IDS.remove( tokenIndex );
 
         }
+
+        uint balanceAfter = _NFT.balanceOf( _to );
+
+        require(
+            balanceBefore + _tokenIDs.length == balanceAfter,
+            "NFTs not sended"
+        );
 
     }
 
@@ -49,15 +53,24 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
         uint[] memory NFTs = getNFTIds();
 
+        uint balanceBefore = _NFT.balanceOf( _to );
+
         for (uint256 i = 0; i < _numNFTs; i++) {
 
             _NFT.safeTransferFrom( address( this ), _to, NFTs[i]);
 
             uint index = _TOKEN_IDS.indexOf( NFTs[i] );
 
-            require(_TOKEN_IDS.remove( index ), "NFT transfer error" );
+            _TOKEN_IDS.remove( index );
 
         }
+
+        uint balanceAfter = _NFT.balanceOf( _to );
+
+        require(
+            balanceBefore + _numNFTs == balanceAfter,
+            "NFTs not sended"
+        );
 
     }
 
@@ -92,7 +105,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
                 poolNFT.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
-                require( _TOKEN_IDS.remove( _TOKEN_IDS.indexOf(_nftIds[i]) ), "NFT transfer error");
+                _TOKEN_IDS.remove( _TOKEN_IDS.indexOf(_nftIds[i]) );
 
             }
 

@@ -1191,7 +1191,7 @@ describe("MetaPools", function () {
 
             it("1. prove Not NFT Enumerable IDs array updating", async () => {
 
-                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const startPrice = 5
 
@@ -1203,8 +1203,7 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, linearAlgorithm, poolType.trade, 0.1, tokenAmount)
 
-                const ownerNFTs = await mintNFT(nft, 5, pool)
-
+                const userNFTs = await mintNFT(nft, 5, pool, otherAccount)
 
                 // update ( use getNumberForBNArray ? for BN Array )
 
@@ -1216,32 +1215,32 @@ describe("MetaPools", function () {
                     tokenIds
                 )
 
-                await pool.swapNFTsForToken(
-                    ownerNFTs,
+                await pool.connect( otherAccount ).swapNFTsForToken(
+                    userNFTs,
                     0,
-                    owner.address
+                    otherAccount.address
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(ownerNFTs))
+                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(userNFTs))
 
-                await pool.swapTokenForNFT(
+                await pool.connect( otherAccount ).swapTokenForNFT(
                     tokenIds,
                     parseEther("100"),
-                    owner.address,
+                    otherAccount.address,
                     { value: parseEther("100") }
                 )
 
                 // check that poolNFTs are equal to current NFTs - swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(ownerNFTs)
+                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(userNFTs)
 
             })
 
             it("2. prove NFT Enumerable IDs array updating", async () => {
 
-                const { metaFactory, NFTEnumerable, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const startPrice = 5
 
@@ -1253,7 +1252,7 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, numItems, startPrice, multiplier, linearAlgorithm, poolType.trade, 0.1, tokenAmount)
 
-                const ownerNFTs = await mintNFT(NFTEnumerable, 5, pool)
+                const userNFTs = await mintNFT(NFTEnumerable, 5, pool, otherAccount)
 
                 // pool must have the initial NFTs
 
@@ -1263,26 +1262,26 @@ describe("MetaPools", function () {
                     tokenIds
                 )
 
-                await pool.swapNFTsForToken(
-                    ownerNFTs,
+                await pool.connect( otherAccount ).swapNFTsForToken(
+                    userNFTs,
                     0,
-                    owner.address
+                    otherAccount.address
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(ownerNFTs))
+                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(userNFTs))
 
-                await pool.swapTokenForNFT(
+                await pool.connect( otherAccount ).swapTokenForNFT(
                     tokenIds,
                     parseEther("100"),
-                    owner.address,
+                    otherAccount.address,
                     { value: parseEther("100") }
                 )
 
                 // check that poolNFTs are equal to current NFTs - swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(ownerNFTs)
+                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(userNFTs)
 
             })
 
@@ -1332,7 +1331,7 @@ describe("MetaPools", function () {
 
             it("5. prove Not NFT Enumerable IDs array updating ( IN ANY NFT SWAP )", async () => {
 
-                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, owner, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const startPrice = 5
 
@@ -1344,7 +1343,7 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, linearAlgorithm, poolType.trade, 0.1, tokenAmount)
 
-                const ownerNFTs = await mintNFT(nft, 5, pool)
+                const userNFTs = await mintNFT( nft, 5, pool, otherAccount )
 
                 // pool must have the initial NFTs
 
@@ -1354,32 +1353,32 @@ describe("MetaPools", function () {
                     tokenIds
                 )
 
-                await pool.swapNFTsForToken(
-                    ownerNFTs,
+                await pool.connect( otherAccount ).swapNFTsForToken(
+                    userNFTs,
                     0,
-                    owner.address
+                    otherAccount.address
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(ownerNFTs))
+                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(userNFTs))
 
-                await pool.swapTokenForAnyNFT(
+                await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     tokenIds.length,
                     parseEther("100"),
-                    owner.address,
+                    otherAccount.address,
                     { value: parseEther("100") }
                 )
 
                 // check that poolNFTs are equal to current NFTs - swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(ownerNFTs)
+                expect(getNumberForBNArray(await pool.getNFTIds()).sort()).to.deep.equal(userNFTs)
 
             })
 
             it("6. prove NFT Enumerable IDs array updating ( IN ANY NFT SWAP )", async () => {
 
-                const { metaFactory, NFTEnumerable, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const startPrice = 5
 
@@ -1391,7 +1390,7 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, numItems, startPrice, multiplier, linearAlgorithm, poolType.trade, 0.1, tokenAmount)
 
-                const ownerNFTs = await mintNFT(NFTEnumerable, 5, pool)
+                const userNFTs = await mintNFT(NFTEnumerable, 5, pool, otherAccount)
 
                 // pool must have
 
@@ -1401,26 +1400,26 @@ describe("MetaPools", function () {
                     tokenIds
                 )
 
-                await pool.swapNFTsForToken(
-                    ownerNFTs,
+                await pool.connect( otherAccount ).swapNFTsForToken(
+                    userNFTs,
                     0,
-                    owner.address
+                    otherAccount.address
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(ownerNFTs))
+                expect(getNumberForBNArray(await pool.getNFTIds())).to.deep.equal(tokenIds.concat(userNFTs))
 
-                await pool.swapTokenForAnyNFT(
+                await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     tokenIds.length,
                     parseEther("100"),
-                    owner.address,
+                    otherAccount.address,
                     { value: parseEther("100") }
                 )
 
                 // check that poolNFTs are equal to current NFTs - swap NFTs
 
-                expect(getNumberForBNArray(await pool.getNFTIds() ).sort()).to.deep.equal(ownerNFTs)
+                expect(getNumberForBNArray(await pool.getNFTIds() ).sort()).to.deep.equal(userNFTs)
 
             })
 
@@ -1905,20 +1904,22 @@ describe("MetaPools", function () {
 
             it("1. should swap NFTs to token", async () => {
 
-                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, owner, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const minExpected = ethers.utils.parseEther("0.9")
 
-                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+                const { pool } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+
+                const userNFTs = await mintNFT( nft, 3, pool, otherAccount )
 
                 const recipient = await pool.getAssetsRecipient()
 
                 const idsBefore = await pool.getNFTIds()
 
                 const expectedOutput = getTokenOutput( "linearAlgorithm", 1, 0.5, 1 )
-
+    
                 const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
-
+    
                 const feeCharged = parseEther( `${ expectedOutput * protocolFee }`)
 
                 // in not trade pools all input assets will be sent to pool owner
@@ -1927,28 +1928,28 @@ describe("MetaPools", function () {
 
                 expect(idsBefore.length).to.be.equal(0)
 
-                const ownerBalanceBefore = await owner.getBalance()
+                const userBalanceBefore = await otherAccount.getBalance()
 
-                const tx = await pool.swapNFTsForToken([tokenIds[0]], minExpected, owner.address)
+                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, otherAccount.address )
 
                 const receipt = await tx.wait()
 
                 const gasUsed = receipt.gasUsed.mul( receipt.effectiveGasPrice )
 
-                const ownerBalanceAfter = await owner.getBalance()
+                const userBalanceAfter = await otherAccount.getBalance()
 
                 const { amountOut } = await getEventLog(tx, "SellLog")
 
-                const nftOwner = await nft.ownerOf(tokenIds[0])
+                const nftOwner = await nft.ownerOf(userNFTs[0])
 
                 // the balance after should be the amount out ( the amount out generated by de event
                 // is the amount out + protocol fee ) so we subtract it
                 // also in the balance before we add the gas used in tx for more precision
 
                 expect(
-                    ownerBalanceAfter.add(gasUsed)
+                    userBalanceAfter.add(gasUsed)
                 ).to.be.equal(
-                    ownerBalanceBefore.add(amountOut)
+                    userBalanceBefore.add(amountOut.sub(feeCharged))
                 )
 
                 expect(nftOwner).to.be.equal(recipient)
@@ -1984,6 +1985,104 @@ describe("MetaPools", function () {
                     )
 
                 await pool.connect(otherAccount).swapNFTsForToken([NFTs[0]], minExpected, otherAccount.address)
+
+                const factoryBalanceAfter = await provider.getBalance(
+                    await metaFactory.PROTOCOL_FEE_RECIPIENT()
+                    )
+
+                // check if the fee was sended to the protocol recipient
+
+                expect(
+                    factoryBalanceBefore.add( feeCharged )
+                ).to.be.equal(
+                    factoryBalanceAfter
+                )
+
+            })
+
+            it("3. should swap NFTs to token ( Enumerable Test )", async () => {
+
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner, otherAccount } = await loadFixture(deployMetaFactory)
+
+                const minExpected = ethers.utils.parseEther("0.9")
+
+                const { pool } = await createPool(metaFactory, NFTEnumerable, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+
+                const userNFTs = await mintNFT( NFTEnumerable, 3, pool, otherAccount )
+
+                const recipient = await pool.getAssetsRecipient()
+
+                const idsBefore = await pool.getNFTIds()
+
+                const expectedOutput = getTokenOutput( "linearAlgorithm", 1, 0.5, 1 )
+    
+                const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
+    
+                const feeCharged = parseEther( `${ expectedOutput * protocolFee }`)
+
+                // in not trade pools all input assets will be sent to pool owner
+
+                expect(recipient).to.be.equal(owner.address)
+
+                expect(idsBefore.length).to.be.equal(0)
+
+                const userBalanceBefore = await otherAccount.getBalance()
+
+                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, otherAccount.address )
+
+                const receipt = await tx.wait()
+
+                const gasUsed = receipt.gasUsed.mul( receipt.effectiveGasPrice )
+
+                const userBalanceAfter = await otherAccount.getBalance()
+
+                const { amountOut } = await getEventLog(tx, "SellLog")
+
+                const nftOwner = await NFTEnumerable.ownerOf(userNFTs[0])
+
+                // the balance after should be the amount out ( the amount out generated by de event
+                // is the amount out + protocol fee ) so we subtract it
+                // also in the balance before we add the gas used in tx for more precision
+
+                expect(
+                    userBalanceAfter.add(gasUsed)
+                ).to.be.equal(
+                    userBalanceBefore.add(amountOut.sub(feeCharged))
+                )
+
+                expect(nftOwner).to.be.equal(recipient)
+
+                // check if the fee was sended to the protocol recipient
+
+            })
+
+            it("4. should pay the protocol fee ( Enumerable Test )", async () => {
+
+                const { metaFactory, NFTEnumerable, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+
+                const minExpected = ethers.utils.parseEther("0.9")
+
+                const { pool } = await createPool(metaFactory, NFTEnumerable, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+
+                const userNFTs = await mintNFT( NFTEnumerable, 1, pool, otherAccount)
+
+                const expectedOutput = getTokenOutput( "linearAlgorithm", 1, 0.5, 1 )
+
+                const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
+
+                const feeCharged = parseEther( `${ expectedOutput * protocolFee }`)
+
+                // in not trade pools all input assets will be sent to pool owner
+
+                const idsBefore = await pool.getNFTIds()
+
+                expect(idsBefore.length).to.be.equal(0)
+
+                const factoryBalanceBefore = await provider.getBalance(
+                    await metaFactory.PROTOCOL_FEE_RECIPIENT()
+                    )
+
+                await pool.connect(otherAccount).swapNFTsForToken([userNFTs[0]], minExpected, otherAccount.address)
 
                 const factoryBalanceAfter = await provider.getBalance(
                     await metaFactory.PROTOCOL_FEE_RECIPIENT()
@@ -2204,6 +2303,103 @@ describe("MetaPools", function () {
 
             })
 
+            it("3. should swap a amount of tokens ( NFT Enumerable Test )", async () => {
+
+                const { metaFactory, NFTEnumerable, owner, otherAccount, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                const maxExpected = ethers.utils.parseEther("1.6")
+
+                const startPrice = 1
+
+                const multiplier = 1.5
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, startPrice, multiplier, exponentialAlgorithm, poolType.buy, 0, 0)
+
+                const expectedInput = getTokenInput("exponentialAlgorithm", startPrice, multiplier, 1)
+
+                const poolFee = getNumber(await metaFactory.PROTOCOL_FEE())
+
+                const ownerBalanceBefore = await owner.getBalance()
+
+                const poolBalanceBefore = await provider.getBalance(pool.address)
+
+                expect(poolBalanceBefore).to.be.equal(0)
+
+                const tx = await pool.connect(otherAccount).swapTokenForNFT(
+                    [tokenIds[0]],
+                    maxExpected,
+                    otherAccount.address,
+                    { value: maxExpected }
+                )
+
+                const ownerBalanceAfter = await owner.getBalance()
+
+                const poolBalanceAfter = await provider.getBalance(pool.address)
+
+                const { amountIn } = await getEventLog(tx, "BuyLog")
+
+                const feeCharged = parseEther( `${ expectedInput * poolFee }`)
+
+                // check than after pool swap in not trade pools the pool dont keep any asset
+
+                expect(poolBalanceAfter).to.be.equal(0)
+
+                // check if the amount that came out is equal to what was expected
+
+                expect(getNumber(amountIn)).to.be.equal(expectedInput + (expectedInput * poolFee))
+
+                // verify if assets were send to the owner
+
+                expect(
+                    ownerBalanceBefore.add(amountIn)
+                ).to.be.equal(
+                    ownerBalanceAfter
+                )
+
+            })
+
+            it("4. should should pay a fee ( NFT Enumerable Test )", async () => {
+
+                const { metaFactory, NFTEnumerable, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+
+                const maxExpected = ethers.utils.parseEther("3")
+
+                const nftAmount = 10
+
+                const startPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0, 0)
+
+                const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
+
+                const fee = getNumber(await metaFactory.PROTOCOL_FEE())
+
+                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const recipientBalanceBefore = getNumber(await provider.getBalance(feeRecipient))
+
+                await pool.connect(otherAccount).swapTokenForNFT(
+                    [tokenIds[0], tokenIds[1]],
+                    maxExpected,
+                    otherAccount.address,
+                    { value: maxExpected }
+                )
+
+                const recipientBalanceAfter = getNumber(await provider.getBalance(feeRecipient))
+
+                // the balance of the recipient must be the fee charged
+                // is rounded to handle possible precision errors
+
+                expect(
+                    roundNumber(recipientBalanceAfter - recipientBalanceBefore, 10000 )
+                ).to.be.equal(
+                    roundNumber(expectedInput * fee, 10000 )
+                )
+
+            })
+
         })
 
     })
@@ -2388,7 +2584,7 @@ describe("MetaPools", function () {
 
             it("2. should pay a protocol fee", async () => {
 
-                const { metaFactory, nft, owner, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const maxExpected = ethers.utils.parseEther("3")
 
@@ -2441,6 +2637,154 @@ describe("MetaPools", function () {
                 const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
 
                 const { pool } = await createPool(metaFactory, nft, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0.1, 10)
+
+                const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
+
+                const feeRecipient = await pool.getAssetsRecipient()
+
+                const tradeFee = getNumber(await pool.tradeFee())
+
+                // in trade pool assents recipient should be the same address than the pool
+
+                expect(feeRecipient).to.be.equal(pool.address)
+
+                const recipientBalanceBefore = getNumber(await provider.getBalance(feeRecipient))
+
+                await pool.swapTokenForAnyNFT(
+                    2,
+                    maxExpected,
+                    owner.address,
+                    { value: maxExpected }
+                )
+
+                const recipientBalanceAfter = getNumber(await provider.getBalance(feeRecipient))
+
+                // check if current balance is equal to the amount puls trade fee
+
+                // is multiplied by 1000 to handle javaScript precition errors and the divided
+
+                expect(
+                    ((recipientBalanceAfter * 1000) - (recipientBalanceBefore * 1000)) / 1000
+                ).to.be.equal(
+                    expectedInput + (expectedInput * tradeFee)
+                )
+
+            })
+
+            it("4. should swap a amount of tokens ( Enumerable Test ) ", async () => {
+
+                const { metaFactory, NFTEnumerable, owner, otherAccount, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                const maxExpected = ethers.utils.parseEther("1.6")
+
+                const startPrice = 1
+
+                const multiplier = 1.5
+
+                const { pool } = await createPool(metaFactory, NFTEnumerable, 10, startPrice, multiplier, exponentialAlgorithm, poolType.buy, 0, 0)
+
+                const expectedInput = getTokenInput("exponentialAlgorithm", startPrice, multiplier, 1)
+
+                const ownerBalanceBefore = await owner.getBalance()
+
+                const assetRecipiet = await pool.getAssetsRecipient()
+
+                const recipientBalanceBefore = await provider.getBalance(assetRecipiet)
+
+                // check than pool have balance 0
+
+                expect(await provider.getBalance(pool.address)).to.be.equal(0)
+
+                const tx = await pool.connect(otherAccount).swapTokenForAnyNFT(
+                    1,
+                    maxExpected,
+                    otherAccount.address,
+                    { value: maxExpected }
+                )
+
+                // check than pool keeps balance 0
+
+                expect(await provider.getBalance(pool.address)).to.be.equal(0)
+
+                const ownerBalanceAfter = await owner.getBalance()
+
+                const recipientBalanceAfter = await provider.getBalance(assetRecipiet)
+
+                const { amountIn } = await getEventLog(tx, "BuyLog")
+
+                const protocolFee = getNumber(await metaFactory.PROTOCOL_FEE())
+
+                // check if input amount was sended to assets recipient ( only in not trade pools )
+
+                expect( recipientBalanceAfter ).to.be.equal(  recipientBalanceBefore.add( amountIn ) )
+
+                // check if the input amount is equal to what was expected
+
+                expect(getNumber(amountIn)).to.be.equal(expectedInput + (expectedInput * protocolFee))
+
+                // check if amount In was sended to pool assets recipient ( only for not trade pools )
+
+                // in the amount in rest the protocol fee
+
+                expect( ownerBalanceBefore.add(amountIn) ).to.be.equal( ownerBalanceAfter )
+
+            })
+
+            it("5. should pay a protocol fee ( Enumerable Test ) ", async () => {
+
+                const { metaFactory, NFTEnumerable, cPAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+
+                const maxExpected = ethers.utils.parseEther("3")
+
+                const nftAmount = 10
+
+                const startPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pool } = await createPool(metaFactory, NFTEnumerable, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0, 10)
+
+                const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
+
+                const fee = getNumber(await metaFactory.PROTOCOL_FEE())
+
+                const feeRecipient = await metaFactory.PROTOCOL_FEE_RECIPIENT()
+
+                const recipientBalanceBefore = getNumber(await provider.getBalance(feeRecipient))
+
+
+                await pool.connect( otherAccount ).swapTokenForAnyNFT(
+                    2,
+                    maxExpected,
+                    otherAccount.address,
+                    { value: maxExpected }
+                )
+
+                const recipientBalanceAfter = getNumber(await provider.getBalance(feeRecipient))
+
+                // check if was sended to pool owner
+
+                expect(
+                    roundNumber(recipientBalanceAfter - recipientBalanceBefore, 1000000 )
+                ).to.be.equal(
+                    roundNumber(expectedInput * fee, 1000000 )
+                )
+
+            })
+
+            it("6. should should pay a pool fee ( Enumerable Test ) ", async () => {
+
+                const { metaFactory, NFTEnumerable, owner, cPAlgorithm } = await loadFixture(deployMetaFactory)
+
+                const maxExpected = ethers.utils.parseEther("3.0525")
+
+                const nftAmount = 10
+
+                const startPrice = nftAmount + 1 // token balance ( nftAmount + 1)
+
+                const multiplier = nftAmount * 1   // nft balance ( nftAmount * startPrice )
+
+                const { pool } = await createPool(metaFactory, NFTEnumerable, nftAmount, startPrice, multiplier, cPAlgorithm, poolType.trade, 0.1, 10)
 
                 const expectedInput = getTokenInput("cPAlgorithm", startPrice, multiplier, 2)
 
@@ -2650,11 +2994,13 @@ describe("MetaPools", function () {
 
             it("SellLog", async () => {
 
-                const { metaFactory, owner, nft, linearAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
                 const minExpected = ethers.utils.parseEther("0.9")
 
-                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 10, 0.5, linearAlgorithm, poolType.sell, 0, 77.5)
+                const { pool } = await createPool(metaFactory, nft, 10, 10, 0.5, linearAlgorithm, poolType.sell, 0, 77.5)
+
+                const userNFTs = await mintNFT( nft, 10, pool, otherAccount )
 
                 const expectedOutputWithoutFee = getTokenOutput("linearAlgorithm", 10, 0.5, 10)
 
@@ -2663,13 +3009,13 @@ describe("MetaPools", function () {
                 const expextedOut = expectedOutputWithoutFee - (expectedOutputWithoutFee * protocolFee)
 
                 await expect(
-                    pool.swapNFTsForToken(
-                        tokenIds,
+                    pool.connect( otherAccount ).swapNFTsForToken(
+                        userNFTs,
                         minExpected,
-                        owner.address
+                        otherAccount.address
                     )
                 ).to.emit(pool, "SellLog")
-                    .withArgs(owner.address, tokenIds.length, parseEther(`${expextedOut}`))
+                    .withArgs(otherAccount.address, userNFTs.length, parseEther(`${expextedOut}`))
 
             })
 
@@ -2701,9 +3047,11 @@ describe("MetaPools", function () {
 
             it("NewStartPrice", async () => {
 
-                const { metaFactory, nft, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
-                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+                const { pool } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.sell, 0, 10)
+
+                const userNFTs = await mintNFT( nft, 10, pool, otherAccount )
 
                 const newStartPrice = parseEther("0.5")
 
@@ -2717,10 +3065,10 @@ describe("MetaPools", function () {
                 // in a sell in linear algorithm should change the start price
 
                 await expect(
-                    pool.swapNFTsForToken(
-                        [tokenIds[0]],
+                    pool.connect( otherAccount ).swapNFTsForToken(
+                        [userNFTs[0]],
                         0,
-                        owner.address
+                        otherAccount.address
                     )
                 ).to.emit(pool, "NewStartPrice")
 

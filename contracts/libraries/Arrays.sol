@@ -39,16 +39,13 @@ library Arrays {
     /// @dev to remove the element, just take the last item in
     /// the array and set it to the index of the item to be removed,
     /// then remove the last item
-    /// @return true if the element was deleted
-    function remove( uint[] storage array, uint index ) internal returns( bool ) {
+    function remove( uint[] storage array, uint index ) internal{
 
-        if ( index > array.length - 1 ) return false;
+        require( index <= array.length - 1, "Can't delete a non-existent element" );
 
         array[ index ] = array[ array.length - 1 ];
 
         array.pop();
-
-        return true;
 
     }
 
