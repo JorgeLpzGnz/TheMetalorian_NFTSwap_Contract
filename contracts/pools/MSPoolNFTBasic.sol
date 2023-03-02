@@ -97,6 +97,8 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
     /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external override onlyOwner {
 
+        require( _nft.balanceOf( address( this ) ) >= _nftIds.length, "Insufficient NFT balance");
+
         IERC721 poolNFT = IERC721( NFT );
 
         if( _nft == poolNFT ){

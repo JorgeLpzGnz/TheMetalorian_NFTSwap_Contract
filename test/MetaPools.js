@@ -2888,29 +2888,45 @@ describe("MetaPools", function () {
 
     })
 
-    describe("withdraw NFTs", () => {
+    describe("withdraw NFTs ( not emerable pair )", () => {
 
         describe(" - Errors", () => {
 
             it("1. should fail if a not owner tries to withdraw", async () => {
 
-                const { metaFactory, NFTEnumerable, exponentialAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, exponentialAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
-                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.buy, 0, 0)
+                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 4, 1.1, exponentialAlgorithm, poolType.buy, 0, 0)
 
-                expect(pool.connect(otherAccount).withdrawNFTs(NFTEnumerable.address, tokenIds)).to.be.reverted
+                expect(pool.connect(otherAccount).withdrawNFTs(nft.address, tokenIds)).to.be.reverted
 
             })
 
             it("2. should fail if pool doesn't have the NFTs", async () => {
 
-                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, nft, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 // the pool is type token so in the initial time it doesn't have NFTs
 
-                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.sell, 0, 0)
+                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 4, 1.1, exponentialAlgorithm, poolType.sell, 0, 0)
 
-                expect(pool.withdrawNFTs(NFTEnumerable.address, tokenIds)).to.be.reverted
+                expect(pool.withdrawNFTs(nft.address, tokenIds)).to.be.reverted
+
+            })
+
+            it("3. Should fail if pool has insufficient founds", async () => {
+
+                const { metaFactory, nft, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                // the pool is type token so in the initial time it doesn't have NFTs
+
+                const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 4, 1.1, exponentialAlgorithm, poolType.sell, 0, 0)
+
+                // add aditional NFT to generade the error
+
+                tokenIds.push( 1 )
+
+                expect(pool.withdrawNFTs(nft.address, tokenIds)).to.be.revertedWith( "Insufficient NFT balance" )
 
             })
 
@@ -2951,7 +2967,57 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. should withdraw Enumerable NFTs", async () => {
+        })
+
+    })
+
+    describe("withdraw NFTs ( Enumarable NFT Pool )", () => {
+
+        describe(" - Errors", () => {
+
+            it("1. should fail if a not owner tries to withdraw", async () => {
+
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.buy, 0, 0)
+
+                expect(pool.connect(otherAccount).withdrawNFTs(NFTEnumerable.address, tokenIds)).to.be.reverted
+
+            })
+
+            it("2. should fail if pool doesn't have the NFTs", async () => {
+
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                // the pool is type token so in the initial time it doesn't have NFTs
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.sell, 0, 0)
+
+                expect(pool.withdrawNFTs(NFTEnumerable.address, tokenIds)).to.be.reverted
+
+            })
+
+            it("3. Should fail if pool has insufficient founds", async () => {
+
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+
+                // the pool is type token so in the initial time it doesn't have NFTs
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.sell, 0, 0)
+
+                // add aditional NFT to generade the error
+
+                tokenIds.push( 1 )
+
+                expect(pool.withdrawNFTs(NFTEnumerable.address, tokenIds)).to.be.revertedWith( "Insufficient NFT balance" )
+
+            })
+
+        })
+
+        describe(" - Functionalities", () => {
+
+            it("1. should withdraw Enumerable NFTs", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm, owner } = await loadFixture(deployMetaFactory)
 
