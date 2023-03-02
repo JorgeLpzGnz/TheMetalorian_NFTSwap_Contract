@@ -181,6 +181,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
+    /*************************************************************************/
+    /************************** TRANSFER FUNCTIONS ***************************/
+
     /// @notice Pay the protocol fee charged per trade
     /// @param _protocolFee Amount of tokens to Send to protocol recipient
     function _payProtocolFee( uint _protocolFee ) private {
@@ -207,7 +210,49 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         
     }
 
-    /// @notice send tokens to the given address and pay protocol fee
+    /// @notice Return Remaining value to user
+    /// @param _inputAmount Amount of tokens that input to the pool
+    function _returnRemainigValue( uint _inputAmount ) private {
+        
+        // If the user sent more tokens than necessary, they are returned
+
+        if ( msg.value > _inputAmount ) {
+
+            ( bool isSended, ) = payable( msg.sender ).call{ value: msg.value - _inputAmount }("");
+            
+            require( isSended, "tx error" );
+            
+        }
+
+    }
+
+    /// @notice Receive NFTs from user
+    /// @param _from NFTs owner address
+    /// @param _tokenIDs NFTs to send
+    function _receiveNFTs( address _from, uint[] memory _tokenIDs ) private {
+
+        IERC721 _NFT = IERC721( NFT );
+
+        address _recipient = getAssetsRecipient();
+
+        uint balanceBefore = _NFT.balanceOf( _recipient );
+
+        for (uint256 i = 0; i < _tokenIDs.length; i++) {
+
+            _NFT.safeTransferFrom(_from, _recipient, _tokenIDs[i]);
+
+        }
+
+        uint balanceAfter = _NFT.balanceOf( _recipient );
+
+        require( 
+            balanceBefore + _tokenIDs.length == balanceAfter,
+            "No NFTs received"
+        );
+
+    }
+
+    /// @notice Send tokens to user and pay protocol fee
     /// @param _protocolFee the trade cost
     /// @param _amount amount of tokens to send
     /// @param _to the address to send the tokens
@@ -232,7 +277,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice sends the tokens to the pool and pays the protocol fee
+    /// @notice Send the tokens to the assets recipient and pay the protocol fee
     /// @param _inputAmount Amount of tokens that input to the pool
     /// @param _protocolFee the trade cost
     function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
@@ -254,48 +299,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         // send the protocol fee to protocol fee recipient
 
         _payProtocolFee( _protocolFee );
-
-    }
-
-    /// @notice Return Remaining value to user
-    /// @param _inputAmount Amount of tokens that input to the pool
-    function _returnRemainigValue( uint _inputAmount ) private {
-        
-        // If the user sent more tokens than necessary, they are returned
-
-        if ( msg.value > _inputAmount ) {
-
-            ( bool isSended, ) = payable( msg.sender ).call{ value: msg.value - _inputAmount }("");
-            
-            require( isSended, "tx error" );
-            
-        }
-
-    }
-
-    /// @notice Transfer NFTs from user to assets recipient
-    /// @param _from NFTs owner address
-    /// @param _tokenIDs NFTs to send
-    function _receiveNFTs( address _from, uint[] memory _tokenIDs ) private {
-
-        IERC721 _NFT = IERC721( NFT );
-
-        address _recipient = getAssetsRecipient();
-
-        uint balanceBefore = _NFT.balanceOf( _recipient );
-
-        for (uint256 i = 0; i < _tokenIDs.length; i++) {
-
-            _NFT.safeTransferFrom(_from, _recipient, _tokenIDs[i]);
-
-        }
-
-        uint balanceAfter = _NFT.balanceOf( _recipient );
-
-        require( 
-            balanceBefore + _tokenIDs.length == balanceAfter,
-            "No NFTs received"
-        );
 
     }
 
@@ -532,7 +535,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _minExpected the minimum expected that the pool will return to the user
     /// @param _user address to send the tokens
     /// @return outputAmount the amount of tokens that output of the pool
-    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) public nonReentrant returns( uint256 outputAmount ) {
+    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external nonReentrant returns( uint256 outputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on buy-type pool" );
 
@@ -570,7 +573,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _maxExpectedIn the minimum expected that the trade will cost
     /// @param _user address to send the NFTs
     /// @return inputAmount amount of tokens that input of the pool
-    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
+    function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on sell-type pool" );
 
@@ -615,7 +618,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _maxExpectedIn the minimum expected that the trade will cost
     /// @param _user address to send the NFTs
     /// @return inputAmount amount of tokens that input of the pool
-    function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) public payable nonReentrant returns( uint256 inputAmount ) {
+    function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable nonReentrant returns( uint256 inputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Buy || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on sell-type pool" );
 
