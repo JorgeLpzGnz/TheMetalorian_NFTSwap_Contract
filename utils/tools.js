@@ -234,6 +234,22 @@ function getNumberForBNArray( BNArray ) {
 
 }
 
+function pow(_x, power) {
+
+  let total = _x;
+
+  const base = parseEther("1");
+
+  for (let i = 1; i < power; i++) {
+
+    total = total.mul( _x ).div( base );
+
+  }
+
+  return total;
+
+}
+
 function roundNumber( x, base ) { return ( Math.round( x * base ) ) / base } 
 
 module.exports = {
@@ -247,5 +263,6 @@ module.exports = {
     deployMetaFactory,
     getTokenOutput,
     roundNumber,
-    getNumberForBNArray
+    getNumberForBNArray,
+    pow
 }

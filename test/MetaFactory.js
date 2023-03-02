@@ -8,12 +8,9 @@ const {
     mintNFT, 
     sendBulkNfts,
     deployMetaFactory,
-    getNumber
 } = require("../utils/tools" )
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const NFT_ABI = require("../utils/nftABI")
 const { parseEther } = ethers.utils
 const provider = ethers.provider
 

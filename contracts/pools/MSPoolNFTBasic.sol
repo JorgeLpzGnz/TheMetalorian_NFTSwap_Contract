@@ -37,6 +37,8 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
         uint balanceAfter = _NFT.balanceOf( _to );
 
+        // verify that the NFTs were sent to the user
+
         require(
             balanceBefore + _tokenIDs.length == balanceAfter,
             "NFTs not sended"
@@ -47,7 +49,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
     /// @notice send NFTs from the pool to the given address
     /// @param _to address to send the NFTs
     /// @param _numNFTs the number of NFTs to send
-    function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal override {
+    function _sendAnyOutputNFTs( address _to, uint _numNFTs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
 
@@ -69,7 +71,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
         require(
             balanceBefore + _numNFTs == balanceAfter,
-            "NFTs not sended"
+            "Output NFTs not sended"
         );
 
     }

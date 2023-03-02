@@ -8,7 +8,6 @@ import "./PoolTypes.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 import "../interfaces/IMetaFactory.sol";
 import "../interfaces/IMSPool.sol";
-import "hardhat/console.sol";
 
 /// @title MSPoolBasic a basic pool template implementations
 /// @author JorgeLpzGnz & CarlosMario714
@@ -182,6 +181,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
+    /// @notice Pay the protocol fee charged per trade
+    /// @param _protocolFee Amount of tokens to Send to protocol recipient
     function _payProtocolFee( uint _protocolFee ) private {
 
         if( _protocolFee > 0 ) {
@@ -218,11 +219,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         ( bool isSended, ) = payable( _to ).call{ value: amountToSend }( "" );
 
-        uint balanceAfter = _to.balance;
+        require( isSended, "tx error" );
 
         _payProtocolFee( _protocolFee );
 
-        require( isSended, "tx error" );
+        uint balanceAfter = _to.balance;
 
         require( 
             balanceBefore + amountToSend == balanceAfter,
@@ -293,7 +294,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( 
             balanceBefore + _tokenIDs.length == balanceAfter,
-            "NFTs not received"
+            "No NFTs received"
         );
 
     }
@@ -306,7 +307,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @notice send NFTs from the pool to the given address
     /// @param _to address to send the NFTs
     /// @param _numNFTs the number of NFTs to send
-    function _sendAnyOutNFTs( address _to, uint _numNFTs ) internal virtual;
+    function _sendAnyOutputNFTs( address _to, uint _numNFTs ) internal virtual;
 
     /*************************************************************************/
     /***************************** SET FUNCTIONS *****************************/
@@ -537,10 +538,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( address( this ).balance >= _minExpected, "insufficient token balance");
 
-        // update ( is this require needed )
-
-        require( _user != address( this ), "The pool cannot sell itself" );
-
         uint256 protocolFee;
 
         uint128 newStartPrice;
@@ -559,6 +556,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         _receiveNFTs( _user, _tokenIDs );
 
         _sendTokensAndPayFee( protocolFee, outputAmount, _user );
+
+        // update Start Price and Multiplier if is needed
 
         _updatePoolPriceParams( newStartPrice, newMultiplier );
 
@@ -580,9 +579,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             "Insufficient NFT balance" 
         );
 
-        require( _user != address( this ), "The pool cannot buy itself" );
-
-
         uint protocolFee;
 
         uint128 newStartPrice;
@@ -602,7 +598,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _sendOutputNFTs( _user, _tokenIDs );
 
+        // update Start Price and Multiplier if is needed
+
         _updatePoolPriceParams( newStartPrice, newMultiplier );
+
+        // the tokens are returned to the user if more than necessary are sent
 
         _returnRemainigValue( inputAmount );
 
@@ -624,8 +624,6 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             "Insufficient NFT balance" 
         );
 
-        require( _user != address( this ), "The pool cannot buy itself" );
-
         uint protocolFee;
 
         uint128 newStartPrice;
@@ -643,9 +641,13 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
-        _sendAnyOutNFTs( _user, _numNFTs );
+        _sendAnyOutputNFTs( _user, _numNFTs );
+
+        // update Start Price and Multiplier if is needed
 
         _updatePoolPriceParams( newStartPrice, newMultiplier );
+
+        // the tokens are returned to the user if more than necessary are sent
 
         _returnRemainigValue( inputAmount );
 
