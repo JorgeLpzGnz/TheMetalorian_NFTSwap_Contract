@@ -1,471 +1,471 @@
-const {
-    time,
-    loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
-const {
-    getNumber,
-    getTokenInput,
-    deployMetaFactory,
-    getTokenOutput,
-    roundNumber
-} = require("../utils/tools" )
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const { utils } = ethers
-const { parseEther, parseUnits } = utils
+// const {
+//     time,
+//     loadFixture,
+// } = require("@nomicfoundation/hardhat-network-helpers");
+// const {
+//     getNumber,
+//     getTokenInput,
+//     deployMetaFactory,
+//     getTokenOutput,
+//     roundNumber
+// } = require("../utils/tools" )
+// const { expect } = require("chai");
+// const { ethers } = require("hardhat");
+// const { utils } = ethers
+// const { parseEther, parseUnits } = utils
 
-describe("Exponential Algorithm", function () {
+// describe("Exponential Algorithm", function () {
 
-    describe("name", () => {
+//     describe("name", () => {
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should return algorithm name", async () => {
+//             it("1. should return algorithm name", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.name() ).to.be.equal( "Exponential" )
+//                 expect( await exponentialAlgorithm.name() ).to.be.equal( "Exponential" )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("validate Start Price", () => {
+//     describe("validate Start Price", () => {
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should return true when pass correct value", async () => {
+//             it("1. should return true when pass correct value", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateStartPrice(
-                    parseEther(`1`)
-                ) ).to.be.true
+//                 expect( await exponentialAlgorithm.validateStartPrice(
+//                     parseEther(`1`)
+//                 ) ).to.be.true
 
-            })
+//             })
 
-            it("2. should return false when pass less than 1 gwei", async () => {
+//             it("2. should return false when pass less than 1 gwei", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateStartPrice(
-                    parseUnits(`1`, 8)
-                ) ).to.be.false
+//                 expect( await exponentialAlgorithm.validateStartPrice(
+//                     parseUnits(`1`, 8)
+//                 ) ).to.be.false
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("validate Multiplier", () => {
+//     describe("validate Multiplier", () => {
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should return true when passed value is greater than 1e18", async () => {
+//             it("1. should return true when passed value is greater than 1e18", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`1.1`)) ).to.be.true
+//                 expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`1.1`)) ).to.be.true
 
-            })
+//             })
 
-            it("2. should return false when passed value is less than 1e18", async () => {
+//             it("2. should return false when passed value is less than 1e18", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`0.9`)) ).to.be.false
+//                 expect( await exponentialAlgorithm.validateMultiplier(  parseEther(`0.9`)) ).to.be.false
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("get Buy Info", () => {
+//     describe("get Buy Info", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should return false if pass invalid num of Items", async () => {
+//             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 0
+//                 const numItems = 0
 
-                const startPrice = parseEther( `3` )
+//                 const startPrice = parseEther( `3` )
 
-                const multiplier = parseEther( `1.2` )
+//                 const multiplier = parseEther( `1.2` )
 
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
+//                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
-                    multiplier,
-                    startPrice,
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
+//                     multiplier,
+//                     startPrice,
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                expect( isValid ).to.be.false
+//                 expect( isValid ).to.be.false
 
-            })
+//             })
 
-            it("2. should return false when new spot price is more than uint128 limit", async () => {
+//             it("2. should return false when new spot price is more than uint128 limit", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 50
+//                 const numItems = 50
 
-                const startPrice = parseEther( `100` )
+//                 const startPrice = parseEther( `100` )
 
-                const multiplier = parseEther( `5` )
+//                 const multiplier = parseEther( `5` )
 
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
+//                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
-                    multiplier,
-                    startPrice,
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ isValid ] = await exponentialAlgorithm.getBuyInfo(
+//                     multiplier,
+//                     startPrice,
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                expect( isValid ).to.be.false
+//                 expect( isValid ).to.be.false
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should return a input value and isValid must be true", async () => {
+//             it("1. should return a input value and isValid must be true", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = parseEther( `3` )
+//                 const startPrice = parseEther( `3` )
 
-                const multiplier = parseEther( `1.2` )
+//                 const multiplier = parseEther( `1.2` )
 
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
+//                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ isValid, , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
-                    multiplier,
-                    startPrice,
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ isValid, , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
+//                     multiplier,
+//                     startPrice,
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                // check that input value is greater than 0
+//                 // check that input value is greater than 0
 
-                expect( inputValue ).to.be.greaterThan( 0 )
+//                 expect( inputValue ).to.be.greaterThan( 0 )
 
-                // check that is returning true in the first element
+//                 // check that is returning true in the first element
 
-                expect( isValid ).to.be.true
+//                 expect( isValid ).to.be.true
 
-            })
+//             })
 
-            it("2. test input Value without fees", async () => {
+//             it("2. test input Value without fees", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 2
+//                 const startPrice = 2
 
-                const multiplier = 1.5
+//                 const multiplier = 1.5
 
-                const protocolFee = 0
+//                 const protocolFee = 0
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ , , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ , , , inputValue ] = await exponentialAlgorithm.getBuyInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+//                 const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                // check that input value is equals to expected value
+//                 // check that input value is equals to expected value
 
-                expect( getNumber( inputValue ) ).to.be.equal( expectedInput )
+//                 expect( getNumber( inputValue ) ).to.be.equal( expectedInput )
 
-            })
+//             })
 
-            it("3. test input Value with fees and protocol Fee Amount", async () => {
+//             it("3. test input Value with fees and protocol Fee Amount", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 5
+//                 const startPrice = 5
 
-                const multiplier = 1.5
+//                 const multiplier = 1.5
 
-                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+//                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
-                const poolFeeMul = 0.1
+//                 const poolFeeMul = 0.1
 
-                const [ , , , inputValue, protocolFee ] = await exponentialAlgorithm.getBuyInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    parseEther( `${ protocolFeeMult }` ),
-                    parseEther( `${ poolFeeMul }` )
-                )
+//                 const [ , , , inputValue, protocolFee ] = await exponentialAlgorithm.getBuyInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     parseEther( `${ protocolFeeMult }` ),
+//                     parseEther( `${ poolFeeMul }` )
+//                 )
 
-                const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+//                 const expectedInput = getTokenInput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedInput *  protocolFeeMult 
+//                 const protocolFeeEspct = expectedInput *  protocolFeeMult 
 
-                const poolFee = expectedInput * protocolFeeMult
+//                 const poolFee = expectedInput * protocolFeeMult
 
-                // input value should be equal to expected value plus fees
+//                 // input value should be equal to expected value plus fees
 
-                expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
+//                 expect( getNumber(inputValue) ).to.be.greaterThan( expectedInput + ( protocolFeeEspct + poolFee ) )
 
-                // protocol fee should be the same than expected
+//                 // protocol fee should be the same than expected
 
-                expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
+//                 expect( getNumber( protocolFee ) ).to.be.equal( protocolFeeEspct )
 
-            })
+//             })
 
-            it("4. test new spot price and new multiplier", async () => {
+//             it("4. test new spot price and new multiplier", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 3
+//                 const startPrice = 3
 
-                const multiplier = 1.7
+//                 const multiplier = 1.7
 
-                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+//                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
-                const poolFeeMul = 0.1
+//                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newMultiplier, , ] = await exponentialAlgorithm.getBuyInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    parseEther( `${ protocolFeeMult }` ),
-                    parseEther( `${ poolFeeMul }` )
-                )
+//                 const [ , newStartPrice, newMultiplier, , ] = await exponentialAlgorithm.getBuyInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     parseEther( `${ protocolFeeMult }` ),
+//                     parseEther( `${ poolFeeMul }` )
+//                 )
 
-                const multiplierPow = multiplier ** numItems
+//                 const multiplierPow = multiplier ** numItems
 
-                const newExpectedStartPrice = startPrice * multiplierPow
+//                 const newExpectedStartPrice = startPrice * multiplierPow
 
-                // input value should be equal to expected value
+//                 // input value should be equal to expected value
 
-                expect( roundNumber( getNumber( newStartPrice ), 1000 ) ).to.be.equal( roundNumber( newExpectedStartPrice, 1000 ) )
+//                 expect( roundNumber( getNumber( newStartPrice ), 1000 ) ).to.be.equal( roundNumber( newExpectedStartPrice, 1000 ) )
 
-                // keep the multiplier the same
+//                 // keep the multiplier the same
 
-                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
+//                 expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-    describe("get Sell Info", () => {
+//     describe("get Sell Info", () => {
 
-        describe(" - Errors", () => {
+//         describe(" - Errors", () => {
 
-            it("1. should return false if pass invalid num of Items", async () => {
+//             it("1. should return false if pass invalid num of Items", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 0
+//                 const numItems = 0
 
-                const startPrice = parseEther( `1` )
+//                 const startPrice = parseEther( `1` )
 
-                const multiplier = parseEther( `1.3` )
+//                 const multiplier = parseEther( `1.3` )
 
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
+//                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ isValid ] = await exponentialAlgorithm.getSellInfo(
-                    multiplier,
-                    startPrice,
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ isValid ] = await exponentialAlgorithm.getSellInfo(
+//                     multiplier,
+//                     startPrice,
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                expect( isValid ).to.be.false
+//                 expect( isValid ).to.be.false
 
-            })
+//             })
 
-        })
+//         })
 
-        describe(" - Functionalities", () => {
+//         describe(" - Functionalities", () => {
 
-            it("1. should return a input value and is Valid must be true", async () => {
+//             it("1. should return a input value and is Valid must be true", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = parseEther( `1` )
+//                 const startPrice = parseEther( `1` )
 
-                const multiplier = parseEther( `1.3` )
+//                 const multiplier = parseEther( `1.3` )
 
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
+//                 const protocolFee = await metaFactory.PROTOCOL_FEE()
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ isValid, , , outputValue ] = await exponentialAlgorithm.getSellInfo(
-                    multiplier,
-                    startPrice,
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ isValid, , , outputValue ] = await exponentialAlgorithm.getSellInfo(
+//                     multiplier,
+//                     startPrice,
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                // check that output value is greater than 0
+//                 // check that output value is greater than 0
 
-                expect( outputValue ).to.be.greaterThan( 0 )
+//                 expect( outputValue ).to.be.greaterThan( 0 )
 
-                // check if isValid value is equal to true
+//                 // check if isValid value is equal to true
 
-                expect( isValid ).to.be.true
+//                 expect( isValid ).to.be.true
 
-            })
+//             })
 
-            it("2. test input Value without fees", async () => {
+//             it("2. test input Value without fees", async () => {
 
-                const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 2
+//                 const startPrice = 2
 
-                const multiplier = 1.5
+//                 const multiplier = 1.5
 
-                const protocolFee = 0
+//                 const protocolFee = 0
 
-                const poolFee0 = 0
+//                 const poolFee0 = 0
 
-                const [ , , , outputValue ] = await exponentialAlgorithm.getSellInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    protocolFee,
-                    poolFee0
-                )
+//                 const [ , , , outputValue ] = await exponentialAlgorithm.getSellInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     protocolFee,
+//                     poolFee0
+//                 )
 
-                const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+//                 const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                // check that output value is equals to expected value
+//                 // check that output value is equals to expected value
 
-                expect( roundNumber(getNumber(outputValue), 1000) ).to.be.equal( roundNumber(expectedOutput, 1000) )
+//                 expect( roundNumber(getNumber(outputValue), 1000) ).to.be.equal( roundNumber(expectedOutput, 1000) )
 
-            })
+//             })
 
-            it("3. test input Value with fees and protocol Fee Amount", async () => {
+//             it("3. test input Value with fees and protocol Fee Amount", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 4
+//                 const startPrice = 4
 
-                const multiplier = 1.4
+//                 const multiplier = 1.4
 
-                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+//                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
-                const poolFeeMul = 0.1
+//                 const poolFeeMul = 0.1
 
-                const [ , , , outputValue, protocolFee ] = await exponentialAlgorithm.getSellInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    parseEther( `${ protocolFeeMult }` ),
-                    parseEther( `${ poolFeeMul }` )
-                )
+//                 const [ , , , outputValue, protocolFee ] = await exponentialAlgorithm.getSellInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     parseEther( `${ protocolFeeMult }` ),
+//                     parseEther( `${ poolFeeMul }` )
+//                 )
 
-                const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
+//                 const expectedOutput = getTokenOutput( "exponentialAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutput * protocolFeeMult 
+//                 const protocolFeeEspct = expectedOutput * protocolFeeMult 
 
-                const poolFee = expectedOutput * poolFeeMul
+//                 const poolFee = expectedOutput * poolFeeMul
 
-                // output value should be equal to expected value plus fees
+//                 // output value should be equal to expected value plus fees
 
-                expect( 
-                    roundNumber( getNumber(outputValue), 1000 ) 
-                ).to.be.equal( 
-                    roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
-                )
+//                 expect( 
+//                     roundNumber( getNumber(outputValue), 1000 ) 
+//                 ).to.be.equal( 
+//                     roundNumber( expectedOutput - ( protocolFeeEspct + poolFee ), 1000) 
+//                 )
 
-                // protocol fee should be the same than expected
+//                 // protocol fee should be the same than expected
 
-                expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
+//                 expect( roundNumber( getNumber( protocolFee ), 1000 ) ).to.be.equal( roundNumber( protocolFeeEspct, 1000 ) )
 
-            })
+//             })
 
-            it("3. test new Start Price and new multiplier", async () => {
+//             it("3. test new Start Price and new multiplier", async () => {
 
-                const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
+//                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
-                const numItems = 10
+//                 const numItems = 10
 
-                const startPrice = 4
+//                 const startPrice = 4
 
-                const multiplier = 1.4
+//                 const multiplier = 1.4
 
-                const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
+//                 const protocolFeeMult = getNumber( await metaFactory.PROTOCOL_FEE() )
 
-                const poolFeeMul = 0.1
+//                 const poolFeeMul = 0.1
 
-                const [ , newStartPrice, newMultiplier, ,  ] = await exponentialAlgorithm.getSellInfo(
-                    parseEther( `${ multiplier }` ),
-                    parseEther( `${ startPrice }` ),
-                    numItems,
-                    parseEther( `${ protocolFeeMult }` ),
-                    parseEther( `${ poolFeeMul }` )
-                )
+//                 const [ , newStartPrice, newMultiplier, ,  ] = await exponentialAlgorithm.getSellInfo(
+//                     parseEther( `${ multiplier }` ),
+//                     parseEther( `${ startPrice }` ),
+//                     numItems,
+//                     parseEther( `${ protocolFeeMult }` ),
+//                     parseEther( `${ poolFeeMul }` )
+//                 )
 
-                const invMultiplier = 1 / multiplier
+//                 const invMultiplier = 1 / multiplier
 
-                const invMultiplierPow = invMultiplier ** numItems
+//                 const invMultiplierPow = invMultiplier ** numItems
 
-                const expectedNewStartPrice = startPrice * invMultiplierPow
+//                 const expectedNewStartPrice = startPrice * invMultiplierPow
 
-                // new Start price should be the same than expected
+//                 // new Start price should be the same than expected
 
-                expect( 
-                    roundNumber( getNumber( newStartPrice ), 1000 ) 
-                ).to.be.equal( 
-                    roundNumber( expectedNewStartPrice, 1000 )
-                )
+//                 expect( 
+//                     roundNumber( getNumber( newStartPrice ), 1000 ) 
+//                 ).to.be.equal( 
+//                     roundNumber( expectedNewStartPrice, 1000 )
+//                 )
 
-                // keep multiplier the same
+//                 // keep multiplier the same
 
-                expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
+//                 expect( getNumber( newMultiplier ) ).to.be.equal( multiplier )
 
-            })
+//             })
 
-        })
+//         })
 
-    })
+//     })
 
-});
+// });

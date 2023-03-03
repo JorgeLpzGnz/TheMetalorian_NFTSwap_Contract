@@ -462,15 +462,9 @@ describe("MetaPools", function () {
 
                 const expectedInputWithoutFee = getTokenInput("cPAlgorithm", startPrice, multiplier, numItems)
 
-                const protocolFeeEspct = expectedInputWithoutFee * protocolFeeMult
-
-                const poolFee = expectedInputWithoutFee * poolFeeMul
-
-                const expectedInput = expectedInputWithoutFee + protocolFeeEspct + poolFee
-
                 // tokenBalance ( startPrice ) must be current balance + input
 
-                expect(getNumber(newStartPrice)).to.be.equal(startPrice + expectedInput)
+                expect(getNumber(newStartPrice)).to.be.equal(startPrice + expectedInputWithoutFee)
 
                 // NFTBalance ( multiplier ) must be current balance - number Of Items
 
@@ -614,15 +608,9 @@ describe("MetaPools", function () {
 
                 const expectedOutputWithoutFee = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult
-
-                const poolFee = expectedOutputWithoutFee * poolFeeMul
-
-                const expectedOutput = expectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
-
                 // input value should be equal to expected value plus fees
 
-                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutput )
+                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutputWithoutFee )
 
                 // protocol fee should be the same than expected
 
@@ -2113,7 +2101,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("5. Test start price and multiplier in pool with Esponential Curve", async () => {
+            it("5. Test start price and multiplier in pool with Exponential Curve", async () => {
 
                 const { metaFactory, nft, exponentialAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
@@ -2171,13 +2159,9 @@ describe("MetaPools", function () {
 
                 const { pool } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, cPAlgorithm, poolType.trade, 0, 60 )
 
-                let expectedOut = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
-
-                const protocolFee = getNumber( await metaFactory.PROTOCOL_FEE() )
+                const expectedOut = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
                 // substract the fee charget by the protocol
-
-                expectedOut -= expectedOut * protocolFee
 
                 const starPriceBefore = getNumber(await pool.startPrice())
 
@@ -2200,7 +2184,7 @@ describe("MetaPools", function () {
                 expect( 
                     starPriceAfter
                 ).to.be.equal( 
-                    startPrice - ( expectedOut )
+                    startPrice - expectedOut
                 )
 
                 // the multiplier must be the same

@@ -88,10 +88,10 @@ contract LinearAlgorithm is IMetaAlgorithm {
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 
         protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD);
-
-        inputValue += ( protocolFee + poolFee );
         
         // adding fees
+
+        inputValue += ( protocolFee + poolFee );
 
         newStartPrice = uint128(_newStartPrice);
 
