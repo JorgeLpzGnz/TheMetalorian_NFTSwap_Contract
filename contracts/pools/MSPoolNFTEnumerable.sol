@@ -92,7 +92,7 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
     }
 
-    /// @notice Withdraw the balance NFTs
+    /// @notice Withdraw the balance of NFTs
     /// @param _nft NFT collection to withdraw
     /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external override onlyOwner {

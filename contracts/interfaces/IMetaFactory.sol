@@ -34,7 +34,7 @@ interface IMetaFactory {
             MSPoolBasic pool
         );
 
-    /// @notice Get current pool info
+    /// @notice Get current Factory info
     /// @return MAX_FEE_PERCENTAGE The maximum percentage fee multiplier
     /// @return PROTOCOL_FEE Current protocol fee multiplier
     /// @return PROTOCOL_FEE_RECIPIENT The recipient of the fees

@@ -89,10 +89,10 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice Returns the info to sell NFTs and updates the params
     /// @param _numNFTs Number of NFTs to sell at pool
-    /// @param _minExpected The minimum number of tokens expected to be returned to the user
+    /// @param _minExpectedOut The minimum number of tokens expected to be returned to the user
     /// @return outputValue Amount of Tokens to send to the user
     /// @return protocolFee Fee charged in a trade
-    function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) private view returns ( 
+    function _getSellNFTInfo( uint _numNFTs, uint _minExpectedOut ) private view returns ( 
             uint256 outputValue, 
             uint256 protocolFee,
             uint128 newStartPrice,
@@ -122,7 +122,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( isValid, "Swap cannot be traded" );
 
-        require( outputValue >= _minExpected, "Output amount is less than minimum expected" );
+        require( outputValue >= _minExpectedOut, "Output amount is less than minimum expected" );
 
     }
 
@@ -515,7 +515,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _transferOwnership( _owner );
 
+        // in a trade pool the recipient is the address 0
+
         if( recipient != _recipient ) recipient = _recipient;
+
+        // In a non-trade pool, the fee is 0
 
         if( tradeFee != _fee) tradeFee = _fee;
 
@@ -538,14 +542,14 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice Sell NFTs for tokens
     /// @param _tokenIDs NFTs to sell
-    /// @param _minExpected The minimum expected that the pool will return to the user
+    /// @param _minExpectedOut The minimum expected that the pool will return to the user
     /// @param _user Address to send the tokens
     /// @return outputAmount The amount of tokens that output of the pool
-    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external nonReentrant returns( uint256 outputAmount ) {
+    function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpectedOut, address _user ) external nonReentrant returns( uint256 outputAmount ) {
 
         require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on buy-type pool" );
 
-        require( address( this ).balance >= _minExpected, "Insufficient token balance");
+        require( address( this ).balance >= _minExpectedOut, "Insufficient token balance");
 
         uint256 protocolFee;
 
@@ -558,7 +562,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             protocolFee, 
             newStartPrice,
             newMultiplier
-        ) = _getSellNFTInfo( _tokenIDs.length, _minExpected );
+        ) = _getSellNFTInfo( _tokenIDs.length, _minExpectedOut );
 
         // receive NFTs and send Tokens
 
@@ -576,7 +580,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice Buy NFTs with tokens
     /// @param _tokenIDs NFTs to buy
-    /// @param _maxExpectedIn The minimum expected that the trade will cost
+    /// @param _maxExpectedIn The maximum expected that the trade will cost
     /// @param _user Address to send the NFTs
     /// @return inputAmount Amount of tokens that input of the pool
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable nonReentrant returns( uint256 inputAmount ) {
@@ -621,7 +625,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice Buy any NFTs with tokens ( It is used when the NFTs that you want to buy do not matter )
     /// @param _numNFTs Number NFTs to buy
-    /// @param _maxExpectedIn The minimum expected that the trade will cost
+    /// @param _maxExpectedIn The maximum expected that the trade will cost
     /// @param _user Address to send the NFTs
     /// @return inputAmount Amount of tokens that input of the pool
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable nonReentrant returns( uint256 inputAmount ) {
@@ -682,7 +686,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice Withdraw the balance NFTs
+    /// @notice Withdraw the balance of NFTs
     /// @param _nft NFT collection to withdraw
     /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] calldata _nftIds ) external virtual;

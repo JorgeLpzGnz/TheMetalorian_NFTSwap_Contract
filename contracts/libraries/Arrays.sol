@@ -19,7 +19,7 @@ library Arrays {
         // if the function has not returned anything it means that the 
         // element does not exist, so it will be rejected
 
-        require( true, "The element doesn't exist");
+        require( false, "The element doesn't exist");
 
     }
 

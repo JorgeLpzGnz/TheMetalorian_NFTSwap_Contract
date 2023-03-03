@@ -18,7 +18,7 @@ interface IMSPool {
     /// @return protocolFee Amount charged for the trade
     function getPoolBuyInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint inputValue, uint protocolFee );
 
-    /// @notice returns the current Sell info
+    /// @notice Returns the current Sell info
     /// @param _numNFTs Number of NFTs to buy
     /// @return isValid True if trade is operable
     /// @return newStartPrice New Start price that will be set 
@@ -59,7 +59,7 @@ interface IMSPool {
         string memory poolAlgorithmName,
         PoolTypes.PoolType poolPoolType);
 
-    /// @notice Function called when the pool is created
+    /// @notice It sets all the pool params
     /// @param _multiplier Multiplier to calculate the price
     /// @param _startPrice Start price to calculate the price 
     /// @param _recipient Recipient of the input assets ( not available on trade pools )

@@ -16,7 +16,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
     /// @notice An array to store the token IDs of the Pair NFTs
     uint[] private _TOKEN_IDS;
 
-    /// @notice Send NFTs to the given address
+    /// @notice Send NFTs from the pool to the given address
     /// @param _to Address to send the NFTs
     /// @param _tokenIDs NFTs to send
     function _sendOutputNFTs( address _to, uint[] memory _tokenIDs ) internal override {
@@ -94,7 +94,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
     }
 
-    /// @notice Withdraw the balance NFTs
+    /// @notice Withdraw the balance of NFTs
     /// @param _nft NFT collection to withdraw
     /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external override onlyOwner {

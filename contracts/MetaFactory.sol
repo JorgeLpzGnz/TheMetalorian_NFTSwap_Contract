@@ -257,7 +257,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
     /// @param _Algorithm Algorithm that determines the prices
     /// @param _poolType The pool type of the new Pool
-    /// @return pool Pool created
+    /// @return pool Address of the pool created
     function createPool( 
         address _nft, 
         uint[] calldata _nftIds,

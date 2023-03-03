@@ -84,8 +84,6 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
 
         if( _newStartPrice > type( uint128 ).max ) return ( false, 0, 0, 0, 0);
 
-        newStartPrice = uint128( _newStartPrice );
-
         // buy price = startPrice * multiplier
 
         uint buyPrice = uint( _startPrice ).fmul( _multiplier, FixedPointMathLib.WAD );
@@ -94,7 +92,8 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
 
         inputValue = buyPrice.fmul( 
             ( multiplierPow - FixedPointMathLib.WAD ).fdiv( 
-                _multiplier - FixedPointMathLib.WAD, FixedPointMathLib.WAD
+                _multiplier - FixedPointMathLib.WAD, 
+                FixedPointMathLib.WAD
             ), FixedPointMathLib.WAD);
 
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );

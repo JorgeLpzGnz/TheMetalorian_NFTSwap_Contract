@@ -17,16 +17,16 @@ interface IMetaAlgorithm {
     /// @notice it checks if the multiplier is valid 
     function validateMultiplier( uint _multiplier ) external pure returns( bool );
 
-    /// @notice in returns of the info needed to do buy NFTs
-    /// @param _multiplier current multiplier used to calculate the price
-    /// @param _startPrice current start price used to calculate the price
-    /// @param _numItems number of NFTs to trade
+    /// @notice Return the necessary information to sell NFTs
+    /// @param _multiplier Current multiplier used to calculate the price
+    /// @param _startPrice Current start price used to calculate the price
+    /// @param _numItems Number of NFTs to trade
     /// @param _protocolFee Fee multiplier to calculate the protocol fee
     /// @param _poolFee Fee multiplier to calculate the pool fee
-    /// @return isValid true if trade can be performed
-    /// @return newStartPrice new start price used to calculate the price
-    /// @return newMultiplier new multiplier used to calculate the price
-    /// @return inputValue amount to send to the pool
+    /// @return isValid True if trade can be performed
+    /// @return newStartPrice New start price used to calculate the price
+    /// @return newMultiplier New multiplier used to calculate the price
+    /// @return inputValue Amount to send to the pool
     /// @return protocolFee Amount to charged for the trade
     function getBuyInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure 
         returns ( 
@@ -37,16 +37,16 @@ interface IMetaAlgorithm {
             uint256 protocolFee 
         );
 
-    /// @notice in returns of the info needed to do sell NFTs
-    /// @param _multiplier current multiplier used to calculate the price
-    /// @param _startPrice current start price used to calculate the price
-    /// @param _numItems number of NFTs to trade
+    /// @notice Return the necessary information to sell NFTs
+    /// @param _multiplier Current multiplier used to calculate the price
+    /// @param _startPrice Current start price used to calculate the price
+    /// @param _numItems Number of NFTs to trade
     /// @param _protocolFee Fee multiplier to calculate the protocol fee
     /// @param _poolFee Fee multiplier to calculate the pool fee
-    /// @return isValid true if trade can be performed
-    /// @return newStartPrice new start price used to calculate the price
-    /// @return newMultiplier new multiplier used to calculate the price
-    /// @return outputValue amount to send to the user
+    /// @return isValid True if trade can be performed
+    /// @return newStartPrice New start price used to calculate the price
+    /// @return newMultiplier New multiplier used to calculate the price
+    /// @return outputValue Amount to send to the user
     /// @return protocolFee Amount to charged for the trade
     function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure
         returns ( 

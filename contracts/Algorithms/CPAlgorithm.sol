@@ -96,7 +96,7 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         inputValue = inputValueWithoutFee + ( protocolFee + poolFee );
 
-        // is needed a start Price and multiplier update
+        // update start Price and multiplier
 
         newStartPrice = uint128( tokenBalance + inputValueWithoutFee );
 
@@ -139,7 +139,7 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         uint numItems = _numItems * 1e18;
 
-        // num Items should be < NFT balance ( multiplier = numItems  initial Price )
+        // num Items should be < NFT balance 
 
         if ( numItems >= nftBalance ) return (false, 0, 0, 0, 0);
 
@@ -155,7 +155,7 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         outputValue = outputValueWithoutFee - ( protocolFee + poolFee );
 
-        // is needed a start Price and multiplier update
+        // update start Price and multiplier 
 
         newStartPrice = uint128( tokenBalance - outputValueWithoutFee );
 
