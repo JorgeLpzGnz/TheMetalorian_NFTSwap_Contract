@@ -120,9 +120,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             tradeFee
             );
 
-        require( isValid, "Algorithm Error" );
+        require( isValid, "Swap cannot be traded" );
 
-        require( outputValue >= _minExpected, "output amount is les than min expected" );
+        require( outputValue >= _minExpected, "Output amount is less than minimum expected" );
 
     }
 
@@ -155,9 +155,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             tradeFee
             );
 
-        require( isValid, "Algorithm Error" );
+        require( isValid, "Swap cannot be traded" );
 
-        require( inputValue <= _maxExpectedIn, "input amount is greater than max expected" );
+        require( inputValue <= _maxExpectedIn, "Input amount is greater than max expected" );
 
     }
 
@@ -206,7 +206,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
                 ( bool isSended, ) = payable( feeRecipient ).call{ value: _protocolFee }("");
                 
-                require( isSended, "tx error" );
+                require( isSended, "Tx error" );
 
             }
 
@@ -224,7 +224,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
             ( bool isSended, ) = payable( msg.sender ).call{ value: msg.value - _inputAmount }("");
             
-            require( isSended, "tx error" );
+            require( isSended, "Tx error" );
             
         }
 
@@ -266,7 +266,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         ( bool isSended, ) = payable( _to ).call{ value: _outputAmount }( "" );
 
-        require( isSended, "tx error" );
+        require( isSended, "Tx error" );
 
         _payProtocolFee( _protocolFee );
 
@@ -274,7 +274,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( 
             balanceBefore + _outputAmount == balanceAfter,
-            "Tokens not Sended"
+            "Output tokens not Sent"
         );
 
     }
@@ -284,7 +284,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _protocolFee The trade cost
     function _receiveTokensAndPayFee( uint _inputAmount, uint _protocolFee ) private {
 
-        require( msg.value >= _inputAmount, "insufficient amount of ETH" );
+        require( msg.value >= _inputAmount, "Insufficient amount of ETH" );
 
         // receive the tokens
 
@@ -294,7 +294,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
             ( bool isAssetSended, ) = payable( _recipient ).call{ value: _inputAmount - _protocolFee }("");
 
-            require( isAssetSended, "tx error" );
+            require( isAssetSended, "Tx error" );
 
         }
 
@@ -335,7 +335,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _newFee The new trade fee 
     function setTradeFee( uint128 _newFee ) external onlyOwner {
 
-        require( currentPoolType == PoolTypes.PoolType.Trade, "fee available only on trade pools");
+        require( currentPoolType == PoolTypes.PoolType.Trade, "Fee available only on trade pools");
 
         require( MAX_TRADE_FEE >= _newFee, "The maximum trade fee is 90%" );
 
@@ -351,9 +351,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _newStartPrice The new start Price 
     function setStartPrice( uint128 _newStartPrice ) external onlyOwner {
 
-        require( startPrice != _newStartPrice, "new price is equal than current");
+        require( startPrice != _newStartPrice, "New start price is equal than current");
 
-        require( Algorithm.validateStartPrice( _newStartPrice ), "invalid Start Price" );
+        require( Algorithm.validateStartPrice( _newStartPrice ), "Invalid Start Price" );
 
         startPrice = _newStartPrice;
 
@@ -365,9 +365,9 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _newMultiplier The new multiplier
     function setMultiplier( uint128 _newMultiplier ) external onlyOwner {
 
-        require( multiplier != _newMultiplier, "multiplier is equal than current");
+        require( multiplier != _newMultiplier, "Multiplier is equal than current");
 
-        require( Algorithm.validateMultiplier( _newMultiplier ), "invalid multiplier" );
+        require( Algorithm.validateMultiplier( _newMultiplier ), "Invalid multiplier" );
 
         multiplier = _newMultiplier;
 
@@ -545,7 +545,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( currentPoolType == PoolTypes.PoolType.Sell || currentPoolType == PoolTypes.PoolType.Trade, "Cannot sell on buy-type pool" );
 
-        require( address( this ).balance >= _minExpected, "insufficient token balance");
+        require( address( this ).balance >= _minExpected, "Insufficient token balance");
 
         uint256 protocolFee;
 
@@ -672,11 +672,11 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         uint balance = address( this ).balance;
 
-        require( balance > 0, "insufficient balance" );
+        require( balance > 0, "Insufficient balance" );
 
         ( bool isSended, ) = owner().call{ value: balance }("");
 
-        require(isSended, "amount not sended" );
+        require(isSended, "Amount not sent" );
 
         emit TokenWithdrawal( owner(), balance );
 

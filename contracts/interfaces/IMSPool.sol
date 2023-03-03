@@ -20,9 +20,9 @@ interface IMSPool {
 
     /// @notice returns the current Sell info
     /// @param _numNFTs Number of NFTs to buy
-    /// @return isValid true if trade is operable
-    /// @return newStartPrice new Start price that will be set 
-    /// @return newMultiplier new multiplier that will be set 
+    /// @return isValid True if trade is operable
+    /// @return newStartPrice New Start price that will be set 
+    /// @return newMultiplier New multiplier that will be set 
     /// @return outputValue Amount to be sent to the user
     /// @return protocolFee Amount charged for the trade
     function getPoolSellInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee );
@@ -35,7 +35,7 @@ interface IMSPool {
     /// @return _recipient Recipient of the input assets
     function getAssetsRecipient() external view returns ( address _recipient );
 
-    /// @notice retruns the current algorithm info
+    /// @notice Returns the current algorithm info
     /// @return algorithm Name of the algorithm used to calculate trade prices
     /// @return name Name of the algorithm used to calculate trade prices
     function getAlgorithmInfo() external view returns( IMetaAlgorithm algorithm, string memory name );
@@ -87,7 +87,7 @@ interface IMSPool {
 
     /// @notice Buy NFTs by depositing tokens
     /// @param _tokenIDs NFTs to buy
-    /// @param _maxExpectedIn maximum expected cost to buy the NFTs
+    /// @param _maxExpectedIn Maximum expected cost to buy the NFTs
     /// @param _user Address to send the NFTs
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 

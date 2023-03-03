@@ -29,7 +29,7 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
         require(
             balanceBefore + _tokenIDs.length == balanceAfter,
-            "NFTs not sended"
+            "Output NFTs not sent"
         );
 
     }
@@ -55,7 +55,7 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
 
         require(
             balanceBefore + _numNFTs == balanceAfter,
-            "NFTs not sended"
+            "Output NFTs not sent"
         );
 
     }

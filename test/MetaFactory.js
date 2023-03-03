@@ -24,8 +24,6 @@ describe("MetaFactory", function () {
 
                 const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
-
                 const startPrice = ethers.utils.parseEther("1")
 
                 // it should fail when try to set it on Sell or Buy pool
@@ -60,8 +58,6 @@ describe("MetaFactory", function () {
 
                 const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
-                const nftIds = await mintNFT(nft, 10, metaFactory)
-
                 const startPrice = ethers.utils.parseEther("1")
                 
                 await expect( 
@@ -78,9 +74,7 @@ describe("MetaFactory", function () {
 
             it("3. should fail if trade fee is greater than limit", async () => {
 
-                const { metaFactory, nft, owner, linearAlgorithm } = await loadFixture(deployMetaFactory)
-
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+                const { metaFactory, linearAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const startPrice = ethers.utils.parseEther("1")
 
@@ -98,11 +92,9 @@ describe("MetaFactory", function () {
 
             })
 
-            it("4. should fail if exponential Algorithm pass invalid multiplier and startPrice", async () => {
+            it("4. should fail if exponential Algorithm pass Invalid multiplier and startPrice", async () => {
 
-                const { metaFactory, nft, owner, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
-
-                const nftIds = await mintNFT(nft, 10, metaFactory)
+                const { metaFactory, owner, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const startPrice = ethers.utils.parseEther("1")
 
@@ -301,7 +293,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.setProtocolFee( newFee )
-                    ).to.be.revertedWith("new Fee exceeds limit")
+                    ).to.be.revertedWith("New Fee exceeds limit")
 
             })
 
@@ -315,7 +307,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.setProtocolFee( newFee )
-                    ).to.be.revertedWith("new fee cannot be the same as the previous one")
+                    ).to.be.revertedWith("New fee cannot be the same as the previous one")
 
             })
 
@@ -365,7 +357,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.setProtocolFeeRecipient( owner.address )
-                    ).to.be.revertedWith("new fee cannot be the same as the previous one")
+                    ).to.be.revertedWith("New fee recipient cannot be the same as the previous one")
 
             })
 
@@ -549,7 +541,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.withdrawETH()
-                    ).to.be.revertedWith("insufficient balance")
+                    ).to.be.revertedWith("Insufficient balance")
 
             })
 
@@ -624,7 +616,7 @@ describe("MetaFactory", function () {
                 
                 await expect( 
                     metaFactory.withdrawNFTs( nft.address, [ 42, 43, 44] )
-                    ).to.be.reverted
+                    ).to.be.revertedWith("Insufficient NFT Balance")
 
             })
 
@@ -799,7 +791,7 @@ describe("MetaFactory", function () {
                         value: amountOfETH
                     })
                 ).to.emit( metaFactory, "TokenDeposit" )
-                .withArgs( amountOfETH )
+                .withArgs( owner.address, amountOfETH )
 
             })
 

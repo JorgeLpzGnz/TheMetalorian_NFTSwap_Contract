@@ -78,8 +78,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param AmountOfNFTs Amount of NFTs withdrawal
     event NFTWithdrawal( address indexed owner, uint AmountOfNFTs );
 
+    /// @param from Address where the tokens are sent from
     /// @param amount Amount of ETH deposit
-    event TokenDeposit( uint amount );
+    event TokenDeposit( address indexed from, uint amount );
 
     /// @param collectionNFT NFT collection address
     /// @param tokenID ID of the deposited NFT
@@ -89,7 +90,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /**************************** CONSTRUCTOR ********************************/
 
     /// @notice Params are the initial allowed price Algorithms
-    constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm, address _feeRecipient ) {
+    constructor( address _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm, address _feeRecipient ) {
 
         isMSAlgorithm[_LinearAlgorithm] = true;
 
@@ -208,9 +209,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _newProtocolFee A new protocol Fee
     function setProtocolFee( uint128 _newProtocolFee ) external onlyOwner {
 
-        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "new Fee exceeds limit" );
+        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "New Fee exceeds limit" );
 
-        require( PROTOCOL_FEE != _newProtocolFee, "new fee cannot be the same as the previous one" );
+        require( PROTOCOL_FEE != _newProtocolFee, "New fee cannot be the same as the previous one" );
 
         PROTOCOL_FEE = _newProtocolFee;
 
@@ -222,7 +223,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _newRecipient A new protocol Fee
     function setProtocolFeeRecipient( address _newRecipient ) external onlyOwner {
 
-        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "new fee cannot be the same as the previous one" );
+        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "New fee recipient cannot be the same as the previous one" );
 
         PROTOCOL_FEE_RECIPIENT = _newRecipient;
 
@@ -266,7 +267,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
         uint128 _fee,
         IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
-        ) public payable  returns(
+        ) external payable  returns(
             MSPoolBasic pool
         )
     {
@@ -322,11 +323,11 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
         uint balance = address( this ).balance;
 
-        require( balance > 0, "insufficient balance" );
+        require( balance > 0, "Insufficient balance" );
 
         ( bool isSended, ) = owner().call{ value: balance }("");
 
-        require( isSended, "transaction not sended" );
+        require( isSended, "Transaction not sent" );
 
         emit TokenWithdrawal( owner(), balance );
 
@@ -335,11 +336,13 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @notice Withdraw deposited NFTs
     /// @param _nft Address of the collection to withdraw
     /// @param _nftIds The NFTs to withdraw
-    function withdrawNFTs( address _nft, uint[] memory _nftIds ) external onlyOwner {
+    function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external onlyOwner {
+
+        require( _nft.balanceOf( address( this ) ) >= _nftIds.length, "Insufficient NFT Balance" );
 
         for (uint256 i = 0; i < _nftIds.length; i++) {
             
-            IERC721(_nft).safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
+            _nft.safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
 
         }
 
@@ -353,7 +356,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @notice Allows the contract to receive ETH ( the swap fees )
     receive() external payable  {
 
-        emit TokenDeposit( msg.value );
+        emit TokenDeposit( msg.sender, msg.value );
 
     }
 

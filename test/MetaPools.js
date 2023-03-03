@@ -128,11 +128,11 @@ describe("MetaPools", function () {
 
                 await expect(
                     p1.pool.setTradeFee( newFee )
-                ).to.be.rejectedWith("fee available only on trade pools")
+                ).to.be.rejectedWith("Fee available only on trade pools")
 
                 await expect(
                     p2.pool.setTradeFee( newFee )
-                ).to.be.rejectedWith("fee available only on trade pools")
+                ).to.be.rejectedWith("Fee available only on trade pools")
 
             })
 
@@ -216,7 +216,7 @@ describe("MetaPools", function () {
 
                 const startPrice = await pool.startPrice()
 
-                await expect(pool.setStartPrice(startPrice)).to.be.revertedWith("new price is equal than current")
+                await expect(pool.setStartPrice(startPrice)).to.be.revertedWith("New start price is equal than current")
 
             })
 
@@ -230,7 +230,7 @@ describe("MetaPools", function () {
 
                 const startPrice = 1e7
 
-                await expect(pool.setStartPrice(startPrice)).to.be.revertedWith("invalid Start Price")
+                await expect(pool.setStartPrice(startPrice)).to.be.revertedWith("Invalid Start Price")
 
             })
 
@@ -278,7 +278,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. should fail if new multiplier is equal than current", async () => {
+            it("2. should fail if new Multiplier is equal than current", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -286,7 +286,7 @@ describe("MetaPools", function () {
 
                 const multiplier = await pool.multiplier()
 
-                await expect(pool.setMultiplier(multiplier)).to.be.revertedWith("multiplier is equal than current")
+                await expect(pool.setMultiplier(multiplier)).to.be.revertedWith("Multiplier is equal than current")
 
             })
 
@@ -300,7 +300,7 @@ describe("MetaPools", function () {
 
                 const multiplier = 1e7
 
-                await expect(pool.setMultiplier(multiplier)).to.be.revertedWith("invalid multiplier")
+                await expect(pool.setMultiplier(multiplier)).to.be.revertedWith("Invalid multiplier")
 
             })
 
@@ -1855,7 +1855,7 @@ describe("MetaPools", function () {
                         minExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient token balance")
+                ).to.be.revertedWith("Insufficient token balance")
 
             })
 
@@ -1891,7 +1891,7 @@ describe("MetaPools", function () {
                         minExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("output amount is les than min expected")
+                ).to.be.revertedWith("Output amount is less than minimum expected")
 
             })
 
@@ -2249,7 +2249,7 @@ describe("MetaPools", function () {
                         minExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient token balance")
+                ).to.be.revertedWith("Insufficient token balance")
 
             })
 
@@ -2285,7 +2285,7 @@ describe("MetaPools", function () {
                         minExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("output amount is les than min expected")
+                ).to.be.revertedWith("Output amount is less than minimum expected")
 
             })
 
@@ -2527,7 +2527,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("Algorithm Error")
+                ).to.be.revertedWith("Swap cannot be traded")
 
             })
 
@@ -2545,7 +2545,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("input amount is greater than max expected")
+                ).to.be.revertedWith("Input amount is greater than max expected")
 
 
             })
@@ -2564,7 +2564,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient amount of ETH")
+                ).to.be.revertedWith("Insufficient amount of ETH")
 
 
             })
@@ -2779,7 +2779,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("Algorithm Error")
+                ).to.be.revertedWith("Swap cannot be traded")
 
             })
 
@@ -2797,7 +2797,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("input amount is greater than max expected")
+                ).to.be.revertedWith("Input amount is greater than max expected")
 
 
             })
@@ -2816,7 +2816,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient amount of ETH")
+                ).to.be.revertedWith("Insufficient amount of ETH")
 
 
             })
@@ -3040,7 +3040,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("Algorithm Error")
+                ).to.be.revertedWith("Swap cannot be traded")
 
             })
 
@@ -3064,7 +3064,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("input amount is greater than max expected")
+                ).to.be.revertedWith("Input amount is greater than max expected")
 
 
             })
@@ -3087,7 +3087,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient amount of ETH")
+                ).to.be.revertedWith("Insufficient amount of ETH")
 
             })
 
@@ -3391,7 +3391,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("Algorithm Error")
+                ).to.be.revertedWith("Swap cannot be traded")
 
             })
 
@@ -3415,7 +3415,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("input amount is greater than max expected")
+                ).to.be.revertedWith("Input amount is greater than max expected")
 
 
             })
@@ -3438,7 +3438,7 @@ describe("MetaPools", function () {
                         maxExpected,
                         owner.address
                     )
-                ).to.be.revertedWith("insufficient amount of ETH")
+                ).to.be.revertedWith("Insufficient amount of ETH")
 
             })
 
@@ -3649,7 +3649,7 @@ describe("MetaPools", function () {
 
                 const { pool } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.buy, 0, 0)
 
-                await expect(pool.withdrawTokens()).to.be.revertedWith("insufficient balance")
+                await expect(pool.withdrawTokens()).to.be.revertedWith("Insufficient balance")
 
             })
 
