@@ -110,8 +110,8 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATION UTILS ******************************/
 
-    /// @notice function used to create the new pools
-    /// @notice the NFT must be a ERC-721 or ERC-721 Enumerable
+    /// @notice Used to create the new pools
+    /// @notice The NFT must be a ERC-721 or ERC-721 Enumerable
     /// @param _nft the NFT to init the pool ( this can not be changed after init )
     function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
 
@@ -137,14 +137,14 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     }
 
-    /// @notice verifies that the initialization parameters are correct
+    /// @notice Verifies that the initialization parameters are correct
     /// @param _poolType The pool type of the new Pool
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
     /// @param _poolType The pool type of the new Pool
     /// @param _recipient The recipient of the swap assets ( not available on trade pools )
     /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
-    /// @param _Algorithm algorithm that determines the prices
+    /// @param _Algorithm Algorithm that determines the prices
     function checkInitParams( 
         uint128 _multiplier, 
         uint128 _startPrice,
@@ -246,17 +246,17 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATE FUNCTION *****************************/
 
-
-    /// @notice verifies that the initialization parameters are correct
-    /// @param _nft the NFT to init the pool ( this can not be changed after init )
+    /// @notice Create new pool
+    /// @dev Verifies that the initialization parameters are correct
+    /// @param _nft The NFT to init the pool ( this can not be changed after init )
     /// @param _nftIds The NFTs to pull in the pool ( in case of sell pool this must be empty )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
-    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @param _startPrice The start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _recipient The recipient of the swap assets ( not available on trade pools )
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    /// @param _Algorithm algorithm that determines the prices
+    /// @param _Algorithm Algorithm that determines the prices
     /// @param _poolType The pool type of the new Pool
-    /// @return pool pool created
+    /// @return pool Pool created
     function createPool( 
         address _nft, 
         uint[] calldata _nftIds,
@@ -317,7 +317,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /********************** WITHDRAW FUNCTIONS FUNCTIONS *********************/
 
-    /// @notice withdraw the ETH balance of the contract
+    /// @notice Withdraw the ETH balance of the contract
     function withdrawETH() external onlyOwner {
 
         uint balance = address( this ).balance;
@@ -332,9 +332,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     }
 
-    /// @notice withdraw deposited NFTs
-    /// @param _nft address of the collection to withdraw
-    /// @param _nftIds the NFTs to withdraw
+    /// @notice Withdraw deposited NFTs
+    /// @param _nft Address of the collection to withdraw
+    /// @param _nftIds The NFTs to withdraw
     function withdrawNFTs( address _nft, uint[] memory _nftIds ) external onlyOwner {
 
         for (uint256 i = 0; i < _nftIds.length; i++) {

@@ -10,14 +10,14 @@ import "./MSPoolBasic.sol";
 /// @notice implementation based on IEP-1167
 contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
-    /// @notice a library to implement some array methods
+    /// @notice A library to implement some array methods
     using Arrays for uint[];
 
     /// @notice An array to store the token IDs of the Pair NFTs
     uint[] private _TOKEN_IDS;
 
-    /// @notice send NFTs to the given address
-    /// @param _to address to send the NFTs
+    /// @notice Send NFTs to the given address
+    /// @param _to Address to send the NFTs
     /// @param _tokenIDs NFTs to send
     function _sendOutputNFTs( address _to, uint[] memory _tokenIDs ) internal override {
 
@@ -46,9 +46,9 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
     }
 
-    /// @notice send NFTs from the pool to the given address
-    /// @param _to address to send the NFTs
-    /// @param _numNFTs the number of NFTs to send
+    /// @notice Send NFTs from the pool to the given address
+    /// @param _to Address to send the NFTs
+    /// @param _numNFTs The number of NFTs to send
     function _sendAnyOutputNFTs( address _to, uint _numNFTs ) internal override {
 
         IERC721 _NFT = IERC721( NFT );
@@ -87,14 +87,14 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
     }
 
-    /// @notice it returns the NFTs hold by the pool 
+    /// @notice It returns the NFTs hold by the pool 
     function getNFTIds() public override view returns ( uint[] memory nftIds) {
 
         nftIds = _TOKEN_IDS;
 
     }
 
-    /// @notice withdraw the balance NFTs
+    /// @notice Withdraw the balance NFTs
     /// @param _nft NFT collection to withdraw
     /// @param _nftIds NFTs to withdraw
     function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external override onlyOwner {
