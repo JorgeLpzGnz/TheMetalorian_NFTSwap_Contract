@@ -77,7 +77,7 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
     }
 
     /// @notice ERC-721 Receiver implementation
-    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+    function onERC721Received(address, address, uint256 id, bytes calldata) public override returns (bytes4) {
 
         if( NFT == msg.sender ) _TOKEN_IDS.push(id);
 

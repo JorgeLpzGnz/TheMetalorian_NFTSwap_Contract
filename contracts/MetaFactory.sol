@@ -362,7 +362,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     /// @notice ERC-721 Receiver implementation
     /// @notice Only the owner can withdraw this input NFTs
-    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+    function onERC721Received(address, address, uint256 id, bytes calldata) public override returns (bytes4) {
 
         emit NFTDeposit( msg.sender, id );
 

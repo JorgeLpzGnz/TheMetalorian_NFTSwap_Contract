@@ -61,7 +61,7 @@ contract MSPoolNFTEnumerable is MSPoolBasic, IERC721Receiver {
     }
 
     /// @notice It returns the NFTs hold by the pool 
-    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+    function onERC721Received(address, address, uint256 id, bytes calldata) public override returns (bytes4) {
 
         emit NFTDeposit( msg.sender, id );
 
