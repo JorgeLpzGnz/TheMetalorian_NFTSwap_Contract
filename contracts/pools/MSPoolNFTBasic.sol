@@ -101,13 +101,11 @@ contract MSPoolNFTBasic is MSPoolBasic, IERC721Receiver {
 
         require( _nft.balanceOf( address( this ) ) >= _nftIds.length, "Insufficient NFT balance");
 
-        IERC721 poolNFT = IERC721( NFT );
-
-        if( _nft == poolNFT ){
+        if( _nft == IERC721( NFT ) ){
 
             for (uint256 i = 0; i < _nftIds.length; i++) {
 
-                poolNFT.safeTransferFrom( address( this ), owner(), _nftIds[i]);
+                _nft.safeTransferFrom( address( this ), owner(), _nftIds[i]);
 
                 _TOKEN_IDS.remove( _TOKEN_IDS.indexOf(_nftIds[i]) );
 

@@ -92,7 +92,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _minExpected the minimum number of tokens expected to be returned to the user
     /// @return outputValue Amount of Tokens to send to the user
     /// @return protocolFee Fee charged in a trade
-    function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) internal virtual returns ( 
+    function _getSellNFTInfo( uint _numNFTs, uint _minExpected ) private view returns ( 
             uint256 outputValue, 
             uint256 protocolFee,
             uint128 newStartPrice,
@@ -131,7 +131,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @param _maxExpectedIn the maximum expected cost to buy the NFTs
     /// @return inputValue Amount of tokens to pay the NFTs
     /// @return protocolFee Fee charged in a trade
-    function _getBuyNFTInfo( uint _numNFTs, uint _maxExpectedIn ) internal virtual returns ( 
+    function _getBuyNFTInfo( uint _numNFTs, uint _maxExpectedIn ) private view returns ( 
             uint256 inputValue, 
             uint256 protocolFee,
             uint128 newStartPrice,
@@ -254,15 +254,13 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     /// @notice Send tokens to user and pay protocol fee
     /// @param _protocolFee the trade cost
-    /// @param _amount amount of tokens to send
+    /// @param _outputAmount amount of tokens to send
     /// @param _to the address to send the tokens
-    function _sendTokensAndPayFee( uint _protocolFee, uint _amount, address _to ) private {
-
-        uint amountToSend = _amount - _protocolFee;
+    function _sendTokensAndPayFee( uint _protocolFee, uint _outputAmount, address _to ) private {
 
         uint balanceBefore = _to.balance;
 
-        ( bool isSended, ) = payable( _to ).call{ value: amountToSend }( "" );
+        ( bool isSended, ) = payable( _to ).call{ value: _outputAmount }( "" );
 
         require( isSended, "tx error" );
 
@@ -271,7 +269,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         uint balanceAfter = _to.balance;
 
         require( 
-            balanceBefore + amountToSend == balanceAfter,
+            balanceBefore + _outputAmount == balanceAfter,
             "Tokens not Sended"
         );
 
@@ -315,7 +313,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /*************************************************************************/
     /***************************** SET FUNCTIONS *****************************/
 
-    /// @notice it sets a new recipient 
+    /// @notice Set a new assests recipient 
     /// @param _newRecipient the new recipient 
     function setAssetsRecipient( address _newRecipient ) external onlyOwner {
 
@@ -329,11 +327,13 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice it sets a new trade fee 
+    /// @notice Set a new trade fee 
     /// @param _newFee the new trade fee 
     function setTradeFee( uint128 _newFee ) external onlyOwner {
 
         require( currentPoolType == PoolTypes.PoolType.Trade, "fee available only on trade pools");
+
+        require( MAX_TRADE_FEE >= _newFee, "The maximum trade fee is 90%" );
 
         require( tradeFee != _newFee, "New fee is equal than current" );
 
@@ -343,7 +343,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice it sets a new start Price 
+    /// @notice Set a new start Price 
     /// @param _newStartPrice the new start Price 
     function setStartPrice( uint128 _newStartPrice ) external onlyOwner {
 
@@ -357,7 +357,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
-    /// @notice it sets a new multiplier
+    /// @notice Set a new multiplier
     /// @param _newMultiplier the new multiplier
     function setMultiplier( uint128 _newMultiplier ) external onlyOwner {
 
@@ -374,7 +374,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /*************************************************************************/
     /************************** GET FUNCTIONS ********************************/
  
-    /// @notice it return the pool sell info
+    /// @notice Return the current pool sell info
     /// @param _numNFTs number of NFTs to buy
     /// @return isValid indicate if will be an error calculating the price
     /// @return newStartPrice the pool new Star Price
@@ -399,7 +399,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     
     }
  
-    /// @notice it return the pool sell info
+    /// @notice Return the current pool sell info
     /// @param _numNFTs number of NFTs to buy
     /// @return isValid indicate if will be an error calculating the price
     /// @return newStartPrice the pool new Star Price
@@ -424,19 +424,21 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     
     }
 
-    /// @notice it returns the NFTs hold by the pool 
+    /// @notice Returns the NFTs hold by the pool 
     function getNFTIds() public virtual view returns ( uint[] memory nftIds );
 
     /// @notice returns the recipient of the input assets
     function getAssetsRecipient() public view returns ( address _recipient ) {
 
-        if ( recipient == address(0) ) _recipient = address( this );
+        if ( recipient == address( 0 ) ) _recipient = address( this );
 
         else _recipient = recipient;
 
     }
 
-    /// @notice returns the name of the price algorithm used
+    /// @notice Retruns the current algorithm info
+    /// @return algorithm Name of the algorithm used to calculate trade prices
+    /// @return name Name of the algorithm used to calculate trade prices
     function getAlgorithmInfo() public view returns( IMetaAlgorithm algorithm, string memory name ) {
 
         algorithm = Algorithm;

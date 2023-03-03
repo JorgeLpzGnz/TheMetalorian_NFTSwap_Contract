@@ -8,11 +8,6 @@ import "./IMetaAlgorithm.sol";
 /// @author JorgeLpzGnz & CarlosMario714
 /// @dev Pools are a IEP-1167 implementation ( minimal proxies - clones )
 interface IMSPool {
-    
-    /// @notice Returns the the NFT IDs of the pool
-    /// @dev In the buy pools this will be empty because the NFTs are push
-    /// on the recipient indicated for the user
-    function getNFTIds() external view returns ( uint[] memory nftIds);
 
     /// @notice Returns the current Buy info
     /// @param _numNFTs Number of NFTs to buy
@@ -31,6 +26,11 @@ interface IMSPool {
     /// @return outputValue Amount to be sent to the user
     /// @return protocolFee Amount charged for the trade
     function getPoolSellInfo( uint _numNFTs) external view returns( bool isValid, uint128 newStartPrice, uint128 newMultiplier, uint outputValue, uint protocolFee );
+    
+    /// @notice Returns the NFT IDs of the pool
+    /// @dev In the buy pools this will be empty because the NFTs are push
+    /// on the recipient indicated for the user
+    function getNFTIds() external view returns ( uint[] memory nftIds);
 
     /// @return _recipient Recipient of the input assets
     function getAssetsRecipient() external view returns ( address _recipient );
@@ -80,13 +80,13 @@ interface IMSPool {
         ) external payable;
 
     /// @notice Sell NFTs and get Tokens
-    /// @param _tokenIDs NFTs to trade
+    /// @param _tokenIDs NFTs to sell
     /// @param _minExpected Minimum expected to return to the user
     /// @param _user Address to send the tokens
     function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external returns( uint256 outputAmount );
 
     /// @notice Buy NFTs by depositing tokens
-    /// @param _tokenIDs NFTs to trade
+    /// @param _tokenIDs NFTs to buy
     /// @param _maxExpectedIn maximum expected cost to buy the NFTs
     /// @param _user Address to send the NFTs
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
