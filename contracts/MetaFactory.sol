@@ -26,10 +26,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
     bytes4 constant ERC721_ENUMERABLE_INTERFACE_ID =
         type(IERC721Enumerable).interfaceId;
 
-    /// @notice ERC721 interface ID
-    bytes4 constant ERC721_INTERFACE_ID =
-        type(IERC721).interfaceId;
-
     /// @notice Maximum percentage allowed for fees
     uint128 public constant MAX_FEE_PERCENTAGE = 0.9e18;
 
@@ -119,19 +115,23 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _nft the NFT to init the pool ( this can not be changed after init )
     function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
 
-        bool isEnumerable =
-            IERC165( _nft )
-            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID);
+        // Get the implementation of the given NFT Collection
 
-        bool isBasic =
-            IERC165( _nft )
-            .supportsInterface(ERC721_INTERFACE_ID);
+        address implementation;
 
-        require( isEnumerable || isBasic );
+        try IERC165( _nft )
+            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID)
+        returns ( bool isEnumerable ){
 
-        address implementation = isEnumerable
-            ? address( poolEnumTemplate )
-            : address( poolNotEnumTemplate );
+            implementation = isEnumerable
+                ? address( poolEnumTemplate )
+                : address( poolNotEnumTemplate );
+
+        } catch {
+
+            implementation = address( poolNotEnumTemplate );
+
+        }
 
         _newPool = MSPoolBasic( payable( implementation.clone() ) );
 
