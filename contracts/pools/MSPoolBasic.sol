@@ -273,7 +273,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         uint balanceAfter = _to.balance;
 
         require( 
-            balanceBefore + _outputAmount == balanceAfter,
+            balanceAfter >= balanceBefore + _outputAmount,
             "Output tokens not Sent"
         );
 
