@@ -500,26 +500,6 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. should return false if number of Items is greatest than NFTbalance", async () => {
-
-                const { cPAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
-
-                const numItems = 10
-
-                const initialPrice = 5
-
-                const startPrice = numItems * initialPrice
-
-                const multiplier = numItems + 1
-
-                const { pool } = await createPool(metaFactory, nft, numItems, startPrice, multiplier, cPAlgorithm, poolType.buy, 0, 100)
-
-                const [ isValid ] = await pool.getPoolSellInfo( numItems + 1 )
-
-                expect( isValid ).to.be.false
-
-            })
-
         })
 
         describe(" - Functionalities", () => {

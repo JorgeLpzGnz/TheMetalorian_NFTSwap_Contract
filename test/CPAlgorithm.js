@@ -317,34 +317,6 @@ describe("Constant Product Algorithm", function () {
 
             })
 
-            it("2. should return false if number of Items is greatest than NFTbalance", async () => {
-
-                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
-
-                const numItems = 10
-
-                const initialPrice = 5
-
-                const startPrice = parseEther( `${ numItems * initialPrice }` )
-
-                const multiplier = parseEther( `${ numItems + 1 }` )
-
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
-
-                const poolFee0 = 0
-
-                const [ isValid ] = await cPAlgorithm.getSellInfo(
-                    multiplier,
-                    startPrice,
-                    numItems + 1,
-                    protocolFee,
-                    poolFee0
-                )
-
-                expect( isValid ).to.be.false
-
-            })
-
         })
 
         describe(" - Functionalities", () => {

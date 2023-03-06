@@ -139,10 +139,6 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         uint numItems = _numItems * 1e18;
 
-        // num Items should be < NFT balance 
-
-        if ( numItems >= nftBalance ) return (false, 0, 0, 0, 0);
-
         // input value = ( tokenBalance * numItems ) / ( nftBalance + numItems )
 
         uint outputValueWithoutFee = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );

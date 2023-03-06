@@ -275,7 +275,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         //CM: no deberia restarse?
         require( 
-            balanceBefore + _outputAmount == balanceAfter,
+            balanceAfter >= balanceBefore + _outputAmount,
             "Output tokens not Sent"
         );
 
