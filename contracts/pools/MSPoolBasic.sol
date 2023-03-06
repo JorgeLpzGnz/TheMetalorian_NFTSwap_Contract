@@ -197,7 +197,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             address feeRecipient = factory.PROTOCOL_FEE_RECIPIENT();
 
             if( _protocolFee > address( this ).balance ) {
-
+                //CM: por que protocol fee es igual al balance del contrato?     
                 _protocolFee = address( this ).balance;
 
             }
@@ -230,6 +230,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
     }
 
+    
     /// @notice Receive NFTs from user
     /// @param _from NFTs owner address
     /// @param _tokenIDs NFTs to send
@@ -272,6 +273,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         uint balanceAfter = _to.balance;
 
+        //CM: no deberia restarse?
         require( 
             balanceAfter >= balanceBefore + _outputAmount,
             "Output tokens not Sent"
