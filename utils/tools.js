@@ -68,14 +68,14 @@ async function createPool( metaFactory, nft, amountOfNFTs, _startPrice, _multipl
     const tokenAmount = parseEther( `${_tokenAmount}` )
 
     const tx = await metaFactory.createPool( 
-        nft.address,    // colection
-        nftIds,         // token IDs of the NFTs
-        multiplier,          // multiplier
-        startPrice,      // spotprice
-        rewardRecipient,// rewardRecipient
-        fee,            // trade fees
-        Algorithm.address,  // Algorithm
-        poolType,       // the type of the pool
+        nft.address,            // colection
+        nftIds,                 // token IDs of the NFTs
+        multiplier,             // multiplier
+        startPrice,             // startPrice
+        rewardRecipient,        // rewardRecipient
+        fee,                    // trade fees
+        Algorithm.address,      // Algorithm
+        poolType,               // the type of the pool
         { value: tokenAmount }, // the amount of ETH to init the pool
     )
 

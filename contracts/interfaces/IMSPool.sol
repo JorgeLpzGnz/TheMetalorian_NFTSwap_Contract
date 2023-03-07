@@ -83,18 +83,21 @@ interface IMSPool {
     /// @param _tokenIDs NFTs to sell
     /// @param _minExpected Minimum expected to return to the user
     /// @param _user Address to send the tokens
+    /// @return outputAmount amount of output from the pool
     function swapNFTsForToken( uint[] memory _tokenIDs, uint _minExpected, address _user ) external returns( uint256 outputAmount );
 
     /// @notice Buy NFTs by depositing tokens
     /// @param _tokenIDs NFTs to buy
     /// @param _maxExpectedIn Maximum expected cost to buy the NFTs
     /// @param _user Address to send the NFTs
+    /// @return inputAmount amount of input to the pool
     function swapTokenForNFT( uint[] memory _tokenIDs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
     /// @notice Buy NFTs by depositing tokens (used when the NFTs to be sent to the user do not matter)
     /// @param _numNFTs Number of NFTs to buy
     /// @param _maxExpectedIn maximum expected cost to buy the NFTs
     /// @param _user Address to send the NFTs
+    /// @return inputAmount amount of input to the pool
     function swapTokenForAnyNFT( uint _numNFTs, uint _maxExpectedIn, address _user ) external payable returns( uint256 inputAmount );
 
 }

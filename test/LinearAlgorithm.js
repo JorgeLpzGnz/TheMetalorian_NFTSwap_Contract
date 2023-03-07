@@ -102,7 +102,7 @@ describe("Linear Algorithm", function () {
 
             })
 
-            it("2. should return false when new spot price is more than uint128 limit", async () => {
+            it("2. should return false when new start price is more than uint128 limit", async () => {
 
                 const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -232,7 +232,7 @@ describe("Linear Algorithm", function () {
 
             })
 
-            it("4. test new spot price and new multiplier", async () => {
+            it("4. test new start price and new multiplier", async () => {
 
                 const { linearAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -307,7 +307,7 @@ describe("Linear Algorithm", function () {
         /*
           In all of these tests, the number of items can be subtracted by any
           number because there is a limit to the number of items that can be 
-          sold based on the multiplier and spot price. 
+          sold based on the multiplier and start price. 
         */
 
         describe(" - Functionalities", () => {
@@ -454,8 +454,8 @@ describe("Linear Algorithm", function () {
 
             })
 
-            // in linear Algorithm the new spot price for sell is spot price - decrease
-            // so when the decrease is grater than spot price this will throw an 
+            // in linear Algorithm the new start price for sell is start price - decrease
+            // so when the decrease is grater than start price this will throw an 
             // UnderFlow error so to handle this theres a limit in the items
             // that pool can sell
 
@@ -483,8 +483,8 @@ describe("Linear Algorithm", function () {
                     parseEther( `${ poolFeeMul }` )
                 )
 
-                // in this spot price and multiplier the max of items that the pool
-                // can sell is 2 because 0.5 * 2 is 1 ( the current spot price )
+                // in this start price and multiplier the max of items that the pool
+                // can sell is 2 because 0.5 * 2 is 1 ( the current start price )
 
                 const expectedOutput = getTokenOutput("linearAlgorithm", startPrice, multiplier, 2)
 

@@ -96,6 +96,8 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
                 FixedPointMathLib.WAD
             ), FixedPointMathLib.WAD);
 
+        // calculate buy fees
+
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
         protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
@@ -116,6 +118,17 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
 
     }
 
+    /// @notice Returns the info to Sell NFTs in Constant Product market
+    /// @param _multiplier Pool multiplier
+    /// @param _startPrice Pool Start price
+    /// @param _numItems Number of Items to buy
+    /// @param _protocolFee Protocol fee multiplier 
+    /// @param _poolFee Pool fee multiplier  
+    /// @return isValid True if the trade can be done
+    /// @return newStartPrice New Pool Start Price
+    /// @return newMultiplier New Pool Multiplier
+    /// @return outputValue Amount to send to the user
+    /// @return protocolFee Fee charged for the trade 
     function getSellInfo( uint128 _multiplier, uint128 _startPrice, uint _numItems, uint128 _protocolFee, uint128 _poolFee ) external pure override 
         returns ( 
             bool isValid, 
@@ -146,7 +159,7 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
 
         if( newStartPrice < MIN_PRICE ) newStartPrice = MIN_PRICE;
 
-        // outputValue = spotPrice * ( 1 - invMultiplierPow ) / ( 1 - invMultiplier )
+        // outputValue = startPrice * ( 1 - invMultiplierPow ) / ( 1 - invMultiplier )
 
         outputValue = uint256( _startPrice ).fmul(
             ( FixedPointMathLib.WAD - invMultiplierPow ).fdiv(
@@ -155,6 +168,8 @@ contract ExponentialAlgorithm is IMetaAlgorithm {
             ),
             FixedPointMathLib.WAD
         );
+
+        // calculate sell fees
 
         uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
 
