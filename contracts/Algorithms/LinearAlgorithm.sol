@@ -68,8 +68,7 @@ contract LinearAlgorithm is IMetaAlgorithm {
 
         // num Items should be > 0
 
-        if ( _numItems == 0 ) 
-            return (false, 0, 0, 0, 0);
+        if ( _numItems == 0 ) return (false, 0, 0, 0, 0);
 
         // set new Start Price
 
@@ -77,21 +76,22 @@ contract LinearAlgorithm is IMetaAlgorithm {
         
         // handle possible overflow errors
 
-        if( _newStartPrice > type( uint128 ).max )
-            return ( false, 0, 0, 0, 0);
+        if( _newStartPrice > type( uint128 ).max ) return ( false, 0, 0, 0, 0);
 
         uint256 buyPrice = _startPrice + _multiplier;
 
         inputValue = 
             _numItems * buyPrice + ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
 
+        // calculate buy fees
+
         uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 
         protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD);
-
-        inputValue += ( protocolFee + poolFee );
         
         // adding fees
+
+        inputValue += ( protocolFee + poolFee );
 
         newStartPrice = uint128(_newStartPrice);
 
@@ -125,8 +125,7 @@ contract LinearAlgorithm is IMetaAlgorithm {
             
         // num Items should be > 0
 
-        if ( _numItems == 0 ) 
-            return (false, 0, 0, 0, 0);
+        if ( _numItems == 0 ) return (false, 0, 0, 0, 0);
 
         uint decrease = _multiplier * _numItems;
 
@@ -145,6 +144,8 @@ contract LinearAlgorithm is IMetaAlgorithm {
         else newStartPrice = _startPrice - uint128( decrease );
 
         outputValue = _numItems * _startPrice - ( _numItems * ( _numItems - 1 ) * _multiplier ) / 2;
+
+        // calculate sell fees
 
         uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD);
 

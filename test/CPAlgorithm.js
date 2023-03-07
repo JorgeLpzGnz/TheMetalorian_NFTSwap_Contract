@@ -271,15 +271,9 @@ describe("Constant Product Algorithm", function () {
 
                 const expectedInputWithoutFee = getTokenInput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedInputWithoutFee *  protocolFeeMult
-
-                const poolFee = expectedInputWithoutFee * poolFeeMul
-
-                const expectedInput = expectedInputWithoutFee + protocolFeeEspct + poolFee
-
                 // tokenBalance ( startPrice ) must be current balance + input
 
-                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice + expectedInput )
+                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice + expectedInputWithoutFee )
 
                 // NFTBalance ( multiplier ) must be current balance - number Of Items
 
@@ -315,34 +309,6 @@ describe("Constant Product Algorithm", function () {
                     multiplier,
                     startPrice,
                     numItems,
-                    protocolFee,
-                    poolFee0
-                )
-
-                expect( isValid ).to.be.false
-
-            })
-
-            it("2. should return false if number of Items is greatest than NFTbalance", async () => {
-
-                const { cPAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
-
-                const numItems = 10
-
-                const initialPrice = 5
-
-                const startPrice = parseEther( `${ numItems * initialPrice }` )
-
-                const multiplier = parseEther( `${ numItems + 1 }` )
-
-                const protocolFee = await metaFactory.PROTOCOL_FEE()
-
-                const poolFee0 = 0
-
-                const [ isValid ] = await cPAlgorithm.getSellInfo(
-                    multiplier,
-                    startPrice,
-                    numItems + 1,
                     protocolFee,
                     poolFee0
                 )
@@ -487,15 +453,9 @@ describe("Constant Product Algorithm", function () {
 
                 const expectedOutputWithoutFee = getTokenOutput( "cPAlgorithm", startPrice, multiplier, numItems )
 
-                const protocolFeeEspct = expectedOutputWithoutFee * protocolFeeMult 
-
-                const poolFee = expectedOutputWithoutFee * poolFeeMul
-
-                const expectedOutput = expectedOutputWithoutFee - ( protocolFeeEspct + poolFee )
-
                 // tokenBalance ( startPrice ) must be current balance - input
 
-                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutput )
+                expect( getNumber( newStartPrice ) ).to.be.equal( startPrice - expectedOutputWithoutFee )
 
                 // NFTBalance ( multiplier ) must be current balance + number Of Items
 

@@ -86,19 +86,21 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         // input value = ( tokenBalance * numItems ) / ( nftBalance - numItems )
 
-        inputValue = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
+        uint inputValueWithoutFee = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
 
-        uint poolFee = inputValue.fmul( _poolFee, FixedPointMathLib.WAD );
+        // calculate buy fees
 
-        protocolFee = inputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
+        uint poolFee = inputValueWithoutFee.fmul( _poolFee, FixedPointMathLib.WAD );
+
+        protocolFee = inputValueWithoutFee.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         // adding fees
 
-        inputValue += ( protocolFee + poolFee );
+        inputValue = inputValueWithoutFee + ( protocolFee + poolFee );
 
-        // is needed a start Price and multiplier update
+        // update start Price and multiplier
 
-        newStartPrice = uint128( tokenBalance + inputValue );
+        newStartPrice = uint128( tokenBalance + inputValueWithoutFee );
 
         newMultiplier = uint128( nftBalance - numItems );
 
@@ -139,25 +141,23 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         uint numItems = _numItems * 1e18;
 
-        // num Items should be < NFT balance ( multiplier = numItems  initial Price )
-
-        if ( numItems >= nftBalance ) return (false, 0, 0, 0, 0);
-
         // input value = ( tokenBalance * numItems ) / ( nftBalance + numItems )
 
-        outputValue = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
+        uint outputValueWithoutFee = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
 
-        uint poolFee = outputValue.fmul( _poolFee, FixedPointMathLib.WAD );
+        // calculate sell fees
 
-        protocolFee = outputValue.fmul( _protocolFee, FixedPointMathLib.WAD );
+        uint poolFee = outputValueWithoutFee.fmul( _poolFee, FixedPointMathLib.WAD );
+
+        protocolFee = outputValueWithoutFee.fmul( _protocolFee, FixedPointMathLib.WAD );
 
         // adding fees
 
-        outputValue -=  ( protocolFee + poolFee );
+        outputValue = outputValueWithoutFee - ( protocolFee + poolFee );
 
-        // is needed a start Price and multiplier update
+        // update start Price and multiplier 
 
-        newStartPrice = uint128( tokenBalance - outputValue );
+        newStartPrice = uint128( tokenBalance - outputValueWithoutFee );
 
         newMultiplier = uint128( nftBalance + numItems );
 

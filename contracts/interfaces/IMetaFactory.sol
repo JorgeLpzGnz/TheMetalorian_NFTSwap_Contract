@@ -7,19 +7,19 @@ import "./IMetaAlgorithm.sol";
 
 /// @title IMetaFactory a interface to call pool factory
 /// @author JorgeLpzGnz & CarlosMario714
-/// @dev this factory creates pair based on the minimal proxy standard IEP-1167
+/// @dev This factory creates pair based on the minimal proxy standard IEP-1167
 interface IMetaFactory {
 
     /// @notice Creates a new pool
     /// @param _nft NFT collection to trade
-    /// @param _nftIds the NFTs to trade ( empty in pools type Buy )
-    /// @param _multiplier the multiplier to calculate the trade price
-    /// @param _startPrice the start Price to calculate the trade price
+    /// @param _nftIds The NFTs to trade ( empty in pools type Buy )
+    /// @param _multiplier The multiplier to calculate the trade price
+    /// @param _startPrice The start Price to calculate the trade price
     /// start Price is just a name see de algorithm to see how this will be take it
-    /// @param _recipient recipient of the input assets
-    /// @param _fee fee multiplier to calculate the pool fee ( available on trade pool )
+    /// @param _recipient Recipient of the input assets
+    /// @param _fee Fee multiplier to calculate the pool fee ( available on trade pool )
     /// @param _Algorithm Algorithm used to calculate the price
-    /// @param _poolType the type of the pool ( sell, buy, trade )
+    /// @param _poolType The type of the pool ( sell, buy, trade )
     /// @return pool Address of the new pool created
     function createPool( 
         address _nft, 
@@ -34,7 +34,7 @@ interface IMetaFactory {
             MSPoolBasic pool
         );
 
-    /// @notice Get current pool info
+    /// @notice Get current Factory info
     /// @return MAX_FEE_PERCENTAGE The maximum percentage fee multiplier
     /// @return PROTOCOL_FEE Current protocol fee multiplier
     /// @return PROTOCOL_FEE_RECIPIENT The recipient of the fees

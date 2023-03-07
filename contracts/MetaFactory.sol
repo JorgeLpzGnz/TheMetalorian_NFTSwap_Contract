@@ -12,7 +12,6 @@ import "./pools/MSPoolNFTEnumerable.sol";
 import "./pools/MSPoolNFTBasic.sol";
 import "./pools/PoolTypes.sol";
 
-
 /// @title MetaFactory a contract factory for NFT / ETH liquidity Pools
 /// @author JorgeLpzGnz & CarlosMario714
 /// @notice Factory that creates minimal proxies based on the IEP-1167
@@ -25,10 +24,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @notice ERC721 Enumerable interface ID
     bytes4 constant ERC721_ENUMERABLE_INTERFACE_ID =
         type(IERC721Enumerable).interfaceId;
-
-    /// @notice ERC721 interface ID
-    bytes4 constant ERC721_INTERFACE_ID =
-        type(IERC721).interfaceId;
 
     /// @notice Maximum percentage allowed for fees
     uint128 public constant MAX_FEE_PERCENTAGE = 0.9e18;
@@ -82,8 +77,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param AmountOfNFTs Amount of NFTs withdrawal
     event NFTWithdrawal( address indexed owner, uint AmountOfNFTs );
 
+    /// @param from Address where the tokens are sent from
     /// @param amount Amount of ETH deposit
-    event TokenDeposit( uint amount );
+    event TokenDeposit( address indexed from, uint amount );
 
     /// @param collectionNFT NFT collection address
     /// @param tokenID ID of the deposited NFT
@@ -93,7 +89,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /**************************** CONSTRUCTOR ********************************/
 
     /// @notice Params are the initial allowed price Algorithms
-    constructor( address  _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm, address _feeRecipient ) {
+    constructor( address _LinearAlgorithm, address _ExponentialAlgorithm, address _CPAlgorithm, address _feeRecipient ) {
 
         isMSAlgorithm[_LinearAlgorithm] = true;
 
@@ -114,37 +110,40 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATION UTILS ******************************/
 
-    /// @notice function used to create the new pools
-    /// @notice the NFT must be a ERC-721 or ERC-721 Enumerable
-    /// @param _nft the NFT to init the pool ( this can not be changed after init )
+    /// @notice Used to create the new pools
+    /// @notice The NFT must be a ERC-721 or ERC-721 Enumerable
+    /// @param _nft The NFT to init the pool ( this can not be changed after init )
     function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
 
-        bool isEnumerable =
-            IERC165( _nft )
-            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID);
+        // Get the implementation of the given NFT Collection
 
-        bool isBasic =
-            IERC165( _nft )
-            .supportsInterface(ERC721_INTERFACE_ID);
+        address implementation;
 
-        require( isEnumerable || isBasic );
+        try IERC165( _nft )
+            .supportsInterface(ERC721_ENUMERABLE_INTERFACE_ID)
+        returns ( bool isEnumerable ){
 
-        address implementation = isEnumerable
-            ? address( poolEnumTemplate )
-            : address( poolNotEnumTemplate );
+            implementation = isEnumerable
+                ? address( poolEnumTemplate )
+                : address( poolNotEnumTemplate );
+
+        } catch {
+
+            implementation = address( poolNotEnumTemplate );
+
+        }
 
         _newPool = MSPoolBasic( payable( implementation.clone() ) );
 
     }
 
-    /// @notice verifies that the initialization parameters are correct
-    /// @param _poolType The pool type of the new Pool
-    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    /// @param _poolType The pool type of the new Pool
-    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
-    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @notice Verifies that the initialization parameters are correct
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
-    /// @param _Algorithm algorithm that determines the prices
+    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
+    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
+    /// @param _Algorithm Algorithm that determines the prices
+    /// @param _poolType The pool type of the new Pool
     function checkInitParams( 
         uint128 _multiplier, 
         uint128 _startPrice,
@@ -181,6 +180,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     /// @notice Set a router approval
     /// @param _router A new protocol Fee
+    /// @param _approval Approval to set
     function setRouterApproval( address _router, bool _approval ) external onlyOwner {
 
         require( isMSRouter[_router] != _approval, "Approval is the same than previous");
@@ -208,9 +208,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _newProtocolFee A new protocol Fee
     function setProtocolFee( uint128 _newProtocolFee ) external onlyOwner {
 
-        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "new Fee exceeds limit" );
+        require( _newProtocolFee < MAX_FEE_PERCENTAGE, "New Fee exceeds limit" );
 
-        require( PROTOCOL_FEE != _newProtocolFee, "new fee cannot be the same as the previous one" );
+        require( PROTOCOL_FEE != _newProtocolFee, "New fee cannot be the same as the previous one" );
 
         PROTOCOL_FEE = _newProtocolFee;
 
@@ -222,7 +222,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /// @param _newRecipient A new protocol Fee
     function setProtocolFeeRecipient( address _newRecipient ) external onlyOwner {
 
-        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "new fee cannot be the same as the previous one" );
+        require( PROTOCOL_FEE_RECIPIENT != _newRecipient, "New fee recipient cannot be the same as the previous one" );
 
         PROTOCOL_FEE_RECIPIENT = _newRecipient;
 
@@ -246,17 +246,17 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATE FUNCTION *****************************/
 
-
-    /// @notice verifies that the initialization parameters are correct
-    /// @param _nft the NFT to init the pool ( this can not be changed after init )
+    /// @notice Create new pool
+    /// @dev Verifies that the initialization parameters are correct
+    /// @param _nft The NFT to init the pool ( this can not be changed after init )
     /// @param _nftIds The NFTs to pull in the pool ( in case of sell pool this must be empty )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
-    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @param _startPrice The start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _recipient The recipient of the swap assets ( not available on trade pools )
     /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    /// @param _Algorithm algorithm that determines the prices
+    /// @param _Algorithm Algorithm that determines the prices
     /// @param _poolType The pool type of the new Pool
-    /// @return pool pool created
+    /// @return pool Address of the pool created
     function createPool( 
         address _nft, 
         uint[] calldata _nftIds,
@@ -266,7 +266,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
         uint128 _fee,
         IMetaAlgorithm _Algorithm, 
         PoolTypes.PoolType _poolType
-        ) public payable  returns(
+        ) external payable  returns(
             MSPoolBasic pool
         )
     {
@@ -282,7 +282,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
             _startPrice, 
             _recipient,
             msg.sender, 
-            _nft, 
+            _nft,
             _fee, 
             _Algorithm, 
             _poolType
@@ -317,29 +317,31 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /********************** WITHDRAW FUNCTIONS FUNCTIONS *********************/
 
-    /// @notice withdraw the ETH balance of the contract
+    /// @notice Withdraw the ETH balance of the contract
     function withdrawETH() external onlyOwner {
 
         uint balance = address( this ).balance;
 
-        require( balance > 0, "insufficient balance" );
+        require( balance > 0, "Insufficient balance" );
 
         ( bool isSended, ) = owner().call{ value: balance }("");
 
-        require( isSended, "transaction not sended" );
+        require( isSended, "Transaction not sent" );
 
         emit TokenWithdrawal( owner(), balance );
 
     }
 
-    /// @notice withdraw deposited NFTs
-    /// @param _nft address of the collection to withdraw
-    /// @param _nftIds the NFTs to withdraw
-    function withdrawNFTs( address _nft, uint[] memory _nftIds ) external onlyOwner {
+    /// @notice Withdraw deposited NFTs
+    /// @param _nft Address of the collection to withdraw
+    /// @param _nftIds The NFTs to withdraw
+    function withdrawNFTs( IERC721 _nft, uint[] memory _nftIds ) external onlyOwner {
+
+        require( _nft.balanceOf( address( this ) ) >= _nftIds.length, "Insufficient NFT Balance" );
 
         for (uint256 i = 0; i < _nftIds.length; i++) {
             
-            IERC721(_nft).safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
+            _nft.safeTransferFrom( address( this ), owner(), _nftIds[ i ] );
 
         }
 
@@ -349,17 +351,17 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     /*************************************************************************/
     /*************************** DEPOSIT FUNCTIONS ***************************/
-
+    
     /// @notice Allows the contract to receive ETH ( the swap fees )
     receive() external payable  {
 
-        emit TokenDeposit( msg.value );
+        emit TokenDeposit( msg.sender, msg.value );
 
     }
 
     /// @notice ERC-721 Receiver implementation
     /// @notice Only the owner can withdraw this input NFTs
-    function onERC721Received(address, address, uint256 id, bytes calldata) external override returns (bytes4) {
+    function onERC721Received(address, address, uint256 id, bytes calldata) public override returns (bytes4) {
 
         emit NFTDeposit( msg.sender, id );
 
