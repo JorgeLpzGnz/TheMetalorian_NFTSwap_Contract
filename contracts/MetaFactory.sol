@@ -243,6 +243,24 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     }
 
+    /// @notice Returns router approval
+    /// @param _router router to ask
+    /// @return isAllowed True if is approved
+    function isRouterAllowed( address _router ) public view returns ( bool isAllowed ) {
+
+        isAllowed = isMSRouter[ _router ];
+
+    }
+
+    /// @notice Returns router approval
+    /// @param _algorithm Algorithm to ask
+    /// @return isAllowed True if is approved
+    function isAlgorithmAllowed( address _algorithm ) public view returns ( bool isAllowed ) {
+
+        isAllowed = isMSAlgorithm[ _algorithm ];
+
+    }
+
     /*************************************************************************/
     /*************************** CREATE FUNCTION *****************************/
 

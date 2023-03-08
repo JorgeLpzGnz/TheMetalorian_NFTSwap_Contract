@@ -40,6 +40,16 @@ interface IMetaFactory {
     /// @return PROTOCOL_FEE_RECIPIENT The recipient of the fees
     function getFactoryInfo() external view returns( uint128, uint128, address );
 
+    /// @notice Obtain information if the router is approved
+    /// @param _router router to ask
+    /// @return isAllowed True if is approved
+    function isRouterAllowed( address _router ) external view returns ( bool isAllowed );
+
+    /// @notice Obtain information if the Algorithm is approved
+    /// @param _algorithm Algorithm to ask
+    /// @return isAllowed True if is approved
+    function isAlgorithmAllowed( address _algorithm ) external view returns ( bool isAllowed );
+
     /// @notice Maximum multiplier fee
     /// @return MAX_FEE_PERCENTAGE The maximum percentage fee multiplier
     function MAX_FEE_PERCENTAGE() external view returns( uint128 );
