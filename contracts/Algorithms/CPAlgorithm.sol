@@ -88,6 +88,8 @@ contract CPAlgorithm is IMetaAlgorithm {
 
         uint inputValueWithoutFee = tokenBalance.fmul( numItems, FixedPointMathLib.WAD ).fdiv( nftBalance - numItems , FixedPointMathLib.WAD );
 
+        // calculate buy fees
+
         uint poolFee = inputValueWithoutFee.fmul( _poolFee, FixedPointMathLib.WAD );
 
         protocolFee = inputValueWithoutFee.fmul( _protocolFee, FixedPointMathLib.WAD );
@@ -142,6 +144,8 @@ contract CPAlgorithm is IMetaAlgorithm {
         // input value = ( tokenBalance * numItems ) / ( nftBalance + numItems )
 
         uint outputValueWithoutFee = ( tokenBalance.fmul( numItems, FixedPointMathLib.WAD ) ).fdiv( nftBalance + numItems, FixedPointMathLib.WAD );
+
+        // calculate sell fees
 
         uint poolFee = outputValueWithoutFee.fmul( _poolFee, FixedPointMathLib.WAD );
 

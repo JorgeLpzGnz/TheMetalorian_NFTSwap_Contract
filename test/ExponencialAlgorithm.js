@@ -114,7 +114,7 @@ describe("Exponential Algorithm", function () {
 
             })
 
-            it("2. should return false when new spot price is more than uint128 limit", async () => {
+            it("2. should return false when new start price is more than uint128 limit", async () => {
 
                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 
@@ -244,7 +244,7 @@ describe("Exponential Algorithm", function () {
 
             })
 
-            it("4. test new spot price and new multiplier", async () => {
+            it("4. test new start price and new multiplier", async () => {
 
                 const { exponentialAlgorithm, metaFactory } = await loadFixture(deployMetaFactory)
 

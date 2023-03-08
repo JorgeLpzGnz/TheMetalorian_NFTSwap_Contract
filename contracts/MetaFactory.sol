@@ -110,10 +110,9 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATION UTILS ******************************/
 
-    //CM: como se crea el contrato?
     /// @notice Used to create the new pools
     /// @notice The NFT must be a ERC-721 or ERC-721 Enumerable
-    /// @param _nft the NFT to init the pool ( this can not be changed after init )
+    /// @param _nft The NFT to init the pool ( this can not be changed after init )
     function _creteContract( address _nft ) private returns( MSPoolBasic _newPool ) {
 
         // Get the implementation of the given NFT Collection
@@ -139,14 +138,12 @@ contract MetaFactory is Ownable, IERC721Receiver {
     }
 
     /// @notice Verifies that the initialization parameters are correct
-    /// @param _poolType The pool type of the new Pool
-    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
-    //CM: variable repertida
-    /// @param _poolType The pool type of the new Pool
-    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
-    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
     /// @param _multiplier The price multiplier ( depending of the algorithm this will take at different ways )
+    /// @param _startPrice the start price of the Pool ( depending of the algorithm this will take at different ways )
+    /// @param _recipient The recipient of the swap assets ( not available on trade pools )
+    /// @param _fee The fees charged per swap on that pool ( available only on trade pools )
     /// @param _Algorithm Algorithm that determines the prices
+    /// @param _poolType The pool type of the new Pool
     function checkInitParams( 
         uint128 _multiplier, 
         uint128 _startPrice,
@@ -183,6 +180,7 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     /// @notice Set a router approval
     /// @param _router A new protocol Fee
+    /// @param _approval Approval to set
     function setRouterApproval( address _router, bool _approval ) external onlyOwner {
 
         require( isMSRouter[_router] != _approval, "Approval is the same than previous");
@@ -248,7 +246,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** CREATE FUNCTION *****************************/
 
-    //CM: en  esta funcion estaba el error?
     /// @notice Create new pool
     /// @dev Verifies that the initialization parameters are correct
     /// @param _nft The NFT to init the pool ( this can not be changed after init )
@@ -283,12 +280,12 @@ contract MetaFactory is Ownable, IERC721Receiver {
         pool.init(
             _multiplier, 
             _startPrice, 
-            _recipient,  //CM: recipiente no es igual al owner?
+            _recipient,
             msg.sender, 
-            _nft, //CM: se valida que sea un contarto erc721?
+            _nft,
             _fee, 
             _Algorithm, 
-            _poolType //CM: que pasa si el tipo de pool no es valido? tiene que ser 0 1 o 2
+            _poolType
         );
 
         // Transfer ETH To the pool 
@@ -327,7 +324,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
         require( balance > 0, "Insufficient balance" );
 
-         //CM: como se calcula isSended?
         ( bool isSended, ) = owner().call{ value: balance }("");
 
         require( isSended, "Transaction not sent" );
@@ -356,7 +352,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
     /*************************************************************************/
     /*************************** DEPOSIT FUNCTIONS ***************************/
     
-    //CM: esta funcion solo emite el evento?
     /// @notice Allows the contract to receive ETH ( the swap fees )
     receive() external payable  {
 
@@ -364,7 +359,6 @@ contract MetaFactory is Ownable, IERC721Receiver {
 
     }
 
-    //CM: esta funcion solo emite el evento?
     /// @notice ERC-721 Receiver implementation
     /// @notice Only the owner can withdraw this input NFTs
     function onERC721Received(address, address, uint256 id, bytes calldata) public override returns (bytes4) {

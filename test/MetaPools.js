@@ -198,7 +198,7 @@ describe("MetaPools", function () {
 
         describe(" - Errors", () => {
 
-            it("1. should fail when not owner try to set new spot price", async () => {
+            it("1. should fail when not owner try to set new start price", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
@@ -220,13 +220,13 @@ describe("MetaPools", function () {
 
             })
 
-            it("3. should fail when new spot price is invalid for the Algorithm", async () => {
+            it("3. should fail when new start price is invalid for the Algorithm", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
                 const { pool } = await createPool(metaFactory, NFTEnumerable, 10, 4, 1.1, exponentialAlgorithm, poolType.buy, 0, 0)
 
-                // min spot price = 1 gwei = 1e9
+                // min start price = 1 gwei = 1e9
 
                 const startPrice = 1e7
 
@@ -238,7 +238,7 @@ describe("MetaPools", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should set a new spot price", async () => {
+            it("1. should set a new start price", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -246,7 +246,7 @@ describe("MetaPools", function () {
 
                 const { pool } = await createPool(metaFactory, NFTEnumerable, 10, startPrice, 1.5, exponentialAlgorithm, poolType.buy, 0, 0)
 
-                // current spot price is the same as initial
+                // current start price is the same as initial
 
                 expect(getNumber(await pool.startPrice())).to.be.equal(startPrice)
 
@@ -290,7 +290,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("3. should fail when new spot price is invalid for the Algorithm", async () => {
+            it("3. should fail when new start price is invalid for the Algorithm", async () => {
 
                 const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
 
@@ -626,7 +626,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("2. should return false when new spot price is more than uint128 limit", async () => {
+            it("2. should return false when new start price is more than uint128 limit", async () => {
 
                 const { exponentialAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -706,7 +706,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("4. test new spot price and new multiplier", async () => {
+            it("4. test new start price and new multiplier", async () => {
 
                 const { exponentialAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -954,7 +954,7 @@ describe("MetaPools", function () {
 
             })
 
-            it("3. test new spot price and new multiplier", async () => {
+            it("3. test new start price and new multiplier", async () => {
 
                 const { linearAlgorithm, metaFactory, nft } = await loadFixture(deployMetaFactory)
 
@@ -1014,7 +1014,7 @@ describe("MetaPools", function () {
 
         // in all this tests the num of items could substract by any number
         // because there are a limit of items that can be sell depending of
-        // multiplier and spot price
+        // multiplier and start price
 
         describe(" - Functionalities", () => {
 
@@ -1112,8 +1112,8 @@ describe("MetaPools", function () {
 
             })
 
-            // in liniar Algorithm the new spot price for sell is spot price - decrease
-            // so when the drease is grater than spot price this will throw an
+            // in liniar Algorithm the new start price for sell is start price - decrease
+            // so when the drease is grater than start price this will throw an
             // UnderFlow erro so to handle this theres a limit in the items
             // that pool can sell
 
@@ -1137,8 +1137,8 @@ describe("MetaPools", function () {
 
                 const [ , newStartPrice, newMultiplier, outputValue,  ] = await pool.getPoolSellInfo( numItems )
 
-                // in this spot price and multiplier the max of items that the pool
-                // can sell is 2 becouse 0.5 * 2 is 1 ( the current spot price )
+                // in this start price and multiplier the max of items that the pool
+                // can sell is 2 becouse 0.5 * 2 is 1 ( the current start price )
 
                 const expectedOutputWithOutFee = getTokenOutput("linearAlgorithm", startPrice, multiplier, 2)
 
@@ -1521,9 +1521,9 @@ describe("MetaPools", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should return the pool info", async () => {
+            it("1. should return the pool info ( trade pool test )", async () => {
 
-                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm, owner } = await loadFixture(deployMetaFactory)
 
                 const multiplier = 1.5
 
@@ -1542,6 +1542,7 @@ describe("MetaPools", function () {
                     poolAlgorithm,
                     poolAlgorithmName,
                     poolPoolType,
+                    assetsRecipient
                 ] = await pool.getPoolInfo()
 
                 // check returnal values are the correct
@@ -1561,6 +1562,52 @@ describe("MetaPools", function () {
                 expect( poolAlgorithmName ).to.be.equal( "Exponential" )
 
                 expect( poolPoolType ).to.be.equal( poolType.trade )
+
+                expect( assetsRecipient ).to.be.equal( pool.address )
+
+            })
+
+            it("2. should return the pool info ( non-trade pool test )", async () => {
+
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+
+                const multiplier = 1.5
+
+                const startPrice = 5
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, startPrice, multiplier, linearAlgorithm, poolType.buy, 0, 0)
+
+                const [
+                    poolMultiplier,
+                    poolStartPrice,
+                    poolTradeFee,
+                    poolNft,
+                    poolNFTs,
+                    poolAlgorithm,
+                    poolAlgorithmName,
+                    poolPoolType,
+                    assetsRecipient
+                ] = await pool.getPoolInfo()
+
+                // check returnal values are the correct
+
+                expect( getNumber( poolMultiplier )).to.be.equal( multiplier )
+
+                expect( getNumber( poolStartPrice )).to.be.equal( startPrice )
+
+                expect( getNumber( poolTradeFee )).to.be.equal( 0 )
+
+                expect( poolNft ).to.be.equal( NFTEnumerable.address )
+
+                expect( poolNFTs ).to.deep.equal( tokenIds )
+
+                expect( poolAlgorithm ).to.be.equal( linearAlgorithm.address )
+
+                expect( poolAlgorithmName ).to.be.equal( "Linear" )
+
+                expect( poolPoolType ).to.be.equal( poolType.buy )
+
+                expect( assetsRecipient ).to.be.equal( owner.address )
 
             })
 
