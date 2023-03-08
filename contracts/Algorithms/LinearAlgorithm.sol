@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 import "../libraries/FixedPointMathLib.sol";
 import "../interfaces/IMetaAlgorithm.sol";
 
-//CM: seria interesante poner comentarios de que hace cada funcion como lo hace el contrato se sudoswap
-
 /// @title LinearAlgorithm Algorithm to calculate trade prices
 /// @author JorgeLpzGnz & CarlosMario714
 /// @notice Algorithm to calculate the price adding the multiplier
@@ -105,8 +103,7 @@ contract LinearAlgorithm is IMetaAlgorithm {
 
     }
 
-    //CM: por que aca se habla de constant product? es linear algorithm
-    /// @notice Returns the info to Sell NFTs in Constant Product market
+    /// @notice Returns the info to Sell NFTs in Linear market
     /// @param _multiplier Pool multiplier
     /// @param _startPrice Pool Start price
     /// @param _numItems Number of Items to buy
