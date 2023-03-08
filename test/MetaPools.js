@@ -1521,9 +1521,9 @@ describe("MetaPools", function () {
 
         describe(" - Functionalities", () => {
 
-            it("1. should return the pool info", async () => {
+            it("1. should return the pool info ( trade pool test )", async () => {
 
-                const { metaFactory, NFTEnumerable, exponentialAlgorithm } = await loadFixture(deployMetaFactory)
+                const { metaFactory, NFTEnumerable, exponentialAlgorithm, owner } = await loadFixture(deployMetaFactory)
 
                 const multiplier = 1.5
 
@@ -1542,6 +1542,7 @@ describe("MetaPools", function () {
                     poolAlgorithm,
                     poolAlgorithmName,
                     poolPoolType,
+                    assetsRecipient
                 ] = await pool.getPoolInfo()
 
                 // check returnal values are the correct
@@ -1561,6 +1562,52 @@ describe("MetaPools", function () {
                 expect( poolAlgorithmName ).to.be.equal( "Exponential" )
 
                 expect( poolPoolType ).to.be.equal( poolType.trade )
+
+                expect( assetsRecipient ).to.be.equal( pool.address )
+
+            })
+
+            it("2. should return the pool info ( non-trade pool test )", async () => {
+
+                const { metaFactory, NFTEnumerable, linearAlgorithm, owner } = await loadFixture(deployMetaFactory)
+
+                const multiplier = 1.5
+
+                const startPrice = 5
+
+                const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, startPrice, multiplier, linearAlgorithm, poolType.buy, 0, 0)
+
+                const [
+                    poolMultiplier,
+                    poolStartPrice,
+                    poolTradeFee,
+                    poolNft,
+                    poolNFTs,
+                    poolAlgorithm,
+                    poolAlgorithmName,
+                    poolPoolType,
+                    assetsRecipient
+                ] = await pool.getPoolInfo()
+
+                // check returnal values are the correct
+
+                expect( getNumber( poolMultiplier )).to.be.equal( multiplier )
+
+                expect( getNumber( poolStartPrice )).to.be.equal( startPrice )
+
+                expect( getNumber( poolTradeFee )).to.be.equal( 0 )
+
+                expect( poolNft ).to.be.equal( NFTEnumerable.address )
+
+                expect( poolNFTs ).to.deep.equal( tokenIds )
+
+                expect( poolAlgorithm ).to.be.equal( linearAlgorithm.address )
+
+                expect( poolAlgorithmName ).to.be.equal( "Linear" )
+
+                expect( poolPoolType ).to.be.equal( poolType.buy )
+
+                expect( assetsRecipient ).to.be.equal( owner.address )
 
             })
 

@@ -465,6 +465,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return poolAlgorithm Address of the algorithm
     /// @return poolAlgorithmName Name of the algorithm
     /// @return poolPoolType The type of the pool
+    /// @return assetsRecipient Recipient of the trade assets
     function getPoolInfo() public view returns( 
         uint128 poolMultiplier,
         uint128 poolStartPrice,
@@ -473,7 +474,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         uint[] memory poolNFTs,
         IMetaAlgorithm poolAlgorithm,
         string memory poolAlgorithmName,
-        PoolTypes.PoolType poolPoolType
+        PoolTypes.PoolType poolPoolType,
+        address assetsRecipient
     ){
         poolMultiplier = multiplier;
 
@@ -488,6 +490,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         ( poolAlgorithm, poolAlgorithmName ) = getAlgorithmInfo();
 
         poolPoolType = currentPoolType;
+
+        assetsRecipient = getAssetsRecipient();
 
     }
     
