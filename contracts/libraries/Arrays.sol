@@ -6,8 +6,8 @@ pragma solidity ^0.8.0;
 /// @notice a library to add array methods
 library Arrays {
 
-    /// @notice returns the index of the given element
-    /// @dev it will reject the tx if the element doesn't exist
+    /// @notice Returns the index of the given element
+    /// @dev It will reject the tx if the element doesn't exist
     function indexOf( uint[] memory array, uint element ) internal pure returns ( uint index ) {
 
         for ( uint256 i = 0; i < array.length; i++ ) {
@@ -23,7 +23,7 @@ library Arrays {
 
     }
 
-    /// @notice returns a boolean indicating whether it is included or not
+    /// @notice Returns a boolean indicating whether it is included or not
     /// @return included true = included, false = not included
     function includes(uint[] memory array, uint element ) internal pure returns ( bool included ) {
 
@@ -35,10 +35,10 @@ library Arrays {
 
     }
 
-    /// @notice it removes the element of the passed 
-    /// @dev to remove the element, just take the last item in
-    /// the array and set it to the index of the item to be removed,
-    /// then remove the last item
+    /// @notice Removes the element from the given index
+    /// @dev To remove the item, this will take the last item 
+    // in the array and set it to the index of the item to be 
+    // removed, then remove the last item
     function remove( uint[] storage array, uint index ) internal{
 
         require( index <= array.length - 1, "Can't delete a non-existent element" );

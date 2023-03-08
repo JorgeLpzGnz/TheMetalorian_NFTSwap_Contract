@@ -1201,7 +1201,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapNFTsForToken(
                     userNFTs,
                     0,
-                    otherAccount.address
+                    ethers.constants.AddressZero
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
@@ -1211,7 +1211,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForNFT(
                     tokenIds,
                     parseEther("100"),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther("100") }
                 )
 
@@ -1248,7 +1248,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapNFTsForToken(
                     userNFTs,
                     0,
-                    otherAccount.address
+                    ethers.constants.AddressZero
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
@@ -1258,7 +1258,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForNFT(
                     tokenIds,
                     parseEther("100"),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther("100") }
                 )
 
@@ -1339,7 +1339,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapNFTsForToken(
                     userNFTs,
                     0,
-                    otherAccount.address
+                    ethers.constants.AddressZero
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
@@ -1349,7 +1349,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     tokenIds.length,
                     parseEther("100"),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther("100") }
                 )
 
@@ -1386,7 +1386,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapNFTsForToken(
                     userNFTs,
                     0,
-                    otherAccount.address
+                    ethers.constants.AddressZero
                 )
 
                 // check that poolNFTs is equal to initial NFTs + swap NFTs
@@ -1396,7 +1396,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     tokenIds.length,
                     parseEther("100"),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther("100") }
                 )
 
@@ -1850,7 +1850,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [tokenIds[0]],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on buy-type pool")
 
@@ -1868,7 +1868,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [1],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient token balance")
 
@@ -1886,7 +1886,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.reverted
 
@@ -1904,7 +1904,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [tokenIds[0]],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Output amount is less than minimum expected")
 
@@ -1922,13 +1922,13 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [1],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.reverted
 
             })
 
-            it("5. should fail if some one tries to use trade pool NFTs as a input", async () => {
+            it("5. should fail if some one tries to sell the NFTs of the pool", async () => {
 
                 const { metaFactory, nft, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
@@ -1936,21 +1936,13 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, nft, 10, 1, 0.5, linearAlgorithm, poolType.trade, 0, 10)
 
-                /*
-                  The contract takes the user as the recipient to take the NFTs from, 
-                  so in trade pool some one can take the NFTs of the pool as a Input
-                  passing the address of the pool as a user, and artificially lower 
-                  the price without having to sell NFTs to the pool so we check if 
-                  this can't be done.
-                */
-
                 await expect(
                     pool.connect(otherAccount).swapNFTsForToken(
                         tokenIds,
                         minExpected,
-                        pool.address
+                        ethers.constants.AddressZero
                     )
-                ).to.be.revertedWith("No NFTs received")
+                ).to.be.reverted
 
             })
 
@@ -1968,7 +1960,7 @@ describe("MetaPools", function () {
 
                 const userNFTs = await mintNFT( nft, 3, pool, otherAccount )
 
-                await pool.connect( otherAccount ).swapNFTsForToken( userNFTs, 0, otherAccount.address )
+                await pool.connect( otherAccount ).swapNFTsForToken( userNFTs, 0, ethers.constants.AddressZero )
 
                 const poolBalanceAfter = ( await nft.balanceOf( owner.address ) ).toNumber()
 
@@ -2018,7 +2010,7 @@ describe("MetaPools", function () {
 
                 const userBalanceBefore = await otherAccount.getBalance()
 
-                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, otherAccount.address )
+                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, ethers.constants.AddressZero )
 
                 const receipt = await tx.wait()
 
@@ -2070,7 +2062,7 @@ describe("MetaPools", function () {
                     await metaFactory.PROTOCOL_FEE_RECIPIENT()
                     )
 
-                await pool.connect(otherAccount).swapNFTsForToken([NFTs[0]], minExpected, otherAccount.address)
+                await pool.connect(otherAccount).swapNFTsForToken([NFTs[0]], minExpected, ethers.constants.AddressZero)
 
                 const factoryBalanceAfter = await provider.getBalance(
                     await metaFactory.PROTOCOL_FEE_RECIPIENT()
@@ -2110,7 +2102,7 @@ describe("MetaPools", function () {
 
                 const NFTs = await mintNFT( nft, 10, pool, otherAccount)
 
-                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, otherAccount.address)
+                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, ethers.constants.AddressZero)
 
                 const starPriceAfter = getNumber(await pool.startPrice())
 
@@ -2150,7 +2142,7 @@ describe("MetaPools", function () {
 
                 const NFTs = await mintNFT( nft, 10, pool, otherAccount)
 
-                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, otherAccount.address)
+                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, ethers.constants.AddressZero)
 
                 const starPriceAfter = getNumber(await pool.startPrice())
 
@@ -2202,7 +2194,7 @@ describe("MetaPools", function () {
 
                 const NFTs = await mintNFT( nft, 10, pool, otherAccount)
 
-                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, otherAccount.address)
+                await pool.connect(otherAccount).swapNFTsForToken( NFTs, 0, ethers.constants.AddressZero)
 
                 const starPriceAfter = getNumber(await pool.startPrice())
 
@@ -2240,7 +2232,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [tokenIds[0]],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on buy-type pool")
 
@@ -2258,7 +2250,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [1],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient token balance")
 
@@ -2276,7 +2268,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.reverted
 
@@ -2294,7 +2286,7 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [tokenIds[0]],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Output amount is less than minimum expected")
 
@@ -2312,13 +2304,13 @@ describe("MetaPools", function () {
                     pool.swapNFTsForToken(
                         [1],
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.reverted
 
             })
 
-            it("5. should fail if some one tries to use trade pool NFTs as a input", async () => {
+            it("5. should fail if some one tries to sell the NFTs of the pool", async () => {
 
                 const { metaFactory, NFTEnumerable, linearAlgorithm, otherAccount } = await loadFixture(deployMetaFactory)
 
@@ -2326,21 +2318,13 @@ describe("MetaPools", function () {
 
                 const { pool, tokenIds } = await createPool(metaFactory, NFTEnumerable, 10, 1, 0.5, linearAlgorithm, poolType.trade, 0, 10)
 
-                /*
-                  The contract takes the user as the recipient to take the NFTs from, 
-                  so in trade pool some one can take the NFTs of the pool as a Input
-                  passing the address of the pool as a user, and artificially lower 
-                  the price without having to sell NFTs to the pool so we check if 
-                  this can't be done.
-                */
-
                 await expect(
                     pool.connect(otherAccount).swapNFTsForToken(
                         tokenIds,
                         minExpected,
-                        pool.address
+                        ethers.constants.AddressZero
                     )
-                ).to.be.revertedWith("No NFTs received")
+                ).to.be.reverted
 
             })
 
@@ -2358,7 +2342,7 @@ describe("MetaPools", function () {
 
                 const userNFTs = await mintNFT( NFTEnumerable, 3, pool, otherAccount )
 
-                await pool.connect( otherAccount ).swapNFTsForToken( userNFTs, 0, otherAccount.address )
+                await pool.connect( otherAccount ).swapNFTsForToken( userNFTs, 0, ethers.constants.AddressZero )
 
                 const poolBalanceAfter = ( await NFTEnumerable.balanceOf( owner.address ) ).toNumber()
 
@@ -2408,7 +2392,7 @@ describe("MetaPools", function () {
 
                 const userBalanceBefore = await otherAccount.getBalance()
 
-                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, otherAccount.address )
+                const tx = await pool.connect( otherAccount ).swapNFTsForToken( [userNFTs[0]], minExpected, ethers.constants.AddressZero )
 
                 const receipt = await tx.wait()
 
@@ -2460,7 +2444,7 @@ describe("MetaPools", function () {
                     await metaFactory.PROTOCOL_FEE_RECIPIENT()
                     )
 
-                await pool.connect(otherAccount).swapNFTsForToken([userNFTs[0]], minExpected, otherAccount.address)
+                await pool.connect(otherAccount).swapNFTsForToken([userNFTs[0]], minExpected, ethers.constants.AddressZero )
 
                 const factoryBalanceAfter = await provider.getBalance(
                     await metaFactory.PROTOCOL_FEE_RECIPIENT()
@@ -2496,7 +2480,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on sell-type pool")
 
@@ -2518,7 +2502,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         tokenIds,
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient NFT balance")
 
@@ -2536,7 +2520,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Swap cannot be traded")
 
@@ -2554,7 +2538,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Input amount is greater than max expected")
 
@@ -2573,7 +2557,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient amount of ETH")
 
@@ -2609,7 +2593,7 @@ describe("MetaPools", function () {
                 const tx = await pool.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0]],
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -2662,7 +2646,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0], tokenIds[1]],
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -2708,7 +2692,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForNFT( 
                     tokenIds, 
                     parseEther(`${ amountIn }`), 
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther(`${ amountIn }`) }
                 )
 
@@ -2748,7 +2732,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on sell-type pool")
 
@@ -2770,7 +2754,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         tokenIds,
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient NFT balance")
 
@@ -2788,7 +2772,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Swap cannot be traded")
 
@@ -2806,7 +2790,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Input amount is greater than max expected")
 
@@ -2825,7 +2809,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient amount of ETH")
 
@@ -2861,7 +2845,7 @@ describe("MetaPools", function () {
                 const tx = await pool.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0]],
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -2916,7 +2900,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForNFT(
                     [tokenIds[0], tokenIds[1]],
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -2962,7 +2946,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForNFT( 
                     tokenIds, 
                     parseEther(`${ amountIn }`), 
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther(`${ amountIn }`) }
                 )
 
@@ -3007,7 +2991,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         3,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on sell-type pool")
 
@@ -3027,7 +3011,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         11, // try to buy 11 NFTs
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient NFT balance")
 
@@ -3049,7 +3033,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         0,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Swap cannot be traded")
 
@@ -3073,7 +3057,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         2,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Input amount is greater than max expected")
 
@@ -3096,7 +3080,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         2,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient amount of ETH")
 
@@ -3131,7 +3115,7 @@ describe("MetaPools", function () {
                 const tx = await pool.connect(otherAccount).swapTokenForAnyNFT(
                     1,
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3182,7 +3166,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForAnyNFT(
                     10,
                     parseEther(`${expectedInput}`),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther(`${expectedInput}`) }
                 )
 
@@ -3222,7 +3206,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     2,
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3267,7 +3251,7 @@ describe("MetaPools", function () {
                 await pool.swapTokenForAnyNFT(
                     2,
                     maxExpected,
-                    owner.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3314,7 +3298,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForAnyNFT( 
                     tokenIds.length, 
                     parseEther(`${ amountIn }`), 
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther(`${ amountIn }`) }
                 )
         
@@ -3358,7 +3342,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         3,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Cannot sell on sell-type pool")
 
@@ -3378,7 +3362,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         11, // try to buy 11 NFTs
                         minExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient NFT balance")
 
@@ -3400,7 +3384,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         0,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Swap cannot be traded")
 
@@ -3424,7 +3408,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         2,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Input amount is greater than max expected")
 
@@ -3447,7 +3431,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForAnyNFT(
                         2,
                         maxExpected,
-                        owner.address
+                        ethers.constants.AddressZero
                     )
                 ).to.be.revertedWith("Insufficient amount of ETH")
 
@@ -3482,7 +3466,7 @@ describe("MetaPools", function () {
                 const tx = await pool.connect(otherAccount).swapTokenForAnyNFT(
                     1,
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3533,7 +3517,7 @@ describe("MetaPools", function () {
                 await pool.connect(otherAccount).swapTokenForAnyNFT(
                     10,
                     parseEther(`${expectedInput}`),
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: parseEther(`${expectedInput}`) }
                 )
 
@@ -3573,7 +3557,7 @@ describe("MetaPools", function () {
                 await pool.connect( otherAccount ).swapTokenForAnyNFT(
                     2,
                     maxExpected,
-                    otherAccount.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3618,7 +3602,7 @@ describe("MetaPools", function () {
                 await pool.swapTokenForAnyNFT(
                     2,
                     maxExpected,
-                    owner.address,
+                    ethers.constants.AddressZero,
                     { value: maxExpected }
                 )
 
@@ -3895,7 +3879,7 @@ describe("MetaPools", function () {
                     pool.connect( otherAccount ).swapNFTsForToken(
                         userNFTs,
                         minExpected,
-                        otherAccount.address
+                        ethers.constants.AddressZero
                     )
                 ).to.emit(pool, "SellLog")
                     .withArgs(otherAccount.address, userNFTs.length, parseEther(`${expextedOut}`))
@@ -3920,7 +3904,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         tokenIds,
                         maxExpected,
-                        owner.address,
+                        ethers.constants.AddressZero,
                         { value: parseEther(`${amountIn}`) }
                     )
                 ).to.emit(pool, "BuyLog")
@@ -3951,7 +3935,7 @@ describe("MetaPools", function () {
                     pool.connect( otherAccount ).swapNFTsForToken(
                         [userNFTs[0]],
                         0,
-                        otherAccount.address
+                        ethers.constants.AddressZero
                     )
                 ).to.emit(pool, "NewStartPrice")
 
@@ -3981,7 +3965,7 @@ describe("MetaPools", function () {
                     pool.swapTokenForNFT(
                         [tokenIds[0]],
                         parseEther("100"),
-                        owner.address,
+                        ethers.constants.AddressZero,
                         { value: parseEther(`${ amountIn }`) }
                     )
                 ).to.emit(pool, "NewMultiplier")
