@@ -49,6 +49,7 @@ interface IMSPool {
     /// @return poolAlgorithm Address of the algorithm
     /// @return poolAlgorithmName Name of the algorithm
     /// @return poolPoolType The type of the pool
+    /// @return assetsRecipient Recipient of the trade assets
     function getPoolInfo() external view returns( 
         uint128 poolMultiplier,
         uint128 poolStartPrice,
@@ -57,7 +58,8 @@ interface IMSPool {
         uint[] memory poolNFTs,
         IMetaAlgorithm poolAlgorithm,
         string memory poolAlgorithmName,
-        PoolTypes.PoolType poolPoolType);
+        PoolTypes.PoolType poolPoolType,
+        address assetsRecipient);
 
     /// @notice It sets all the pool params
     /// @param _multiplier Multiplier to calculate the price

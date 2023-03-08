@@ -87,6 +87,17 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /*************************************************************************/
     /*************************** PRIVATE FUNCTIONS ***************************/
 
+    /// @notice Returns the address of the user that is interacting with the pool
+    /// @param _user The address passed as param in the Trade functions
+    /// @return caller Address to interact with the pool
+    function _getUser( address _user ) private view returns ( address caller ) {
+
+        if( factory.isRouterAllowed( msg.sender ) ) caller = _user;
+
+        else caller = msg.sender;
+
+    }
+
     /// @notice Returns the info to sell NFTs and updates the params
     /// @param _numNFTs Number of NFTs to sell at pool
     /// @param _minExpectedOut The minimum number of tokens expected to be returned to the user
@@ -465,6 +476,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
     /// @return poolAlgorithm Address of the algorithm
     /// @return poolAlgorithmName Name of the algorithm
     /// @return poolPoolType The type of the pool
+    /// @return assetsRecipient Recipient of the trade assets
     function getPoolInfo() public view returns( 
         uint128 poolMultiplier,
         uint128 poolStartPrice,
@@ -473,7 +485,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         uint[] memory poolNFTs,
         IMetaAlgorithm poolAlgorithm,
         string memory poolAlgorithmName,
-        PoolTypes.PoolType poolPoolType
+        PoolTypes.PoolType poolPoolType,
+        address assetsRecipient
     ){
         poolMultiplier = multiplier;
 
@@ -488,6 +501,8 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
         ( poolAlgorithm, poolAlgorithmName ) = getAlgorithmInfo();
 
         poolPoolType = currentPoolType;
+
+        assetsRecipient = getAssetsRecipient();
 
     }
     
@@ -556,6 +571,10 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         require( address( this ).balance >= _minExpectedOut, "Insufficient token balance");
 
+        // in case the trade caller is not a router approved the user is the msg.sender
+
+        address user = _getUser( _user );
+
         uint256 protocolFee;
 
         uint128 newStartPrice;
@@ -571,15 +590,15 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         // receive NFTs and send Tokens
 
-        _receiveNFTs( _user, _tokenIDs );
+        _receiveNFTs( user, _tokenIDs );
 
-        _sendTokensAndPayFee( protocolFee, outputAmount, _user );
+        _sendTokensAndPayFee( protocolFee, outputAmount, user );
 
         // update Start Price and Multiplier if is needed
 
         _updatePoolPriceParams( newStartPrice, newMultiplier );
 
-        emit SellLog( _user, _tokenIDs.length, outputAmount );
+        emit SellLog( user, _tokenIDs.length, outputAmount );
 
     }
 
@@ -596,6 +615,10 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             IERC721( NFT ).balanceOf( address( this ) ) >= _tokenIDs.length,
             "Insufficient NFT balance" 
         );
+
+        // in case the trade caller is not a router approved the user is the msg.sender
+
+        address user = _getUser( _user );
 
         uint protocolFee;
 
@@ -614,7 +637,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
-        _sendOutputNFTs( _user, _tokenIDs );
+        _sendOutputNFTs( user, _tokenIDs );
 
         // update Start Price and Multiplier if is needed
 
@@ -624,7 +647,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _returnRemainingValue( inputAmount );
 
-        emit BuyLog( _user, inputAmount, _tokenIDs.length);
+        emit BuyLog( user, inputAmount, _tokenIDs.length);
         
     }
 
@@ -641,6 +664,10 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
             IERC721( NFT ).balanceOf( address( this ) ) >= _numNFTs,
             "Insufficient NFT balance" 
         );
+
+        // in case the trade caller is not a router approved the user is the msg.sender
+
+        address user = _getUser( _user );
 
         uint protocolFee;
 
@@ -659,7 +686,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _receiveTokensAndPayFee( inputAmount, protocolFee );
 
-        _sendAnyOutputNFTs( _user, _numNFTs );
+        _sendAnyOutputNFTs( user, _numNFTs );
 
         // update Start Price and Multiplier if is needed
 
@@ -669,7 +696,7 @@ abstract contract MSPoolBasic is IMSPool, ReentrancyGuard, Ownable {
 
         _returnRemainingValue( inputAmount );
 
-        emit BuyLog( _user, inputAmount, _numNFTs);
+        emit BuyLog( user, inputAmount, _numNFTs);
         
     }
 

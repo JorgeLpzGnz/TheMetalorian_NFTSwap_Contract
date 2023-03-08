@@ -103,7 +103,7 @@ contract LinearAlgorithm is IMetaAlgorithm {
 
     }
 
-    /// @notice Returns the info to Sell NFTs in Constant Product market
+    /// @notice Returns the info to Sell NFTs in Linear market
     /// @param _multiplier Pool multiplier
     /// @param _startPrice Pool Start price
     /// @param _numItems Number of Items to buy

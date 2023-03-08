@@ -416,6 +416,65 @@ describe("MetaFactory", function () {
         })
 
     })
+
+    describe("is Router Allowed", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return a valid bool", async () => {
+
+                const { metaFactory, otherAccount, owner } = await loadFixture(deployMetaFactory)
+
+                // using accounts addresses for simplicity 
+
+                // in other account address it should return false
+
+                expect( 
+                    await metaFactory.isRouterAllowed( otherAccount.address) 
+                ).to.be.false
+
+                // set approval for an address this because at the initial state 
+                // any address is allowed
+
+                await metaFactory.setRouterApproval( owner.address, true )
+
+                // in owner address it should return true
+
+                expect( 
+                    await metaFactory.isRouterAllowed( owner.address ) 
+                ).to.be.true
+
+            })
+
+        })
+
+    })
+
+    describe("is Algorithm Allowed", () => {
+
+        describe(" - Functionalities", () => {
+
+            it("1. should return a valid bool", async () => {
+
+                const { metaFactory, otherAccount, linearAlgorithm } = await loadFixture(deployMetaFactory)
+
+                // using accounts addresses for simplicity 
+
+                //  any of the initial algorithms must return true
+
+                expect( 
+                    await metaFactory.isAlgorithmAllowed( linearAlgorithm.address ) 
+                ).to.be.true
+
+                expect( 
+                    await metaFactory.isAlgorithmAllowed( otherAccount.address) 
+                ).to.be.false
+
+            })
+
+        })
+
+    })
     
     describe("Create pool", () => {
 
